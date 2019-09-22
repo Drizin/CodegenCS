@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Richard Drizin</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/</PackageProjectUrl>
+    <Description>C# Library for Code Generation
+... or Yet Another Code Generator</Description>
+    <Copyright>Richard Drizin</Copyright>
+  </PropertyGroup>
+
+</Project>
