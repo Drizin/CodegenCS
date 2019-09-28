@@ -269,7 +269,87 @@ namespace CodegenCS
                 WriteWithIndents(text);
                 // arguments[i] may not work because same argument can be used multiple times
                 var arg = arguments[int.Parse(matches[i].Value.Substring(1, 1))];
-                if (arg as FormattableString != null)
+
+                Type[] interfaceTypes = arg.GetType().GetInterfaces();
+                Type interfaceType;
+                if ((interfaceType = interfaceTypes.SingleOrDefault(t => 
+                    t.IsGenericType && 
+                    t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                    t.GetGenericArguments()[0].IsAssignableFrom(typeof(FormattableString))
+                    )) != null)
+                {
+                    ExecuteInlineAction(() =>
+                    {
+                        IEnumerable<FormattableString> list = (IEnumerable<FormattableString>)arg;
+                        for(int j = 0; j < list.Count(); j++)
+                        {
+                            FormattableString item = list.ElementAt(j);
+                            Write(item);
+                            if (j < list.Count() - 1)
+                                WriteLine();
+                        }
+                    });
+                }
+                else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+                    t.IsGenericType &&
+                    t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                    t.GetGenericArguments()[0].IsGenericType &&
+                    t.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<>) &&
+                    t.GetGenericArguments()[0].GetGenericArguments()[0].IsAssignableFrom(typeof(FormattableString))
+                    )) != null)
+                {
+                    ExecuteInlineAction(() =>
+                    {
+                        IEnumerable<Func<FormattableString>> list = (IEnumerable<Func<FormattableString>>)arg;
+                        for (int j = 0; j < list.Count(); j++)
+                        {
+                            Func<FormattableString> item = list.ElementAt(j);
+                            Write(item);
+                            if (j < list.Count() - 1)
+                                WriteLine();
+                        }
+                    });
+                }
+                else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+                    t.IsGenericType &&
+                    t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                    t.GetGenericArguments()[0].IsGenericType &&
+                    t.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<>) &&
+                    t.GetGenericArguments()[0].GetGenericArguments()[0].IsAssignableFrom(typeof(string))
+                    )) != null)
+                {
+                    ExecuteInlineAction(() =>
+                    {
+                        IEnumerable<Func<string>> list = (IEnumerable<Func<string>>)arg;
+                        for (int j = 0; j < list.Count(); j++)
+                        {
+                            Func<string> item = list.ElementAt(j);
+                            Write(item);
+                            if (j < list.Count() - 1)
+                                WriteLine();
+                        }
+                    });
+                }
+                else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+                    t.IsGenericType &&
+                    t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                    t.GetGenericArguments()[0].IsAssignableFrom(typeof(string))
+                    )) != null)
+                {
+                    ExecuteInlineAction(() =>
+                    {
+                        IEnumerable<string> list = (IEnumerable<string>)arg;
+                        for (int j = 0; j < list.Count(); j++)
+                        {
+                            string item = list.ElementAt(j);
+                            Write(item);
+                            if (j < list.Count() - 1)
+                                WriteLine();
+                        }
+                    });
+
+                }
+                else if (arg as FormattableString != null)
                 {
                     ExecuteInlineAction(() =>
                     {
@@ -394,6 +474,17 @@ namespace CodegenCS
                 WriteWithIndents(value);
             }
         }
+        public void Write(Func<string> fnString)
+        {
+            string value = fnString();
+            Write(value);
+        }
+        public void WriteLine(Func<string> fnString)
+        {
+            Write(fnString());
+            WriteLine();
+        }
+
         public override void WriteLine(string value)
         {
             Write(value);
