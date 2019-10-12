@@ -28,74 +28,142 @@ namespace CodegenCS
 
         public Dictionary<string, List<string>> _addedDependentItems = new Dictionary<string, List<string>>(StringComparer.InvariantCultureIgnoreCase);
 
-
-
         /// <summary>
         /// Adds a single item, optionally dependent of a parent item (DependentUpon). 
         /// </summary>
-        public void AddItem(string itemPath, string parentItemPath = null, OutputFileType itemType = OutputFileType.Compile)
+        public void AddItem(string itemPath, OutputFileType itemType = OutputFileType.Compile, string parentItemPath = null)
         {
-            if (itemType == OutputFileType.NonProjectItem)
-                return;
-
+            XmlNode itemGroup = null;
             itemPath = new Uri(this._projectFileFullPath).MakeRelativeUri(new Uri(new FileInfo(itemPath).FullName)).ToString().Replace("/", "\\");
+            if (parentItemPath != null)
+                parentItemPath = new Uri(this._projectFileFullPath).MakeRelativeUri(new Uri(new FileInfo(parentItemPath).FullName)).ToString().Replace("/", "\\");
 
-            if (IsCore && parentItemPath == null) // no need to add files, should be automatically under csproj folder
+            if (parentItemPath != null && !IsCore)
             {
-                //TODO: double check that file is under csproj folder?
-                return;
+                // ensure parent file is in msbuild project
+                XmlNode parentNode = _doc.SelectSingleNode("//*[@Include='" + parentItemPath + "'][local-name()='None' or local-name()='Compile']");
+                if (!IsCore && parentNode == null)
+                    throw new Exception($"Parent item not found in project file {this._projectFileFullPath}");
+                itemGroup = parentNode.ParentNode;
             }
 
-            XmlNode itemGroup = null;
+            if (itemGroup == null)
+                itemGroup = _doc.SelectSingleNode("//msbuild:ItemGroup", _nsmgr);
+            if (itemGroup == null)
+            {
+                XmlNode project = _doc.SelectSingleNode("//msbuild:Project", _nsmgr);
+                itemGroup = _doc.CreateElement("ItemGroup", _doc.DocumentElement.NamespaceURI);
+                project.AppendChild(itemGroup);
+            }
+
+
             if (parentItemPath != null)
             {
-                parentItemPath = new Uri(this._projectFileFullPath).MakeRelativeUri(new Uri(new FileInfo(parentItemPath).FullName)).ToString().Replace("/", "\\");
                 if (!_addedDependentItems.ContainsKey(parentItemPath))
                     _addedDependentItems[parentItemPath] = new List<string>();
                 _addedDependentItems[parentItemPath].Add(itemPath);
 
-                if (!IsCore)
-                {
-                    XmlNode parentNode = _doc.SelectSingleNode("//*[@Include='" + parentItemPath + "'][local-name()='None' or local-name()='Compile']");
-                    if (!IsCore && parentNode == null)
-                        throw new Exception($"Parent item not found in project file {this._projectFileFullPath}");
-                    itemGroup = parentNode.ParentNode;
-                }
             }
-            if (itemGroup == null)
-                itemGroup = _doc.SelectSingleNode("//msbuild:ItemGroup", _nsmgr);
 
-
-            // If there's the exact node we want, skip it
-            if (parentItemPath != null && _doc.SelectSingleNode("//msbuild:" + itemType.ToString() + "[msbuild:DependentUpon/text()='" + parentItemPath + "'][@" + (IsCore?"Update":"Include") + "='" + itemPath + "']", _nsmgr) != null)
-                return;
-
-            if (parentItemPath == null && _doc.SelectSingleNode("//msbuild:" + itemType.ToString() + "[@Include='" + itemPath + "']", _nsmgr) != null) // IsCore==false
-                return;
-
-            // If there's same file, maybe other type or maybe other dependency, remove it
-            XmlNode existingNode = _doc.SelectSingleNode("//*[local-name()='None' or local-name()='Compile'][@" + (IsCore ? "Update" : "Include") + "='" + itemPath + "']", _nsmgr);
-            if (existingNode != null)
-                existingNode.ParentNode.RemoveChild(existingNode);
-
-            XmlElement newElement = _doc.CreateElement(itemType.ToString(), _doc.DocumentElement.NamespaceURI);
             if (IsCore)
             {
                 //TODO: double check that file is under csproj folder?
-                newElement.SetAttribute("Update", itemPath);
             }
-            else
+
+            // Checking the netcore "Compile Remove" nodes.
+            if (IsCore)
             {
-                newElement.SetAttribute((IsCore ? "Update" : "Include"), itemPath);
+                XmlNode compileRemoveNode = _doc.SelectSingleNode("//msbuild:Compile[@Remove='" + itemPath + "']", _nsmgr);
+
+                // Compiled files shouldn't have a "Compile Remove" node. "None" files should.
+                if (itemType == OutputFileType.Compile)
+                {
+                    if (compileRemoveNode != null)
+                        compileRemoveNode.ParentNode.RemoveChild(compileRemoveNode);
+                }
+                else
+                {
+                    if (compileRemoveNode == null)
+                    {
+                        XmlElement newCompileRemoveNode = _doc.CreateElement("Compile", _doc.DocumentElement.NamespaceURI);
+                        newCompileRemoveNode.SetAttribute("Remove", itemPath);
+                        itemGroup.AppendChild(newCompileRemoveNode); //TODO: does this need to be before the "None Update" node?
+                    }
+                }
             }
+
+            // Checking the "None/Compile" nodes
+            //XmlNode existingElement = _doc.SelectSingleNode("//*[local-name()='None' or local-name()='Compile'][@" + ((IsCore && itemType == OutputFileType.Compile) ? "Update" : "Include") + "='" + itemPath + "']", _nsmgr);
+            XmlElement existingElement = (XmlElement)_doc.SelectSingleNode("//*[local-name()='None' or local-name()='Compile'][@Include='" + itemPath + "' or @Update='" + itemPath + "']", _nsmgr);
+            if (existingElement != null)
+            {
+                // node exists in csproj but shouldn't be there
+                if (itemType == OutputFileType.NonProjectItem)
+                { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
+
+                // node exists but wrong type
+                if (!IsCore && itemType.ToString() != existingElement.Name)
+                { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
+
+                // node exists but wrong type
+                if (!IsCore && itemType.ToString() != existingElement.Name)
+                { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
+
+                // node exists but is not necessary
+                if (IsCore && itemType == OutputFileType.Compile && parentItemPath == null)
+                { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
+
+                //// node exists shouldn't be there
+                //if (IsCore && itemType == OutputFileType.Compile && parentItemPath != null 
+                //    && existingElement.SelectSingleNode("[msbuild:DependentUpon/text()='" + parentItemPath + "'][@" + ((IsCore && itemType == OutputFileType.Compile) ? "Update" : "Include") + "='" + itemPath + "']", _nsmgr) != null)
+                //{ existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
+                //_doc.SelectSingleNode("//msbuild:" + itemType.ToString() + 
+            }
+
+            if (itemType == OutputFileType.NonProjectItem)
+                return;
+            // core projects don't need to declare regular compiled files
+            if (existingElement == null && (IsCore && itemType == OutputFileType.Compile) && parentItemPath == null)
+                return;
+
+            string expectedType = "Include";
+            if (IsCore && itemType == OutputFileType.Compile)
+                expectedType = "Update";
+
+            if (existingElement != null)
+            {
+                if (existingElement.Attributes["Include"] != null && (expectedType != "Include" || existingElement.Attributes["Include"].Value != itemPath))
+                    existingElement.Attributes.RemoveNamedItem("Include");
+                if (existingElement.Attributes["Update"] != null && (expectedType != "Update" || existingElement.Attributes["Update"].Value != itemPath))
+                    existingElement.Attributes.RemoveNamedItem("Update");
+            }
+            if (existingElement == null)
+            {
+                existingElement = _doc.CreateElement(itemType.ToString(), _doc.DocumentElement.NamespaceURI);
+                existingElement.SetAttribute(((IsCore && itemType == OutputFileType.Compile) ? "Update" : "Include"), itemPath);
+            }
+            if (existingElement.Attributes["Include"] == null && expectedType == "Include")
+                existingElement.SetAttribute("Include", itemPath);
+            if (existingElement.Attributes["Update"] == null && expectedType == "Update")
+                existingElement.SetAttribute("Update", itemPath);
+
 
             if (parentItemPath != null)
             {
-                XmlElement dependentUpon = _doc.CreateElement("DependentUpon", _doc.DocumentElement.NamespaceURI);
-                dependentUpon.InnerText = parentItemPath;
-                newElement.AppendChild(dependentUpon);
+                if (existingElement.SelectSingleNode("//msbuild:DependentUpon[text()='" + parentItemPath + "']", _nsmgr) == null)
+                {
+                    var nodes = existingElement.SelectNodes("//msbuild:DependentUpon", _nsmgr);
+                    for (int i = 0; i < nodes.Count; i++)
+                        nodes.Item(i).ParentNode.RemoveChild(nodes.Item(i));
+
+                    XmlElement dependentUpon = _doc.CreateElement("DependentUpon", _doc.DocumentElement.NamespaceURI);
+                    dependentUpon.InnerText = parentItemPath;
+                    existingElement.AppendChild(dependentUpon);
+                }
             }
-            itemGroup.AppendChild(newElement);
+
+            if (existingElement.ParentNode == null) // new elements
+                itemGroup.AppendChild(existingElement);
         }
 
         /// <summary>

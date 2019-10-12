@@ -26,14 +26,14 @@ namespace CodegenCS
 
         public CodegenContext(string outputFolder)
         {
-            this.OutputFolder = outputFolder;
+            this.OutputFolder = new System.IO.DirectoryInfo(outputFolder).FullName;
         }
 
         public CodegenContext() : this(outputFolder: Environment.CurrentDirectory) // maybe Directory.GetParent(Environment.CurrentDirectory).Parent.FullName?
         {
         }
 
-        public void SaveFiles()
+        public void SaveFiles(bool deleteOtherFiles = false)
         {
             if (this.Errors.Any())
                 throw new Exception(this.Errors.First());
@@ -43,13 +43,36 @@ namespace CodegenCS
                 System.IO.Directory.CreateDirectory(new FileInfo(absolutePath).Directory.FullName);
                 System.IO.File.WriteAllText(absolutePath, f.Value.GetContents());
             }
+            if (deleteOtherFiles)
+            {
+                var files = new DirectoryInfo(this.OutputFolder).GetFiles("*.*", SearchOption.AllDirectories);
+                var generatedFiles = this.OutputFilesAbsolute.Keys.Select(p => p.ToLower()).ToList();
+                foreach(var file in files)
+                {
+                    if (!generatedFiles.Contains(file.FullName.ToLower()))
+                    {
+                        File.Delete(file.FullName);
+                    }
+                }
+
+            }
         }
 
-        public CodegenTextWriter GetTextWriter(string relativePath)
+        public CodegenOutputFile GetOutputFile(string relativePath, OutputFileType fileType = OutputFileType.NonProjectItem)
         {
             if (!this._outputFiles.ContainsKey(relativePath))
-                this._outputFiles[relativePath] = new CodegenOutputFile(relativePath);            return this._outputFiles[relativePath].Writer;
+            {
+                this._outputFiles[relativePath] = new CodegenOutputFile(relativePath);
+                this._outputFiles[relativePath].ItemType = fileType;
+            }
+            return this._outputFiles[relativePath];
         }
+        public CodegenTextWriter GetTextWriter(string relativePath)
+        {
+            return GetOutputFile(relativePath).Writer;
+        }
+
+
     }
 
     public enum OutputFileType
