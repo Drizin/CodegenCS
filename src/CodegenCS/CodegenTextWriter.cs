@@ -176,9 +176,35 @@ namespace CodegenCS
             }
         }
 
+        /// <summary>
+        /// Increases the indent level, and when disposed will decrease it.
+        /// </summary>
+        /// <returns></returns>
         public IDisposable WithIndent() => new Indent(this);
-        public IDisposable WithCStyleBlock() => new Indent(this, "{" + this.NewLine, "}" + this.NewLine);
-        public IDisposable WithCStyleBlock(string lineBeforeBlock) => new Indent(this, lineBeforeBlock + this.NewLine + "{" + this.NewLine, "}" + this.NewLine);
+
+        /// <summary>
+        /// Opens a C-style Block (Compound Statement) which starts with curly-braces, followed by a linebreak, and then increases the indent level.
+        /// When disposed, will decrease indent level, close the curly braces, and add another linebreak.
+        /// </summary>
+        /// <returns></returns>
+        public IDisposable WithCBlock() => new Indent(this, "{" + this.NewLine, "}" + this.NewLine);
+
+        /// <summary>
+        /// Writes a text line, followed by a linebreak, then opens a C-style Block (Compound Statement) which starts with curly-braces, followed by a linebreak, and then increases the indent level.
+        /// When disposed, will decrease indent level, close the curly braces, and add another linebreak.
+        /// </summary>
+        /// <param name="lineBeforeBlock"></param>
+        /// <returns></returns>
+        public IDisposable WithCBlock(string lineBeforeBlock) => new Indent(this, lineBeforeBlock + this.NewLine + "{" + this.NewLine, "}" + this.NewLine);
+
+        /// <summary>
+        /// Writes a text line, followed (without linebreaks) by the beginning of a javascript-style Block which starts with curly-braces, followed by a linebreak, and then increases the indent level.
+        /// When disposed, will decrease indent level, close the curly braces, and add another linebreak.
+        /// </summary>
+        /// <param name="lineBeforeBlock"></param>
+        /// <returns></returns>
+        public IDisposable WithJavascriptBlock(string lineBeforeBlock) => new Indent(this, lineBeforeBlock + "{" + this.NewLine, "}" + this.NewLine);
+
 
         public void WriteIndent()
         {

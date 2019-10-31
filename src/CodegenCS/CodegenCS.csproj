@@ -2,12 +2,13 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
-    <Authors>Richard Drizin</Authors>
+    <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Drizin/CodegenCS/</PackageProjectUrl>
     <Description>C# Library for Code Generation
 ... or Yet Another Code Generator</Description>
     <Copyright>Richard Drizin</Copyright>
+    <Company>Rick Drizin</Company>
   </PropertyGroup>
 
   <ItemGroup>
