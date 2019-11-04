@@ -1688,7 +1688,7 @@ SELECT  SERVERPROPERTY('Edition') AS Edition,
             }
         }
 
-        private static string GetRelationship(Relationship relationship, IList<Column> fkCols, IList<Column> pkCols, string pkPropName, string fkPropName, string manyToManyMapping, string mapKey, bool cascadeOnDelete, bool includeReverseNavigation, bool isNotEnforced)
+        public static string GetRelationship(Relationship relationship, IList<Column> fkCols, IList<Column> pkCols, string pkPropName, string fkPropName, string manyToManyMapping, string mapKey, bool cascadeOnDelete, bool includeReverseNavigation, bool isNotEnforced)
         {
             string hasMethod = GetHasMethod(relationship, fkCols, pkCols, isNotEnforced);
             string withMethod = GetWithMethod(relationship, fkCols, fkPropName, manyToManyMapping, mapKey, includeReverseNavigation);

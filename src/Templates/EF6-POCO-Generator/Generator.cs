@@ -760,7 +760,7 @@ namespace EF6POCOGenerator
                                 w?.WriteLine("System.Threading.Tasks.Task<int> SaveChangesAsync();");
                                 w?.WriteLine("System.Threading.Tasks.Task<int> SaveChangesAsync(System.Threading.CancellationToken cancellationToken);");
                             }
-                            w.WriteLine($@"
+                            w?.WriteLine($@"
                                 System.Data.Entity.Infrastructure.DbChangeTracker ChangeTracker {{ get; }}
                                 System.Data.Entity.Infrastructure.DbContextConfiguration Configuration {{ get; }}
                                 System.Data.Entity.Database Database {{ get; }}
@@ -829,7 +829,7 @@ namespace EF6POCOGenerator
                         StartNewFile(Settings.MigrationConfigurationFileName + Settings.FileExtension);
                     if (!Settings.GenerateSeparateFiles)
                     {
-                        w.WriteLine($@"
+                        w?.WriteLine($@"
                             // ************************************************************************
                             // Db Migration Configuration
                         ");
@@ -845,7 +845,7 @@ namespace EF6POCOGenerator
                             if (!string.IsNullOrEmpty(Settings.ContextKey))
                                 w?.WriteLine($@"ContextKey = ""{ Settings.ContextKey }"";");
                         }
-                        w.WriteLine(@"
+                        w?.WriteLine(@"
                             //protected override void Seed({Settings.DbContextName} context)
                             //{
 
@@ -959,7 +959,7 @@ namespace EF6POCOGenerator
 
                         if (!Settings.IsSqlCe)
                         {
-                            w.WriteLine($@"
+                            w?.WriteLine($@"
 
                                     public bool IsSqlParameterNull(System.Data.SqlClient.SqlParameter param)
                                     {{
@@ -1005,7 +1005,7 @@ namespace EF6POCOGenerator
 
                         if (Settings.DbContextClassIsPartial()) // Line 337
                         {
-                            w.WriteLine($@"
+                            w?.WriteLine($@"
                                 partial void InitializePartial();
                                 partial void DisposePartial(bool disposing);
                                 partial void OnModelCreatingPartial(System.Data.Entity.DbModelBuilder modelBuilder);
@@ -1031,7 +1031,7 @@ namespace EF6POCOGenerator
                                     if (returnModelsCount == 1) // Line 356
                                     {
                                         // Line 358 to 362
-                                        w.WriteLine($@"
+                                        w?.WriteLine($@"
                                             public {WriteStoredProcReturnType(sp) } {WriteStoredProcFunctionName(sp) }({WriteStoredProcFunctionParams(sp, false) })
                                             {{
                                                 int procResult;
@@ -1053,7 +1053,7 @@ namespace EF6POCOGenerator
                                         {
                                             var exec = string.Format("[{0}].[{1}]", sp.Schema, sp.Name);
                                             WriteStoredProcFunctionSetSqlParameters(w, sp, false);
-                                            w.WriteLine($@"
+                                            w?.WriteLine($@"
                                             var procResultData = new { spReturnClassName }();
                                             var cmd = Database.Connection.CreateCommand();
                                             cmd.CommandType = System.Data.CommandType.StoredProcedure;
@@ -1193,7 +1193,7 @@ namespace EF6POCOGenerator
                         StartNewFile(Settings.DbContextName + "Factory" + Settings.FileExtension);
                     if (!Settings.GenerateSeparateFiles)
                         w?.WriteLine("#region Database context factory\n"); // line 517
-                    w.WriteLine($@"
+                    w?.WriteLine($@"
                         { Settings.DbContextClassModifiers } class { Settings.DbContextName + "Factory" } : System.Data.Entity.Infrastructure.IDbContextFactory<{ Settings.DbContextName }>
                         {{
                             public { Settings.DbContextName } Create()
@@ -1246,7 +1246,7 @@ namespace EF6POCOGenerator
                                 w?.WriteLine("InitializePartial();");
                         }
 
-                        w.WriteLine($@"
+                        w?.WriteLine($@"
 
                             public int SaveChangesCount {{ get; private set; }}
                             public int SaveChanges()
@@ -1258,7 +1258,7 @@ namespace EF6POCOGenerator
                         if (Settings.IsSupportedFrameworkVersion("4.5"))
                         {
 
-                            w.WriteLine($@"
+                            w?.WriteLine($@"
 
                                 public System.Threading.Tasks.Task<int> SaveChangesAsync()
                                 {{
@@ -1277,7 +1277,7 @@ namespace EF6POCOGenerator
                         if (Settings.DbContextClassIsPartial())
                             w?.WriteLine("partial void InitializePartial();");
 
-                        w.WriteLine(@"
+                        w?.WriteLine(@"
                             protected virtual void Dispose(bool disposing)
                             {
                             }
@@ -1348,7 +1348,7 @@ namespace EF6POCOGenerator
 
                                     if (Settings.IsSupportedFrameworkVersion("4.5") && !StoredProcHasOutParams(sp) && returnModelsCount > 0)
                                     {
-                                        w.WriteLine($@"
+                                        w?.WriteLine($@"
 
                                         public System.Threading.Tasks.Task<{WriteStoredProcReturnType(sp)}> {WriteStoredProcFunctionName(sp) }Async({WriteStoredProcFunctionParams(sp, false) })
                                         {{
@@ -1387,7 +1387,7 @@ namespace EF6POCOGenerator
                             {
                                 string spExecNamespTvf = WriteStoredProcFunctionName(spTvf);
                                 string spReturnClassName = WriteStoredProcReturnModelName(spTvf);
-                                w.WriteLine($@"
+                                w?.WriteLine($@"
                                     [System.Data.Entity.DbFunction(""{ Settings.DbContextName}"", ""{ spTvf.Name}"")]
                                     public IQueryable<{ spReturnClassName }> { spExecNamespTvf } ({WriteStoredProcFunctionParams(spTvf, false)})
                                     {{
@@ -1406,7 +1406,7 @@ namespace EF6POCOGenerator
                         StartNewFile("FakeDbSet" + Settings.FileExtension);
                     if (Settings.GenerateSeparateFiles)
                         w?.WriteLine("using System.Linq;");
-                    w.WriteLine(@"
+                    w?.WriteLine(@"
                         // ************************************************************************
                         // Fake DbSet
                         // Implementing Find:
@@ -1453,7 +1453,7 @@ namespace EF6POCOGenerator
                         }
 
 
-                        w.WriteLine($@"
+                        w?.WriteLine($@"
 
                             public override TEntity Find(params object[] keyValues)
                             {{
@@ -1475,7 +1475,7 @@ namespace EF6POCOGenerator
 
                         if (Settings.IsSupportedFrameworkVersion("4.5"))
                         {
-                            w.WriteLine($@"
+                            w?.WriteLine($@"
                             public override System.Threading.Tasks.Task<TEntity> FindAsync(System.Threading.CancellationToken cancellationToken, params object[] keyValues)
                             {{
                                 return System.Threading.Tasks.Task<TEntity>.Factory.StartNew(() => Find(keyValues), cancellationToken);
@@ -1489,7 +1489,7 @@ namespace EF6POCOGenerator
 
                         }
 
-                        w.WriteLine($@"
+                        w?.WriteLine($@"
                             public override System.Collections.Generic.IEnumerable<TEntity> AddRange(System.Collections.Generic.IEnumerable<TEntity> entities)
                             {{
                                 if (entities == null) throw new System.ArgumentNullException(""entities"");
@@ -1587,7 +1587,7 @@ namespace EF6POCOGenerator
                         w?.WriteLine(CodeGeneratedAttribute);
                     using (w?.WithCBlock($@"{ Settings.DbContextClassModifiers } class FakeDbAsyncQueryProvider<TEntity> : System.Data.Entity.Infrastructure.IDbAsyncQueryProvider"))
                     {
-                        w.WriteLine($@"
+                        w?.WriteLine($@"
                             private readonly IQueryProvider _inner;
 
                             public FakeDbAsyncQueryProvider(IQueryProvider inner)
@@ -1643,7 +1643,7 @@ namespace EF6POCOGenerator
                         w?.WriteLine(CodeGeneratedAttribute);
                     using (w?.WithCBlock($@"{ Settings.DbContextClassModifiers } class FakeDbAsyncEnumerable<T> : EnumerableQuery<T>, System.Data.Entity.Infrastructure.IDbAsyncEnumerable<T>, IQueryable<T>"))
                     {
-                        w.WriteLine($@"
+                        w?.WriteLine($@"
                             public FakeDbAsyncEnumerable(System.Collections.Generic.IEnumerable<T> enumerable) : base(enumerable)
                             {{ }}
                             
@@ -1670,7 +1670,7 @@ namespace EF6POCOGenerator
                         w?.WriteLine(CodeGeneratedAttribute);
                     using (w?.WithCBlock($@"{ Settings.DbContextClassModifiers } class FakeDbAsyncEnumerator<T> : System.Data.Entity.Infrastructure.IDbAsyncEnumerator<T>"))
                     {
-                        w.WriteLine($@"
+                        w?.WriteLine($@"
                             private readonly System.Collections.Generic.IEnumerator<T> _inner;
 
                             public FakeDbAsyncEnumerator(System.Collections.Generic.IEnumerator<T> inner)
@@ -1816,9 +1816,9 @@ namespace EF6POCOGenerator
                         }
                         w?.WriteLine();
                     }
+                    if (!Settings.GenerateSeparateFiles)
+                        w?.WriteLine("\n#endregion\n"); // line 1110
                 }
-                if (Settings.ElementsToGenerate.HasFlag(Elements.Poco) && !Settings.GenerateSeparateFiles)
-                    w?.WriteLine("\n#endregion\n"); // line 1110
                 #endregion POCO classes (Line 1003 to 1112)
 
                 Console.WriteLine("POCO Configuration...");
@@ -1873,7 +1873,7 @@ namespace EF6POCOGenerator
                                 if (Settings.DbContextClassIsPartial())
                                     w?.WriteLine("InitializePartial();");
                             }
-                            if (Settings.EntityClassesArePartial())
+                            if (Settings.ConfigurationClassesArePartial())
                                 w?.WriteLine("partial void InitializePartial();");
                         } // Line 1172
                         w?.WriteLine("");
@@ -2568,7 +2568,7 @@ namespace EF6POCOGenerator
         /// </summary>
         void WriteFileHeader()
         {
-            w.WriteLine($@"
+            w?.WriteLine($@"
                 // <auto-generated>
                 // ReSharper disable ConvertPropertyToExpressionBody
                 // ReSharper disable DoNotCallOverridableMethodsInConstructor
