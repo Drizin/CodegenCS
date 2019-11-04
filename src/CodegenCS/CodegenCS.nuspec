@@ -12,7 +12,7 @@
     <description>C# Library for Code Generation</description>
     <copyright>Copyright Rick Drizin 2019</copyright>
     <tags>code generation;code generator;templating;codegencs</tags>
-    <repository type="git" url="https://github.com/Drizin/CodegenCS" commit="f999f6db138d201af3ce4952d5b1a07fed3410a2" />
+    <repository type="git" url="https://github.com/Drizin/CodegenCS" commit="9f2bfc2975f52b3ba2a536a02f0b4635c14a0753" />
     <dependencies>
       <dependency id="Dapper" version="2.0.30" exclude="Build,Analyzers" />
       <dependency id="Humanizer.Core" version="2.7.9" exclude="Build,Analyzers" />
