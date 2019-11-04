@@ -49,10 +49,10 @@ namespace Tests
             string myNamespace = "codegencs";
             string myClass = "Test1";
             _w.WriteLine($"namespace {myNamespace}");
-            using (_w.WithCStyleBlock())
+            using (_w.WithCBlock())
             {
                 _w.WriteLine($"public class {myClass}");
-                using (_w.WithCStyleBlock())
+                using (_w.WithCBlock())
                 {
                     _w.WriteLine("// My Properties start here");
                 }
@@ -76,9 +76,9 @@ namespace Tests
         {
             string myNamespace = "codegencs";
             string myClass = "Test1";
-            using (_w.WithCStyleBlock($"namespace {myNamespace}"))
+            using (_w.WithCBlock($"namespace {myNamespace}"))
             {
-                using (_w.WithCStyleBlock($"public class {myClass}"))
+                using (_w.WithCBlock($"public class {myClass}"))
                 {
                     _w.WriteLine("// My Properties start here");
                 }
