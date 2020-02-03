@@ -170,7 +170,8 @@ Some ideas for next steps:
 ## History
 - 2019-09-22: Initial public version. See [blog post here](http://drizin.io/yet-another-code-generator/)
 - 2019-10-30: Published Sample Template [EF 6 POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator)
-- 2019-11-03: Published [nuget package](https://www.nuget.org/packages/CodegenCS/)
+- 2019-11-03: Published [nuget package 1.0.0](https://www.nuget.org/packages/CodegenCS/)
+- 2019-11-04: Published [nuget package 1.0.1](https://www.nuget.org/packages/CodegenCS/) 
 
 ## License
 MIT License

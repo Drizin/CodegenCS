@@ -131,7 +131,12 @@
         </member>
         <member name="M:CodegenCS.MSBuildProjectEditor.RemoveUnusedDependentItems(System.String)">
             <summary>
-            Given an item in the project, will remove all items which depende on this parent item, except the items which were added using AddItem
+            Given an item in the project, will remove all items which depend on this parent item, except the items which were added using AddItem
+            </summary>
+        </member>
+        <member name="M:CodegenCS.MSBuildProjectEditor.RemoveUnusedItems(System.String)">
+            <summary>
+            Given a folder in the project, will remove all items which are under this folder, except the items which were added using AddItem
             </summary>
         </member>
         <member name="M:CodegenCS.Utils.Database.Execute(System.String,System.Object,System.Data.IDbTransaction,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">

@@ -26,7 +26,8 @@ namespace CodegenCS
                 IsCore = true;
         }
 
-        public Dictionary<string, List<string>> _addedDependentItems = new Dictionary<string, List<string>>(StringComparer.InvariantCultureIgnoreCase);
+        public Dictionary<string, List<string>> _addedDependentItems = new Dictionary<string, List<string>>();
+        public HashSet<string> _addedIndependentItems = new HashSet<string>();
 
         /// <summary>
         /// Adds a single item, optionally dependent of a parent item (DependentUpon). 
@@ -62,8 +63,13 @@ namespace CodegenCS
                 if (!_addedDependentItems.ContainsKey(parentItemPath))
                     _addedDependentItems[parentItemPath] = new List<string>();
                 _addedDependentItems[parentItemPath].Add(itemPath);
-
             }
+            else
+            {
+                if (!_addedDependentItems.ContainsKey(itemPath))
+                    _addedIndependentItems.Add(itemPath);
+            }
+
 
             if (IsCore)
             {
@@ -167,7 +173,7 @@ namespace CodegenCS
         }
 
         /// <summary>
-        /// Given an item in the project, will remove all items which depende on this parent item, except the items which were added using AddItem
+        /// Given an item in the project, will remove all items which depend on this parent item, except the items which were added using AddItem
         /// </summary>
         public void RemoveUnusedDependentItems(string parentItemPath)
         {
@@ -183,6 +189,26 @@ namespace CodegenCS
                 if (!_addedDependentItems[parentItemPath].Contains(itemName))
                     children.Item(i).ParentNode.RemoveChild(children.Item(i));
             }
+        }
+
+        /// <summary>
+        /// Given a folder in the project, will remove all items which are under this folder, except the items which were added using AddItem
+        /// </summary>
+        public void RemoveUnusedItems(string parentFolderPath)
+        {
+            parentFolderPath = new Uri(this._projectFileFullPath).MakeRelativeUri(new Uri(new DirectoryInfo(parentFolderPath).FullName)).ToString().Replace("/", "\\");
+
+            if (!IsCore)
+            {
+                XmlNodeList children = _doc.SelectNodes("//*[contains(@Include,'" + parentFolderPath + "')][local-name()='None' or local-name()='Compile']");
+                for (int i = 0; i < children.Count; i++)
+                {
+                    string itemName = children.Item(i).Attributes["Include"].Value;
+                    if (!_addedIndependentItems.Contains(itemName))
+                        children.Item(i).ParentNode.RemoveChild(children.Item(i));
+                }
+            }
+            //TODO: for core, do we need to remove anything?
         }
 
         public void Save()

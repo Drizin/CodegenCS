@@ -41,6 +41,10 @@ namespace CodegenCS
             {
                 string absolutePath = System.IO.Path.Combine(this.OutputFolder, f.Value.RelativePath);
                 System.IO.Directory.CreateDirectory(new FileInfo(absolutePath).Directory.FullName);
+                FileInfo fi = new FileInfo(absolutePath);
+                if (fi.Exists && new DirectoryInfo(fi.Directory.FullName).GetFiles(fi.Name).Single().Name != fi.Name)
+                    fi.Delete();
+                //if (File.Exists(absolutePath) && new FileInfo(absolutePath).Name != )
                 System.IO.File.WriteAllText(absolutePath, f.Value.GetContents());
             }
             if (deleteOtherFiles)

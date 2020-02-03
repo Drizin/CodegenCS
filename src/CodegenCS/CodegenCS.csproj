@@ -7,8 +7,10 @@
     <PackageProjectUrl>https://github.com/Drizin/CodegenCS/</PackageProjectUrl>
     <Description>C# Library for Code Generation
 ... or Yet Another Code Generator</Description>
-    <Copyright>Richard Drizin</Copyright>
+    <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
+    <Version>1.0.1</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
