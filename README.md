@@ -23,7 +23,7 @@ This is basically a TextWriter tweaked to solve common code generation difficult
 
 
 ## Installation
-Just install nuget package **CodegenCS**.
+Just install nuget package **[CodegenCS](https://www.nuget.org/packages/CodegenCS/)**.
 
 ##  Sample Template
 
