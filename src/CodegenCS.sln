@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS", "CodegenCS\Code
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenCS.Tests", "CodegenCS.Tests\CodegenCS.Tests.csproj", "{B035062F-1F6D-470B-8FB7-46F77A6A6E9B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.SqlServer", "CodegenCS.SqlServer\CodegenCS.SqlServer.csproj", "{8B3282F8-0080-4526-8ECE-45346BEB1D20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B035062F-1F6D-470B-8FB7-46F77A6A6E9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B035062F-1F6D-470B-8FB7-46F77A6A6E9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B035062F-1F6D-470B-8FB7-46F77A6A6E9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B3282F8-0080-4526-8ECE-45346BEB1D20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B3282F8-0080-4526-8ECE-45346BEB1D20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B3282F8-0080-4526-8ECE-45346BEB1D20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B3282F8-0080-4526-8ECE-45346BEB1D20}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
