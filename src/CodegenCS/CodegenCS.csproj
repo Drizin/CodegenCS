@@ -11,10 +11,7 @@
     <Company>Rick Drizin</Company>
     <Version>1.0.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
-    <DocumentationFile>D:\Repositories\CodegenCS\src\CodegenCS\CodegenCS.xml</DocumentationFile>
+    <DocumentationFile>CodegenCS.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
