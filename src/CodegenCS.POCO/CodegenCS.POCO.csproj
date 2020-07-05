@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+    <Authors>Rick Drizin</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO</PackageProjectUrl>
+    <Description>C# Code and Scripts to generate POCO classes (can be used by Dapper, PetaPoco or other micro-ORMs).</Description>
+    <Copyright>Rick Drizin</Copyright>
+    <Company>Rick Drizin</Company>
+    <Version>1.0.0</Version>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CodegenCS" Version="1.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+</Project>

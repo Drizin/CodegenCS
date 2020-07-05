@@ -5,6 +5,8 @@ C# Library for Code Generation
 
 **If you're looking for [CodegenCS.SqlServer](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer) which are scripts to reverse engineer a SQL Server database into JSON schema, check [this folder](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer)
 
+**If you're looking for [CodegenCS.POCO](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) which are scripts to read a JSON database schema and generate POCO classes, check [this folder](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO)
+
 
 # Description
 
