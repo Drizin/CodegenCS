@@ -55,7 +55,7 @@ namespace CodegenCS
                 {
                     if (!generatedFiles.Contains(file.FullName.ToLower()))
                     {
-                        File.Delete(file.FullName);
+                        File.Delete(file.FullName); // TODO: delete with Recycle bin? https://stackoverflow.com/questions/3282418/send-a-file-to-the-recycle-bin
                     }
                 }
 

@@ -3,6 +3,9 @@ C# Library for Code Generation
 
 ... or Yet Another Code Generator. Maybe a little better than T4 templates.
 
+**If you're looking for [CodegenCS.SqlServer](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer) which are scripts to reverse engineer a SQL Server database into JSON schema, check [this folder](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer)
+
+
 # Description
 
 This is a class library (targeting netstandard2.0 and .net full framework net472) that helps on code generation.  
@@ -36,11 +39,15 @@ In the future I'll add more sample templates.
 Please submit a pull-request or [contact me](http://drizin.io/pages/Contact/) with your idea.
 
 Some ideas for templates:
-- Generate Dapper classes
-- Generate Petapoco classes
-- Generate EF Core classes
+- Generate Dapper/Petapoco classes from database schema files
+- Generate EF Core Entities/DBContext
 - Generate Nancy endpoints for retrieving/updating business entities
 - Generate ASP.NET MVC (Razor Views CSHTML and Controllers) to display and edit business entities
+- Data Access Objects from database schema files
+- Web service wrappers (SOAP, REST)
+- Object caching
+- Application-level database journaling
+
 
 ## Documentation
 
@@ -172,6 +179,7 @@ Some ideas for next steps:
 - 2019-10-30: Published Sample Template [EF 6 POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator)
 - 2019-11-03: Published [nuget package 1.0.0](https://www.nuget.org/packages/CodegenCS/)
 - 2019-11-04: Published [nuget package 1.0.1](https://www.nuget.org/packages/CodegenCS/) 
+- 2020-07-05: New project/scripts [CodegenCS.SqlServer](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer) to reverse engineer a SQL Server database into JSON schema
 
 ## License
 MIT License
