@@ -140,7 +140,7 @@ public class SqlServerSchemaReader
                 table.Columns = allColumns.Where(c => c.TableSchema == table.TableSchema && c.TableName == table.TableName).ToList();
                 foreach(var column in table.Columns)
                 {
-                    column.ClrType = GetClrType(table, column)?.FullName;
+                    column.ClrType = GetClrType(table, column);
                 }
                 table.Columns.ForEach(c => { c.Database = null; c.TableSchema = null; c.TableName = null; });
 
@@ -164,57 +164,64 @@ public class SqlServerSchemaReader
         Console.WriteLine("Success!");
     }
 
-    System.Type GetClrType(SqlServerTable table, SqlServerColumn column)
+    string GetClrType(SqlServerTable table, SqlServerColumn column)
     {
         string sqlDataType = column.SqlDataType;
         switch (sqlDataType)
         {
             case "bigint":
-                return typeof(long);
+                return typeof(long).FullName;
             case "smallint":
-                return typeof(short);
+                return typeof(short).FullName;
             case "int":
-                return typeof(int);
+                return typeof(int).FullName;
             case "uniqueidentifier":
-                return typeof(Guid);
+                return typeof(Guid).FullName;
             case "smalldatetime":
             case "datetime":
+            case "datetime2":
             case "date":
             case "time":
-                return typeof(DateTime);
+                return typeof(DateTime).FullName;
+            case "datetimeoffset":
+                return typeof(DateTimeOffset).FullName;
             case "float":
-                return typeof(double);
+                return typeof(double).FullName;
             case "real":
-                return typeof(float);
+                return typeof(float).FullName;
             case "numeric":
             case "smallmoney":
             case "decimal":
             case "money":
-                return typeof(decimal);
+                return typeof(decimal).FullName;
             case "tinyint":
-                return typeof(byte);
+                return typeof(byte).FullName;
             case "bit":
-                return typeof(bool);
+                return typeof(bool).FullName;
             case "image":
             case "binary":
             case "varbinary":
             case "timestamp":
-                return typeof(byte[]);
+                return typeof(byte[]).FullName;
             case "nvarchar":
             case "varchar":
             case "nchar":
+            case "char":
             case "text":
+            case "ntext":
             case "xml":
-                return typeof(string);
+                return typeof(string).FullName;
             default:
                 Console.WriteLine($"Unknown sqlDataType for {table.TableName}.{column.ColumnName}: {sqlDataType}");
                 return null;
 
-            // there's no unique mapping for these types (it depends on the ORM)
-            // leave these special mappings to the POCO/DbContext generator which is ORM-specific...
+            // Vendor-specific types
             case "hierarchyid":
+                return "Microsoft.SqlServer.Types.SqlHierarchyId"; // requires Microsoft.SqlServer.Types.dll (EF or Dapper 1.34+)
             case "geography":
-                return null; 
+                return "Microsoft.SqlServer.Types.SqlGeography";  // requires Microsoft.SqlServer.Types.dll (EF or Dapper 1.32+)
+            case "geometry":
+                return "Microsoft.SqlServer.Types.SqlGeometry";  // requires Microsoft.SqlServer.Types.dll (EF or Dapper 1.33)+
         }
     }
 

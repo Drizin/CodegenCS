@@ -1,5 +1,5 @@
 {
-  "LastRefreshed": "2020-07-05T16:25:30.8954566-04:00",
+  "LastRefreshed": "2020-07-06T17:46:39.2821298-04:00",
   "Tables": [
     {
       "Database": "AdventureWorks",
@@ -509,7 +509,7 @@
           "DefaultSetting": null,
           "IsNullable": true,
           "SqlDataType": "hierarchyid",
-          "ClrType": null,
+          "ClrType": "Microsoft.SqlServer.Types.SqlHierarchyId",
           "MaxLength": 892,
           "IsIdentity": false,
           "IsComputed": false,
@@ -2642,7 +2642,7 @@
           "DefaultSetting": null,
           "IsNullable": true,
           "SqlDataType": "geography",
-          "ClrType": null,
+          "ClrType": "Microsoft.SqlServer.Types.SqlGeography",
           "MaxLength": -1,
           "IsIdentity": false,
           "IsComputed": false,
@@ -5038,7 +5038,7 @@
           "DefaultSetting": null,
           "IsNullable": false,
           "SqlDataType": "hierarchyid",
-          "ClrType": null,
+          "ClrType": "Microsoft.SqlServer.Types.SqlHierarchyId",
           "MaxLength": 892,
           "IsIdentity": false,
           "IsComputed": false,
@@ -6479,7 +6479,7 @@
           "DefaultSetting": null,
           "IsNullable": false,
           "SqlDataType": "hierarchyid",
-          "ClrType": null,
+          "ClrType": "Microsoft.SqlServer.Types.SqlHierarchyId",
           "MaxLength": 892,
           "IsIdentity": false,
           "IsComputed": false,
