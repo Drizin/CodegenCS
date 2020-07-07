@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Newtonsoft.Json;
 using System;
 using System.Data;
 using System.IO;
@@ -144,11 +145,13 @@ public class SqlServerSchemaReader
                 }
                 table.Columns.ForEach(c => { c.Database = null; c.TableSchema = null; c.TableName = null; });
 
-                table.ForeignKeys = fks.Where(fk => fk.PKTableSchema == table.TableSchema && fk.PKTableName == table.TableName).ToList();
-                table.ForeignKeys.ForEach(fk => { fk.PKTableSchema = null; fk.PKTableName = null; });
+                // We copy FKs and remove redundant properties of the parent object (table) which we're attaching this FK into
+                table.ForeignKeys = Clone(fks.Where(fk => fk.FKTableSchema == table.TableSchema && fk.FKTableName == table.TableName).ToList());
+                table.ForeignKeys.ForEach(fk => { fk.FKTableSchema = null; fk.FKTableName = null; });
 
-                table.ChildForeignKeys = fks.Where(fk => fk.FKTableSchema == table.TableSchema && fk.FKTableName == table.TableName).ToList();
-                table.ChildForeignKeys.ForEach(fk => { fk.FKTableSchema = null; fk.FKTableName = null; });
+                // We copy FKs and remove redundant properties of the parent object (table) which we're attaching this FK into
+                table.ChildForeignKeys = Clone(fks.Where(fk => fk.PKTableSchema == table.TableSchema && fk.PKTableName == table.TableName).ToList());
+                table.ChildForeignKeys.ForEach(fk => { fk.PKTableSchema = null; fk.PKTableName = null; });
             }
 
             SqlServerDatabaseSchema schema = new SqlServerDatabaseSchema()
@@ -158,7 +161,7 @@ public class SqlServerSchemaReader
             };
 
             Console.WriteLine($"Saving into {outputJsonSchema}...");
-            File.WriteAllText(outputJsonSchema, Newtonsoft.Json.JsonConvert.SerializeObject(schema, Newtonsoft.Json.Formatting.Indented));
+            File.WriteAllText(outputJsonSchema, JsonConvert.SerializeObject(schema, Newtonsoft.Json.Formatting.Indented));
         }
 
         Console.WriteLine("Success!");
@@ -223,6 +226,12 @@ public class SqlServerSchemaReader
             case "geometry":
                 return "Microsoft.SqlServer.Types.SqlGeometry";  // requires Microsoft.SqlServer.Types.dll (EF or Dapper 1.33)+
         }
+    }
+
+    public static T Clone<T>(T source)
+    {
+        var serialized = JsonConvert.SerializeObject(source);
+        return JsonConvert.DeserializeObject<T>(serialized);
     }
 
 }
