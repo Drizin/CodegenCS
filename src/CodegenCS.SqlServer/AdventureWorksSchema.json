@@ -1,5 +1,5 @@
 {
-  "LastRefreshed": "2020-07-06T20:24:32.2947675-04:00",
+  "LastRefreshed": "2020-07-07T21:44:37.6539494-04:00",
   "Tables": [
     {
       "Database": "AdventureWorks",
@@ -72,7 +72,29 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_AWBuildVersion_SystemInformationID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_AWBuildVersion_SystemInformationID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "SystemInformationID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -205,7 +227,40 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_DatabaseLog_DatabaseLogID",
+      "PrimaryKeyIsClustered": false,
+      "Indexes": [
+        {
+          "IndexName": null,
+          "IndexId": 0,
+          "PhysicalType": "HEAP",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": null,
+          "Columns": []
+        },
+        {
+          "IndexName": "PK_DatabaseLog_DatabaseLogID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "DatabaseLogID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -357,7 +412,29 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ErrorLog_ErrorLogID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_ErrorLog_ErrorLogID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ErrorLogID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -446,6 +523,46 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "DepartmentID",
               "FKColumnName": "DepartmentID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_Department_DepartmentID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Department_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Department_DepartmentID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "DepartmentID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -830,6 +947,124 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_Employee_BusinessEntityID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Employee_LoginID",
+          "IndexId": 4,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "LoginID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_Employee_NationalIDNumber",
+          "IndexId": 5,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "NationalIDNumber",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_Employee_rowguid",
+          "IndexId": 6,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_Employee_OrganizationLevel_OrganizationNode",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "OrganizationLevel",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "OrganizationNode",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_Employee_OrganizationNode",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "OrganizationNode",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Employee_BusinessEntityID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -993,7 +1228,83 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_EmployeeDepartmentHistory_BusinessEntityID_StartDate_DepartmentID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_EmployeeDepartmentHistory_DepartmentID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "DepartmentID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_EmployeeDepartmentHistory_ShiftID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ShiftID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_EmployeeDepartmentHistory_BusinessEntityID_StartDate_DepartmentID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "DepartmentID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ShiftID",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "StartDate",
+              "IndexOrdinalPosition": 4,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -1103,7 +1414,35 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_EmployeePayHistory_BusinessEntityID_RateChangeDate",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_EmployeePayHistory_BusinessEntityID_RateChangeDate",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "RateChangeDate",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -1196,7 +1535,47 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_JobCandidate_JobCandidateID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_JobCandidate_BusinessEntityID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_JobCandidate_JobCandidateID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "JobCandidateID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -1300,6 +1679,70 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "ShiftID",
               "FKColumnName": "ShiftID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_Shift_ShiftID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Shift_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_Shift_StartTime_EndTime",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "StartTime",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "EndTime",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Shift_ShiftID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ShiftID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -1586,7 +2029,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -1748,7 +2194,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -1925,7 +2374,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -2178,7 +2630,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -2385,7 +2840,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -2562,7 +3020,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -2784,6 +3245,106 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_Address_AddressID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Address_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_Address_AddressLine1_AddressLine2_City_StateProvinceID_PostalCode",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "AddressLine1",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "AddressLine2",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "City",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "StateProvinceID",
+              "IndexOrdinalPosition": 4,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "PostalCode",
+              "IndexOrdinalPosition": 5,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_Address_StateProvinceID",
+          "IndexId": 4,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "StateProvinceID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Address_AddressID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "AddressID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -2872,6 +3433,64 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "AddressTypeID",
               "FKColumnName": "AddressTypeID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_AddressType_AddressTypeID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_AddressType_Name",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_AddressType_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_AddressType_AddressTypeID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "AddressTypeID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -3023,6 +3642,46 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_BusinessEntity_BusinessEntityID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_BusinessEntity_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_BusinessEntity_BusinessEntityID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -3169,7 +3828,95 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_BusinessEntityAddress_BusinessEntityID_AddressID_AddressTypeID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_BusinessEntityAddress_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_BusinessEntityAddress_AddressID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "AddressID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_BusinessEntityAddress_AddressTypeID",
+          "IndexId": 4,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "AddressTypeID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_BusinessEntityAddress_BusinessEntityID_AddressID_AddressTypeID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "AddressID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "AddressTypeID",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -3315,7 +4062,95 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_BusinessEntityContact_BusinessEntityID_PersonID_ContactTypeID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_BusinessEntityContact_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_BusinessEntityContact_ContactTypeID",
+          "IndexId": 4,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ContactTypeID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_BusinessEntityContact_PersonID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "PersonID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_BusinessEntityContact_BusinessEntityID_PersonID_ContactTypeID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "PersonID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ContactTypeID",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -3389,6 +4224,46 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "ContactTypeID",
               "FKColumnName": "ContactTypeID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_ContactType_ContactTypeID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_ContactType_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_ContactType_ContactTypeID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ContactTypeID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -3504,6 +4379,46 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_CountryRegion_CountryRegionCode",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_CountryRegion_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_CountryRegion_CountryRegionCode",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "CountryRegionCode",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -3612,7 +4527,53 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_EmailAddress_BusinessEntityID_EmailAddressID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_EmailAddress_EmailAddress",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "EmailAddress",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_EmailAddress_BusinessEntityID_EmailAddressID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "EmailAddressID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -3718,7 +4679,29 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_Password_BusinessEntityID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_Password_BusinessEntityID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -4071,6 +5054,166 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_Person_BusinessEntityID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Person_rowguid",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_Person_LastName_FirstName_MiddleName",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": null,
+          "Columns": [
+            {
+              "ColumnName": "LastName",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "FirstName",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "MiddleName",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Person_BusinessEntityID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PXML_Person_AddContact",
+          "IndexId": 256000,
+          "PhysicalType": "XML",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Primary XML index.",
+          "Columns": [
+            {
+              "ColumnName": "AdditionalContactInfo",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PXML_Person_Demographics",
+          "IndexId": 256001,
+          "PhysicalType": "XML",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Primary XML index.",
+          "Columns": [
+            {
+              "ColumnName": "Demographics",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "XMLPATH_Person_Demographics",
+          "IndexId": 256002,
+          "PhysicalType": "XML",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Secondary XML index for path.",
+          "Columns": [
+            {
+              "ColumnName": "Demographics",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "XMLPROPERTY_Person_Demographics",
+          "IndexId": 256003,
+          "PhysicalType": "XML",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Secondary XML index for property.",
+          "Columns": [
+            {
+              "ColumnName": "Demographics",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "XMLVALUE_Person_Demographics",
+          "IndexId": 256004,
+          "PhysicalType": "XML",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Secondary XML index for value.",
+          "Columns": [
+            {
+              "ColumnName": "Demographics",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -4184,7 +5327,59 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_PersonPhone_BusinessEntityID_PhoneNumber_PhoneNumberTypeID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_PersonPhone_PhoneNumber",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "PhoneNumber",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_PersonPhone_BusinessEntityID_PhoneNumber_PhoneNumberTypeID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "PhoneNumber",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "PhoneNumberTypeID",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -4258,6 +5453,28 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "PhoneNumberTypeID",
               "FKColumnName": "PhoneNumberTypeID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_PhoneNumberType_PhoneNumberTypeID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_PhoneNumberType_PhoneNumberTypeID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "PhoneNumberTypeID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -4464,6 +5681,88 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "StateProvinceID",
               "FKColumnName": "StateProvinceID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_StateProvince_StateProvinceID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_StateProvince_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_StateProvince_rowguid",
+          "IndexId": 4,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_StateProvince_StateProvinceCode_CountryRegionCode",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "StateProvinceCode",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "CountryRegionCode",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_StateProvince_StateProvinceID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "StateProvinceID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -4733,7 +6032,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -4850,7 +6152,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -5057,7 +6362,77 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_BillOfMaterials_BillOfMaterialsID",
+      "PrimaryKeyIsClustered": false,
+      "Indexes": [
+        {
+          "IndexName": "AK_BillOfMaterials_ProductAssemblyID_ComponentID_StartDate",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ProductAssemblyID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ComponentID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "StartDate",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_BillOfMaterials_UnitMeasureCode",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "UnitMeasureCode",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_BillOfMaterials_BillOfMaterialsID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BillOfMaterialsID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -5130,6 +6505,46 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "CultureID",
               "FKColumnName": "CultureID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_Culture_CultureID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Culture_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Culture_CultureID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "CultureID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -5395,6 +6810,112 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_Document_DocumentNode",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Document_DocumentLevel_DocumentNode",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "DocumentLevel",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "DocumentNode",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_Document_rowguid",
+          "IndexId": 4,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support FileStream.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_Document_FileName_Revision",
+          "IndexId": 5,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "FileName",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "Revision",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Document_DocumentNode",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "DocumentNode",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "UQ__Document__F73921F750C2BA4B",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_CONSTRAINT",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": true,
+          "IndexDescription": null,
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -5469,6 +6990,28 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "IllustrationID",
               "FKColumnName": "IllustrationID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_Illustration_IllustrationID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_Illustration_IllustrationID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "IllustrationID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -5596,6 +7139,46 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "LocationID",
               "FKColumnName": "LocationID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_Location_LocationID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Location_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Location_LocationID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "LocationID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -6318,6 +7901,82 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_Product_ProductID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Product_Name",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_Product_ProductNumber",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ProductNumber",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_Product_rowguid",
+          "IndexId": 4,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Product_ProductID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -6406,6 +8065,64 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "ProductCategoryID",
               "FKColumnName": "ProductCategoryID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_ProductCategory_ProductCategoryID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_ProductCategory_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_ProductCategory_rowguid",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_ProductCategory_ProductCategoryID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductCategoryID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -6518,7 +8235,35 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ProductCostHistory_ProductID_StartDate",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_ProductCostHistory_ProductID_StartDate",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "StartDate",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -6606,6 +8351,46 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "ProductDescriptionID",
               "FKColumnName": "ProductDescriptionID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_ProductDescription_ProductDescriptionID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_ProductDescription_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_ProductDescription_ProductDescriptionID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductDescriptionID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -6705,7 +8490,35 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ProductDocument_ProductID_DocumentNode",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_ProductDocument_ProductID_DocumentNode",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "DocumentNode",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -6863,7 +8676,35 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ProductInventory_ProductID_LocationID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_ProductInventory_ProductID_LocationID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "LocationID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -6972,7 +8813,35 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ProductListPriceHistory_ProductID_StartDate",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_ProductListPriceHistory_ProductID_StartDate",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "StartDate",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -7129,6 +8998,100 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_ProductModel_ProductModelID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_ProductModel_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_ProductModel_rowguid",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_ProductModel_ProductModelID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductModelID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PXML_ProductModel_CatalogDescription",
+          "IndexId": 256000,
+          "PhysicalType": "XML",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Primary XML index.",
+          "Columns": [
+            {
+              "ColumnName": "CatalogDescription",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PXML_ProductModel_Instructions",
+          "IndexId": 256001,
+          "PhysicalType": "XML",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Primary XML index.",
+          "Columns": [
+            {
+              "ColumnName": "Instructions",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -7226,7 +9189,35 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ProductModelIllustration_ProductModelID_IllustrationID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_ProductModelIllustration_ProductModelID_IllustrationID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductModelID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "IllustrationID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -7357,7 +9348,41 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ProductModelProductDescriptionCulture_ProductModelID_ProductDescriptionID_CultureID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_ProductModelProductDescriptionCulture_ProductModelID_ProductDescriptionID_CultureID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductModelID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ProductDescriptionID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "CultureID",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -7479,6 +9504,28 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_ProductPhoto_ProductPhotoID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_ProductPhoto_ProductPhotoID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductPhotoID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -7590,7 +9637,46 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ProductProductPhoto_ProductID_ProductPhotoID",
+      "PrimaryKeyIsClustered": false,
+      "Indexes": [
+        {
+          "IndexName": null,
+          "IndexId": 0,
+          "PhysicalType": "HEAP",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": null,
+          "Columns": []
+        },
+        {
+          "IndexName": "PK_ProductProductPhoto_ProductID_ProductPhotoID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ProductPhotoID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -7744,7 +9830,59 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ProductReview_ProductReviewID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_ProductReview_ProductID_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ReviewerName",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "Comments",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": true
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_ProductReview_ProductReviewID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductReviewID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -7870,6 +10008,64 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_ProductSubcategory_ProductSubcategoryID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_ProductSubcategory_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_ProductSubcategory_rowguid",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_ProductSubcategory_ProductSubcategoryID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductSubcategoryID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -7944,6 +10140,46 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "ScrapReasonID",
               "FKColumnName": "ScrapReasonID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_ScrapReason_ScrapReasonID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_ScrapReason_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_ScrapReason_ScrapReasonID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ScrapReasonID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -8119,7 +10355,71 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_TransactionHistory_TransactionID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_TransactionHistory_ProductID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_TransactionHistory_ReferenceOrderID_ReferenceOrderLineID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ReferenceOrderID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ReferenceOrderLineID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_TransactionHistory_TransactionID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "TransactionID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -8272,7 +10572,71 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_TransactionHistoryArchive_TransactionID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_TransactionHistoryArchive_ProductID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_TransactionHistoryArchive_ReferenceOrderID_ReferenceOrderLineID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ReferenceOrderID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ReferenceOrderLineID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_TransactionHistoryArchive_TransactionID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "TransactionID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -8399,6 +10763,46 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "UnitMeasureCode",
               "FKColumnName": "UnitMeasureCode"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_UnitMeasure_UnitMeasureCode",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_UnitMeasure_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_UnitMeasure_UnitMeasureCode",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "UnitMeasureCode",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -8623,6 +11027,64 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "WorkOrderID",
               "FKColumnName": "WorkOrderID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_WorkOrder_WorkOrderID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_WorkOrder_ProductID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_WorkOrder_ScrapReasonID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ScrapReasonID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_WorkOrder_WorkOrderID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "WorkOrderID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -8864,7 +11326,59 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_WorkOrderRouting_WorkOrderID_ProductID_OperationSequence",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_WorkOrderRouting_ProductID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_WorkOrderRouting_WorkOrderID_ProductID_OperationSequence",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "WorkOrderID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "OperationSequence",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -8951,7 +11465,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -9337,7 +11854,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -9518,7 +12038,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -9759,7 +12282,71 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ProductVendor_ProductID_BusinessEntityID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_ProductVendor_BusinessEntityID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_ProductVendor_UnitMeasureCode",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "UnitMeasureCode",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_ProductVendor_ProductID_BusinessEntityID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -9983,7 +12570,53 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_PurchaseOrderDetail_PurchaseOrderID_PurchaseOrderDetailID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_PurchaseOrderDetail_ProductID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_PurchaseOrderDetail_PurchaseOrderID_PurchaseOrderDetailID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "PurchaseOrderID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "PurchaseOrderDetailID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -10274,6 +12907,64 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_PurchaseOrderHeader_PurchaseOrderID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_PurchaseOrderHeader_EmployeeID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "EmployeeID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_PurchaseOrderHeader_VendorID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "VendorID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_PurchaseOrderHeader_PurchaseOrderID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "PurchaseOrderID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -10412,6 +13103,64 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "ShipMethodID",
               "FKColumnName": "ShipMethodID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_ShipMethod_ShipMethodID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_ShipMethod_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_ShipMethod_rowguid",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_ShipMethod_ShipMethodID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ShipMethodID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -10603,6 +13352,46 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_Vendor_BusinessEntityID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Vendor_AccountNumber",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "AccountNumber",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Vendor_BusinessEntityID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -10750,7 +13539,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -10943,7 +13735,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -11038,7 +13833,53 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_CountryRegionCurrency_CountryRegionCode_CurrencyCode",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_CountryRegionCurrency_CurrencyCode",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "CurrencyCode",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_CountryRegionCurrency_CountryRegionCode_CurrencyCode",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "CountryRegionCode",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "CurrencyCode",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -11180,6 +14021,46 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_CreditCard_CreditCardID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_CreditCard_CardNumber",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "CardNumber",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_CreditCard_CreditCardID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "CreditCardID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -11289,6 +14170,46 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "CurrencyCode",
               "FKColumnName": "ToCurrencyCode"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_Currency_CurrencyCode",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Currency_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Currency_CurrencyCode",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "CurrencyCode",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -11465,6 +14386,58 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "CurrencyRateID",
               "FKColumnName": "CurrencyRateID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_CurrencyRate_CurrencyRateID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_CurrencyRate_CurrencyRateDate_FromCurrencyCode_ToCurrencyCode",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "CurrencyRateDate",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "FromCurrencyCode",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ToCurrencyCode",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_CurrencyRate_CurrencyRateID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "CurrencyRateID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -11662,6 +14635,82 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_Customer_CustomerID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Customer_AccountNumber",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "AccountNumber",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_Customer_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_Customer_TerritoryID",
+          "IndexId": 4,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "TerritoryID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Customer_CustomerID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "CustomerID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -11759,7 +14808,35 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_PersonCreditCard_BusinessEntityID_CreditCardID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_PersonCreditCard_BusinessEntityID_CreditCardID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "CreditCardID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -11986,7 +15063,71 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_SalesOrderDetail_SalesOrderID_SalesOrderDetailID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_SalesOrderDetail_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_SalesOrderDetail_ProductID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_SalesOrderDetail_SalesOrderID_SalesOrderDetailID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "SalesOrderID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "SalesOrderDetailID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -12583,6 +15724,100 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_SalesOrderHeader_SalesOrderID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_SalesOrderHeader_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_SalesOrderHeader_SalesOrderNumber",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "SalesOrderNumber",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_SalesOrderHeader_CustomerID",
+          "IndexId": 4,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "CustomerID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_SalesOrderHeader_SalesPersonID",
+          "IndexId": 5,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "SalesPersonID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_SalesOrderHeader_SalesOrderID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "SalesOrderID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -12680,7 +15915,35 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_SalesOrderHeaderSalesReason_SalesOrderID_SalesReasonID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_SalesOrderHeaderSalesReason_SalesOrderID_SalesReasonID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "SalesOrderID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "SalesReasonID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -12943,6 +16206,46 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_SalesPerson_BusinessEntityID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_SalesPerson_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_SalesPerson_BusinessEntityID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -13051,7 +16354,53 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_SalesPersonQuotaHistory_BusinessEntityID_QuotaDate",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_SalesPersonQuotaHistory_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_SalesPersonQuotaHistory_BusinessEntityID_QuotaDate",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "QuotaDate",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -13140,6 +16489,28 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "SalesReasonID",
               "FKColumnName": "SalesReasonID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_SalesReason_SalesReasonID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "PK_SalesReason_SalesReasonID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "SalesReasonID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -13282,7 +16653,71 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_SalesTaxRate_SalesTaxRateID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_SalesTaxRate_rowguid",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_SalesTaxRate_StateProvinceID_TaxType",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "StateProvinceID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "TaxType",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_SalesTaxRate_SalesTaxRateID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "SalesTaxRateID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -13558,6 +16993,64 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_SalesTerritory_TerritoryID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_SalesTerritory_Name",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "Name",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "AK_SalesTerritory_rowguid",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_SalesTerritory_TerritoryID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "TerritoryID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -13700,7 +17193,59 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_SalesTerritoryHistory_BusinessEntityID_StartDate_TerritoryID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_SalesTerritoryHistory_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_SalesTerritoryHistory_BusinessEntityID_StartDate_TerritoryID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "TerritoryID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "StartDate",
+              "IndexOrdinalPosition": 3,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -13824,7 +17369,53 @@
           ]
         }
       ],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": "PK_ShoppingCartItem_ShoppingCartItemID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "IX_ShoppingCartItem_ShoppingCartID_ProductID",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ShoppingCartID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_ShoppingCartItem_ShoppingCartItemID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "ShoppingCartItemID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
+      ]
     },
     {
       "Database": "AdventureWorks",
@@ -14023,6 +17614,46 @@
             }
           ]
         }
+      ],
+      "PrimaryKeyName": "PK_SpecialOffer_SpecialOfferID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_SpecialOffer_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_SpecialOffer_SpecialOfferID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "SpecialOfferID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        }
       ]
     },
     {
@@ -14155,6 +17786,70 @@
               "PKColumnOrdinalPosition": 2,
               "PKColumnName": "ProductID",
               "FKColumnName": "ProductID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_SpecialOfferProduct_SpecialOfferID_ProductID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_SpecialOfferProduct_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_SpecialOfferProduct_ProductID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_SpecialOfferProduct_SpecialOfferID_ProductID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "SpecialOfferID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            },
+            {
+              "ColumnName": "ProductID",
+              "IndexOrdinalPosition": 2,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -14314,6 +18009,82 @@
               "PKColumnOrdinalPosition": 1,
               "PKColumnName": "BusinessEntityID",
               "FKColumnName": "StoreID"
+            }
+          ]
+        }
+      ],
+      "PrimaryKeyName": "PK_Store_BusinessEntityID",
+      "PrimaryKeyIsClustered": true,
+      "Indexes": [
+        {
+          "IndexName": "AK_Store_rowguid",
+          "IndexId": 2,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Unique nonclustered index. Used to support replication samples.",
+          "Columns": [
+            {
+              "ColumnName": "rowguid",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "IX_Store_SalesPersonID",
+          "IndexId": 3,
+          "PhysicalType": "NONCLUSTERED",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Nonclustered index.",
+          "Columns": [
+            {
+              "ColumnName": "SalesPersonID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PK_Store_BusinessEntityID",
+          "IndexId": 1,
+          "PhysicalType": "CLUSTERED",
+          "LogicalType": "PRIMARY_KEY",
+          "IsPrimaryKey": true,
+          "IsUnique": true,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Clustered index created by a primary key constraint.",
+          "Columns": [
+            {
+              "ColumnName": "BusinessEntityID",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
+            }
+          ]
+        },
+        {
+          "IndexName": "PXML_Store_Demographics",
+          "IndexId": 256000,
+          "PhysicalType": "XML",
+          "LogicalType": "NON_UNIQUE_INDEX",
+          "IsPrimaryKey": false,
+          "IsUnique": false,
+          "IsUniqueConstraint": false,
+          "IndexDescription": "Primary XML index.",
+          "Columns": [
+            {
+              "ColumnName": "Demographics",
+              "IndexOrdinalPosition": 1,
+              "IsDescendingKey": false,
+              "IsIncludedColumn": false
             }
           ]
         }
@@ -14600,7 +18371,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -14810,7 +18584,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -15156,7 +18933,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -15276,7 +19056,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -15423,7 +19206,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -15616,7 +19402,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     },
     {
       "Database": "AdventureWorks",
@@ -15813,7 +19602,10 @@
         }
       ],
       "ForeignKeys": [],
-      "ChildForeignKeys": []
+      "ChildForeignKeys": [],
+      "PrimaryKeyName": null,
+      "PrimaryKeyIsClustered": false,
+      "Indexes": []
     }
   ]
 }

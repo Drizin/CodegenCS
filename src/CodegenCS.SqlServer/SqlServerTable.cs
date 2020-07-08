@@ -26,4 +26,10 @@ public class SqlServerTable
     /// </summary>
     public List<SqlServerForeignKey> ChildForeignKeys { get; set; } = new List<SqlServerForeignKey>();
 
+    public string PrimaryKeyName { get; set; }
+
+    public bool PrimaryKeyIsClustered { get; set; }
+
+    public List<SqlServerIndex> Indexes { get; set; } = new List<SqlServerIndex>();
+
 }

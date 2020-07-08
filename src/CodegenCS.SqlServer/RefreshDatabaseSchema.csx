@@ -18,6 +18,8 @@
 #load "SqlServerForeignKeyMember.cs"
 #load "SqlServerDatabaseSchema.cs"
 #load "SqlServerSchemaReader.cs"
+#load "SqlServerIndex.cs"
+#load "SqlServerIndexMember.cs"
 
 using System;
 using System.IO;
