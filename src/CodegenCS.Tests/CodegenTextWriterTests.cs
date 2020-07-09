@@ -323,55 +323,6 @@ namespace Tests
         }
 
 
-        [Test]
-        public void TestMSProj()
-        {
-            MSBuildProjectEditor editor = //new MSBuildProjectEditor(@"D:\Repositories\CodegenCS-public\src\CodegenCS.Tests\CodegenCS.Tests.csproj");
-                new MSBuildProjectEditor(@"D:\Repositories\EntityFramework-Scripty-Templates4\src\Test.csproj");
-            editor.AddItem(itemPath: @"D:\Repositories\EntityFramework-Scripty-Templates4\src\lala\Test.cs", parentItemPath: @"D:\Repositories\EntityFramework-Scripty-Templates4\src\GenerateEFModel.csx");
-            editor.RemoveUnusedDependentItems(parentItemPath: @"D:\Repositories\EntityFramework-Scripty-Templates4\src\GenerateEFModel.csx");
-            editor.Save();
-        }
-
-        [Test]
-        public void TestContextMSProj()
-        {
-            MSBuildProjectEditor editor = new MSBuildProjectEditor(@"D:\Repositories\EntityFramework-Scripty-Templates4\src\Test.csproj");
-            CodegenContext context = new CodegenContext(@"D:\Repositories\CodegenCS-public\src\CodegenCS.Tests\");
-            var file1 = context.GetTextWriter("File1.cs");
-            var file2 = context.GetTextWriter("Path2\\File2.cs");
-            file1.WriteLine("// Helloooooo");
-            file2.WriteLine("// Hello from File2");
-            string masterFile = @"D:\Repositories\CodegenCS-public\src\CodegenCS.Tests\CodegenTextWriterTests.cs";
-            context.SaveFiles();
-            editor.AddItem(masterFile);
-            foreach (var o in context.OutputFilesAbsolute)
-                editor.AddItem(itemPath: o.Key, parentItemPath: masterFile, itemType: o.Value.ItemType);
-            editor.Save();
-        }
-
-        [Test]
-        public void TestDatabase()
-        {
-            MSBuildProjectEditor editor = new MSBuildProjectEditor(@"D:\Repositories\CodegenCS-public\src\CodegenCS.Tests\CodegenCS.Tests.csproj");
-            CodegenContext context = new CodegenContext(@"D:\Repositories\CodegenCS-public\src\CodegenCS.Tests\");
-
-            string templateFile = @"D:\Repositories\CodegenCS-public\src\CodegenCS.Tests\CodegenTextWriterTests.cs";
-            editor.AddItem(templateFile);
-
-            Database db = Database.CreateSQLServerConnection(@"Data Source=LENOVOFLEX5\SQLEXPRESS;Initial Catalog=northwind;Integrated Security=True;Application Name=CodegenCS");
-            var tables = db.Query("SELECT Name FROM sys.tables");
-            foreach (var table in tables)
-            {
-                var file = context.GetTextWriter($"{table.Name.ToString()}.cs");
-                file.WriteLine("// Helloooooo");
-                foreach (var o in context.OutputFilesAbsolute)
-                    editor.AddItem(itemPath: o.Key, parentItemPath: templateFile, itemType: o.Value.ItemType);
-            }
-
-            context.SaveFiles();
-            editor.Save();
-        }
 
 
     }
