@@ -4,43 +4,184 @@
         <name>CodegenCS</name>
     </assembly>
     <members>
-        <member name="P:CodegenCS.CodegenContext.OutputFiles">
+        <member name="T:CodegenCS.BaseCodegenContext`1">
+            <summary>
+            BaseCodegenContext keeps track of multiple files which can be saved at once in the output folder.
+            </summary>
+            <typeparam name="O">Class of OutputFiles. Should inherit from CodegenOutputFile</typeparam>
+        </member>
+        <member name="F:CodegenCS.BaseCodegenContext`1._outputFiles">
+            <summary>
+            Output files indexed by their relative paths
+            </summary>
+        </member>
+        <member name="P:CodegenCS.BaseCodegenContext`1.Errors">
+            <summary>
+            If your template finds any error you can just append the errors here in this list <br />
+            SaveFiles() does not work if there is any error.
+            </summary>
+        </member>
+        <member name="P:CodegenCS.BaseCodegenContext`1.OutputFiles">
+            <summary>
+            Output files
+            </summary>
+        </member>
+        <member name="P:CodegenCS.BaseCodegenContext`1.OutputFilesRelative">
             <summary>
             Output files, indexed by their relative paths
             </summary>
         </member>
-        <member name="P:CodegenCS.CodegenContext.OutputFilesAbsolute">
+        <member name="M:CodegenCS.BaseCodegenContext`1.OutputFilesAbsolute(System.String)">
             <summary>
             Output files, indexed by their absolute paths
             </summary>
         </member>
-        <member name="F:CodegenCS.OutputFileType.NonProjectItem">
+        <member name="M:CodegenCS.BaseCodegenContext`1.#ctor">
             <summary>
-            File is generated but is not added to the project
+            Creates new in-memory context.
             </summary>
+        </member>
+        <member name="M:CodegenCS.BaseCodegenContext`1.SaveFiles(System.String)">
+            <summary>
+            Saves all files in the outputFolder. <br />
+            According to the RelativePath of each file they may be saved in different folders
+            </summary>
+            <param name="outputFolder"></param>
+        </member>
+        <member name="M:CodegenCS.BaseCodegenContext`1.SaveFiles">
+            <summary>
+            Saves all files in the current directory. <br />
+            According to the RelativePath of each file they may be saved in different folders
+            </summary>
+        </member>
+        <member name="M:CodegenCS.BaseCodegenContext`1.GetUnknownFiles(System.String)">
+            <summary>
+            After calling SaveFiles() you may decide to clean-up the Outputfolder (assuming it only has code-generation output). <br />
+            This returns all files which are in the Outputfolder (and subfolders) and which were NOT generated as part of this Context. <br />
+            Beware that files which are deleted using File.Delete do NOT get moved to Recycle bin.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:CodegenCS.CodegenContext">
+            <summary>
+            CodegenContext keeps track of multiple files which can be saved at once in the output folder.
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenContext.#ctor">
+            <inheritdocs />
+        </member>
+        <member name="P:CodegenCS.CodegenContext.Item(System.String)">
+            <summary>
+            Output files are indexed by their relative path. <br />
+            If context doesn't have an OutputFile with this relative path, a new one will automatically be created
+            </summary>
+            <param name="relativePath"></param>
+            <returns></returns>
+        </member>
+        <member name="T:CodegenCS.CodegenContext`1">
+            <summary>
+            CodegenContext keeps track of multiple files which can be saved at once in the output folder, <br />
+            while also tracking the type for each output file
+            </summary>
+            <typeparam name="FT">Enum which defines the Types that each file can have</typeparam>
+        </member>
+        <member name="P:CodegenCS.CodegenContext`1._defaultType">
+            <summary>
+            Default Type for new OutputFiles
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenContext`1.#ctor(`0)">
+            <summary>
+            Creates new in-memory context.
+            </summary>
+            <param name="defaultType">Default Type for files</param>
+        </member>
+        <member name="P:CodegenCS.CodegenContext`1.Item(System.String)">
+            <summary>
+            Output files are indexed by their relative path. <br />
+            If context doesn't have an OutputFile with this relative path, a new one will automatically be created
+            </summary>
+            <param name="relativePath"></param>
+            <returns></returns>
+        </member>
+        <member name="P:CodegenCS.CodegenContext`1.Item(System.String,`0)">
+            <summary>
+            Output files are indexed by their relative path. <br />
+            If context doesn't have an OutputFile with this relative path, a new one will automatically be created
+            </summary>
+            <param name="relativePath"></param>
+            <param name="fileType"></param>
+            <returns></returns>
+        </member>
+        <member name="T:CodegenCS.CodegenOutputFile">
+            <summary>
+            CodegenTextWriter with added properties that describe Outputfile location (RelativePath)
+            </summary>
+        </member>
+        <member name="F:CodegenCS.CodegenOutputFile.RelativePath">
+            <summary>
+            Relative path of the output file (relative to the outputFolder)
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenOutputFile.#ctor(System.String)">
+            <summary>
+            Creates a new OutputFile, with a relative path
+            </summary>
+            <param name="relativePath"></param>
+        </member>
+        <member name="T:CodegenCS.CodegenOutputFile`1">
+            <summary>
+            CodegenTextWriter with added properties that describe Outputfile location (RelativePath) <br />
+            and type of output (regarding .NET Project - if file is Compiled, NotCompiled, etc)
+            </summary>
+        </member>
+        <member name="P:CodegenCS.CodegenOutputFile`1.FileType">
+            <summary>
+            Type of file
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenOutputFile`1.#ctor(System.String,`0)">
+            <summary>
+            Creates a new OutputFile, with a relative path
+            </summary>
+            <param name="relativePath"></param>
+            <param name="fileType"></param>
         </member>
         <member name="T:CodegenCS.CodegenTextWriter">
             <summary>
-            This text writer has some features to help code-generation tools:
-            - Will keep track of "Indent Levels", and will write whitespace-indents accordingly to the current level.
-              It's possible to explicitly increase/decrease indent level
-              It's possible to change the IndentString
-              It's possible to increase level using "using (writer.WithIndent()) {...}".
-              There's a shortcut to start C-style blocks: using (writer.WithCStyleBlock($"public class {myClass}")). Will automatically start "{" and close with "}"
+            This text writer has some features to help code-generation tools: <br />
+            - Will keep track of "Indent Levels", and will write whitespace-indents accordingly to the current level. <br />
+              It's possible to explicitly increase/decrease indent level <br />
+              It's possible to change the IndentString <br />
+              It's possible to increase level using "using (writer.WithIndent()) {...}". <br />
+              There's a shortcut to start C-style blocks: using (writer.WithCStyleBlock($"public class {myClass}")). Will automatically start "{" and close with "}" <br /><br />
               
-            - Allows to execute "inline actions", which mean that writer will save the current cursor position, and will run the action which may write a string.
-              If the string has multiple lines, all lines starting from the second will "preserve" the same indent (cursor position) that was there when we started writing the first line.
-              This means that it's possible to embed blocks "inline", while preserving the correct indent where the block should start.
-               This allow us to use any kind of "template include" functions without having to manually control indentation.
-               In case CodegenTextWriter uses these inline actions to write string-interpolation-based templates, but we could also use Razor, Dotliquid, Scriban, or any other template engine.
+            - Allows to execute "inline actions", which mean that writer will save the current cursor position, and will run the action which may write a string. <br />
+              If the string has multiple lines, all lines starting from the second will "preserve" the same indent (cursor position) that was there when we started writing the first line. <br />
+              This means that it's possible to embed blocks "inline", while preserving the correct indent where the block should start. <br />
+               This allow us to use any kind of "template include" functions without having to manually control indentation. <br />
+               In case CodegenTextWriter uses these inline actions to write string-interpolation-based templates, but we could also use Razor, Dotliquid, Scriban, or any other template engine. <br /><br />
             
-            - Allows to write complex templates using pure C# language and interpolated strings.
-              Basically, we split any interpolated string, and write block by block, doing lazy-evaluation of arguments. 
-              Since we also control indentation (and preserve indentation even when we run "inline actions" in the middle of the template), this works like a charm.
+            - Allows to write complex templates using pure C# language and interpolated strings. <br />
+              Basically, we split any interpolated string, and write block by block, doing lazy-evaluation of arguments.  <br />
+              Since we also control indentation (and preserve indentation even when we run "inline actions" in the middle of the template), this works like a charm. <br /><br />
               
-            - For convenience, all multi-line string blocks will have the first empty line removed and Left Padding removed.
-              This means that you can write the multi-line strings with any number of padding spaces, and yet those spaces will be ignored - so you can align the 
+            - For convenience, all multi-line string blocks will have the first empty line removed and Left Padding removed. <br />
+              This means that you can write the multi-line strings with any number of padding spaces, and yet those spaces will be ignored - so you can align the  <br />
               generated code with the outer control code.
+            </summary>
+        </member>
+        <member name="F:CodegenCS.CodegenTextWriter._innerWriter">
+            <summary>
+            CodegenTextWriter will always write to an inner TextWriter. <br />
+            This TextWriter can be explicitly defined; <br />
+            Can be StreamWriter writing to a file; <br />
+            Or can be an in-memory StringWriter.
+            </summary>
+        </member>
+        <member name="F:CodegenCS.CodegenTextWriter._lineBreaksRegex">
+            <summary>
+            Identify all types of line-breaks
             </summary>
         </member>
         <member name="F:CodegenCS.CodegenTextWriter._normalizeLineEndings">
@@ -48,9 +189,20 @@
             If true, will normalize line breaks by replacing different styles (\n, \r\n, \r, etc) by _innerWriter.NewLine
             </summary>
         </member>
+        <member name="F:CodegenCS.CodegenTextWriter.MultilineBehavior">
+            <summary>
+            How multi-line text blocks are adjusted
+            </summary>
+        </member>
         <member name="T:CodegenCS.CodegenTextWriter.MultilineBehaviorType">
             <summary>
             How multi-line text blocks are adjusted
+            </summary>
+        </member>
+        <member name="F:CodegenCS.CodegenTextWriter.MultilineBehaviorType.None">
+            <summary>
+            Do not remove manipulate multi-line text blocks (write them as they are). <br />
+            You'll have to handle mixed indentation levels for text blocks and outer control code.
             </summary>
         </member>
         <member name="F:CodegenCS.CodegenTextWriter.MultilineBehaviorType.TrimLeftPadding">
@@ -63,12 +215,129 @@
             Will remove left padding and will remove the first empty line
             </summary>
         </member>
+        <member name="T:CodegenCS.CodegenTextWriter.CurlyBracesStyleType">
+            <summary>
+            How Curly-Braces are written
+            </summary>
+        </member>
+        <member name="F:CodegenCS.CodegenTextWriter.CurlyBracesStyleType.C">
+            <summary>
+            K&amp;R style (Kernighan &amp; Ritchie Style). <br />
+            Used in most C/C++/C# code: <br /> 
+            - There's a new line before opening curly braces. <br />
+            - There's a new line after closing curly braces.
+            </summary>
+        </member>
+        <member name="F:CodegenCS.CodegenTextWriter.CurlyBracesStyleType.Java">
+            <summary>
+            Java style: <br />
+            - No new line before opening curly braces <br />
+            - There's a new line after closing curly braces. 
+            </summary>
+        </member>
+        <member name="P:CodegenCS.CodegenTextWriter.CurlyBracesStyle">
+            <summary>
+            How Curly-Braces are written
+            </summary>
+        </member>
+        <member name="F:CodegenCS.CodegenTextWriter._encoding">
+            <summary>
+            Encoding
+            </summary>
+        </member>
         <member name="F:CodegenCS.CodegenTextWriter._currentLine">
             <summary>
             This keeps tracks of what was written to the current line, NOT COUNTING indent-strings which were generated by this text writer.
             Example: if this text writer was already in IndentLevel 1 (4 spaces) when it started rendering a template, and the template opens a nested if block (adding 1 more indent level, totalling 8 spaces),
             This will be 4 (4 extra spaces not counting inherited indent).
             If we render an inner template (e.g. @Include ("SubTemplate")), the subtemplate should honor BOTH the current indent level and also the number of spaces before the template was included.
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.#ctor">
+            <summary>
+            New CodegenTextWriter writing to an in-memory StringWriter (using UTF-8 encoding). <br />
+            You may choose when to save this file.
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.#ctor(System.String)">
+            <summary>
+            New CodegenTextWriter writing directly to a file. <br />
+            Default encoding is UTF-8.
+            </summary>
+            <param name="filePath">Target file</param>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.#ctor(System.String,System.Text.Encoding)">
+            <summary>
+            New CodegenTextWriter writing directly to a file. 
+            </summary>
+            <param name="filePath">Target file</param>
+            <param name="encoding">Encoding</param>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.#ctor(System.IO.TextWriter)">
+            <summary>
+            New CodegenTextWriter writing to another (inner) textWriter
+            </summary>
+            <param name="textWriter">Inner TextWriter to write to</param>
+        </member>
+        <member name="P:CodegenCS.CodegenTextWriter.NewLine">
+            <summary>
+            The default line terminator string is a carriage return followed by a line feed ("\r\n"). <br />
+            You may override it (Unix uses "\n", Apple use "\r"). <br />
+            PS: Null will be replaced by the default terminator (use empty if appropriate).
+            </summary>
+        </member>
+        <member name="P:CodegenCS.CodegenTextWriter.Encoding">
+            <summary>
+            The character encoding in which the output is written.
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.Close">
+            <summary>
+            Closes the current writer and releases any system resources associated with the writer.
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.Flush">
+            <summary>
+            Clears all buffers for the current writer and causes any buffered data to be written to the underlying device.
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.ToString">
+            <summary>
+            Returns a string that represents the current object.
+            </summary>
+            <returns>A string that represents the current object.</returns>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.Dispose(System.Boolean)">
+            <summary>
+            Clears all buffers for the current writer and causes any buffered data to be written to the underlying device.
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="F:CodegenCS.CodegenTextWriter._levelIndent">
+            <summary>
+            Each level of indentation may have it's own indentation marker <br />
+            e.g. one block may have "    " (4 spaces), while other may have "-- " (SQL line-comment), etc.
+            </summary>
+        </member>
+        <member name="P:CodegenCS.CodegenTextWriter.IndentLevel">
+            <summary>
+            Current IndentLevel
+            </summary>
+        </member>
+        <member name="P:CodegenCS.CodegenTextWriter.IndentString">
+            <summary>
+            Default Indentation marker is 4 strings. <br />
+            You can change to whatever you want
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.IncreaseIndent">
+            <summary>
+            Increases indentation level
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.DecreaseIndent">
+            <summary>
+            Decreases indentation level
             </summary>
         </member>
         <member name="M:CodegenCS.CodegenTextWriter.ExecuteInlineAction(System.Action)">
@@ -84,27 +353,46 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CodegenCS.CodegenTextWriter.WithCBlock">
+        <member name="M:CodegenCS.CodegenTextWriter.WithIndent(System.String,System.String)">
             <summary>
-            Opens a C-style Block (Compound Statement) which starts with curly-braces, followed by a linebreak, and then increases the indent level.
-            When disposed, will decrease indent level, close the curly braces, and add another linebreak.
+            Opens a new indented Block. Will automatically handle increasing/decreasing indent. <br />
+            Should be disposed (use "using" block) to correctly close braces and decrease indent. <br />
+            This method will automatically write a line break right before the indented block starts, but will not automatically add a line break after it ends.
             </summary>
+            <param name="beforeBlock">Optional - you can specify something to be written BEFORE the indented block starts (before the automatic line break, yet with outer indentation)</param>
+            <param name="afterBlock">Optional - you can specify something to be written immediately AFTER the block finishes (back with outer indentation)
+            If you're closing with a curly brace you'll probably want to add a line-break after that curly brace.
+            </param>
+            <returns></returns>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.WriteIndent">
+            <summary>
+            This writes the whole indentation level (e.g. if indent level is 2 it will be 2 levels of 4 spaces each) //TODO: WriteIndent(levels)?
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.WithCurlyBraces(System.String,System.Nullable{CodegenCS.CodegenTextWriter.CurlyBracesStyleType})">
+            <summary>
+            Opens a new indented Curly-Braces Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
+            Should be disposed (use "using" block) to correctly close braces and decrease indent.
+            </summary>
+            <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
+            <param name="style">How Curly-Braces are written. If not defined will use current CurleBracesStyleType property (default is C-Style, which starts the curly braces in its own line) </param>
             <returns></returns>
         </member>
         <member name="M:CodegenCS.CodegenTextWriter.WithCBlock(System.String)">
             <summary>
-            Writes a text line, followed by a linebreak, then opens a C-style Block (Compound Statement) which starts with curly-braces, followed by a linebreak, and then increases the indent level.
-            When disposed, will decrease indent level, close the curly braces, and add another linebreak.
+            Opens a new indented C-Style Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
+            Should be disposed (use "using" block) to correctly close braces and decrease indent.
             </summary>
-            <param name="lineBeforeBlock"></param>
+            <param name="beforeBlock">Optional - you can specify what is written BEFORE the block starts (before curly braces)</param>
             <returns></returns>
         </member>
         <member name="M:CodegenCS.CodegenTextWriter.WithJavascriptBlock(System.String)">
             <summary>
-            Writes a text line, followed (without linebreaks) by the beginning of a javascript-style Block which starts with curly-braces, followed by a linebreak, and then increases the indent level.
-            When disposed, will decrease indent level, close the curly braces, and add another linebreak.
+            Opens a new indented Java-Style Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
+            Should be disposed (use "using" block) to correctly close braces and decrease indent.
             </summary>
-            <param name="lineBeforeBlock"></param>
+            <param name="beforeBlock">Optional - you can specify what is written BEFORE the block starts (before curly braces)</param>
             <returns></returns>
         </member>
         <member name="M:CodegenCS.CodegenTextWriter.WriteWithIndents(System.String)">
@@ -115,7 +403,26 @@
             </summary>
             <param name="value"></param>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:CodegenCS.CodegenTextWriter.WriteFormattable(System.String,System.Object[])" -->
+        <member name="M:CodegenCS.CodegenTextWriter.WriteFormattable(System.String,System.Object[])">
+            <summary>
+            This is the "heart" of this class. Basically, we split any interpolated string, and write block by block, doing lazy-evaluation of arguments. 
+            The idea of writing Func&lt;FormattableString&gt; is that we do NOT evaluate the {arguments} BEFORE the outer string is being written - they are only evaluated when needed
+            so we can capture the cursor position in current line, and preserve-it if the arguments render multi-line strings
+            </summary>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.SaveToFile(System.String,System.Boolean)">
+            <summary>
+            Writes current content (assuming it was in-memory writer) to a new file. If the target file already exists, it is overwritten. <br />
+            </summary>
+            <param name="path">Absolute path</param>
+            <param name="createFolder">If this is true (default is true) and target folder does not exist, it will be created</param>
+        </member>
+        <member name="M:CodegenCS.CodegenTextWriter.GetContents">
+            <summary>
+            Get full contents of current Writer
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:CodegenCS.CodegenTextWriter.AdjustMultilineString(System.String)">
             <summary>
             Given a text block (multiple lines), this removes the left padding of the block, by calculating the minimum number of spaces which happens in EVERY line.
@@ -124,7 +431,51 @@
             <param name="block"></param>
             <returns></returns>
         </member>
-        <member name="M:CodegenCS.MSBuildProjectEditor.AddItem(System.String,CodegenCS.OutputFileType,System.String)">
+        <member name="T:CodegenCS.MSBuildActionType">
+            <summary>
+            All files in a Visual Studio project have a build action. The build action controls what happens to the file when the project is compiled. <br />
+            The most common action (like for compiling CS files) is Compile.
+            </summary>
+        </member>
+        <member name="F:CodegenCS.MSBuildActionType.None">
+            <summary>
+            The file isn't part of the build in any way. This value can be used for documentation files such as "ReadMe" files, for example.
+            </summary>
+        </member>
+        <member name="F:CodegenCS.MSBuildActionType.Compile">
+            <summary>
+            The file is passed to the compiler as a source file.
+            </summary>
+        </member>
+        <member name="F:CodegenCS.MSBuildActionType.Content">
+            <summary>
+            A file marked as Content can be retrieved as a stream by calling Application.GetContentStream.  <br />
+            For ASP.NET projects, these files are included as part of the site when it's deployed.
+            </summary>
+        </member>
+        <member name="F:CodegenCS.MSBuildActionType.EmbeddedResource">
+            <summary>
+            The file is passed to the compiler as a resource to be embedded in the assembly.  <br />
+            You can call System.Reflection.Assembly.GetManifestResourceStream to read the file from the assembly.
+            </summary>
+        </member>
+        <member name="F:CodegenCS.MSBuildActionType.NonProjectItem">
+            <summary>
+            Special enum which means that the file will NOT be added to the CSPROJ <br />
+            For .NET Framework projects (not NET Core) this means that the file will NOT be added to the CSPROJ (even if you use MSBuildProjectEditor) <br />
+            For .NET Core projects (where all files are automatically considered as compilable except if explicitly removed) this means that the file will be explicitly REMOVED from the CSPROJ.
+            </summary>
+        </member>
+        <member name="T:CodegenCS.MSBuildCodegenContext">
+            <summary>
+            MSBuildCodegenContext keeps track of multiple files which can be saved at once in the output folder, <br />
+            while also tracking the MSBuild action for each output file
+            </summary>
+        </member>
+        <member name="M:CodegenCS.MSBuildCodegenContext.#ctor">
+            <inheritdocs />
+        </member>
+        <member name="M:CodegenCS.MSBuildProjectEditor.AddItem(System.String,CodegenCS.MSBuildActionType,System.String)">
             <summary>
             Adds a single item, optionally dependent of a parent item (DependentUpon). 
             </summary>

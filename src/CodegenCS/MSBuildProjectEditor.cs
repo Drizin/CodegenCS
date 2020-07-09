@@ -32,7 +32,7 @@ namespace CodegenCS
         /// <summary>
         /// Adds a single item, optionally dependent of a parent item (DependentUpon). 
         /// </summary>
-        public void AddItem(string itemPath, OutputFileType itemType = OutputFileType.Compile, string parentItemPath = null)
+        public void AddItem(string itemPath, MSBuildActionType itemType = MSBuildActionType.Compile, string parentItemPath = null)
         {
             XmlNode itemGroup = null;
             itemPath = new Uri(this._projectFileFullPath).MakeRelativeUri(new Uri(new FileInfo(itemPath).FullName)).ToString().Replace("/", "\\");
@@ -82,7 +82,7 @@ namespace CodegenCS
                 XmlNode compileRemoveNode = _doc.SelectSingleNode("//msbuild:Compile[@Remove='" + itemPath + "']", _nsmgr);
 
                 // Compiled files shouldn't have a "Compile Remove" node. "None" files should.
-                if (itemType == OutputFileType.Compile)
+                if (itemType == MSBuildActionType.Compile)
                 {
                     if (compileRemoveNode != null)
                         compileRemoveNode.ParentNode.RemoveChild(compileRemoveNode);
@@ -104,7 +104,7 @@ namespace CodegenCS
             if (existingElement != null)
             {
                 // node exists in csproj but shouldn't be there
-                if (itemType == OutputFileType.NonProjectItem)
+                if (itemType == MSBuildActionType.NonProjectItem)
                 { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
 
                 // node exists but wrong type
@@ -116,7 +116,7 @@ namespace CodegenCS
                 { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
 
                 // node exists but is not necessary
-                if (IsCore && itemType == OutputFileType.Compile && parentItemPath == null)
+                if (IsCore && itemType == MSBuildActionType.Compile && parentItemPath == null)
                 { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
 
                 //// node exists shouldn't be there
@@ -126,14 +126,14 @@ namespace CodegenCS
                 //_doc.SelectSingleNode("//msbuild:" + itemType.ToString() + 
             }
 
-            if (itemType == OutputFileType.NonProjectItem)
+            if (itemType == MSBuildActionType.NonProjectItem)
                 return;
             // core projects don't need to declare regular compiled files
-            if (existingElement == null && (IsCore && itemType == OutputFileType.Compile) && parentItemPath == null)
+            if (existingElement == null && (IsCore && itemType == MSBuildActionType.Compile) && parentItemPath == null)
                 return;
 
             string expectedType = "Include";
-            if (IsCore && itemType == OutputFileType.Compile)
+            if (IsCore && itemType == MSBuildActionType.Compile)
                 expectedType = "Update";
 
             if (existingElement != null)
@@ -146,7 +146,7 @@ namespace CodegenCS
             if (existingElement == null)
             {
                 existingElement = _doc.CreateElement(itemType.ToString(), _doc.DocumentElement.NamespaceURI);
-                existingElement.SetAttribute(((IsCore && itemType == OutputFileType.Compile) ? "Update" : "Include"), itemPath);
+                existingElement.SetAttribute(((IsCore && itemType == MSBuildActionType.Compile) ? "Update" : "Include"), itemPath);
             }
             if (existingElement.Attributes["Include"] == null && expectedType == "Include")
                 existingElement.SetAttribute("Include", itemPath);
