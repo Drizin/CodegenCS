@@ -6,13 +6,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CodegenCS
+namespace CodegenCS.DotNet
 {
     /// <summary>
     /// All files in a Visual Studio project have a build action. The build action controls what happens to the file when the project is compiled. <br />
-    /// The most common action (like for compiling CS files) is Compile.
+    /// The most common action (like for compiling CS files) is Compile. <br />
+    /// This enum only have common type for code generation. See complete list here: https://docs.microsoft.com/en-us/visualstudio/ide/build-actions?view=vs-2019 <br />
+    /// Or here https://stackoverflow.com/a/145769/3606250
     /// </summary>
-    public enum MSBuildActionType
+    public enum BuildActionType
     {
         /// <summary>
         /// The file isn't part of the build in any way. This value can be used for documentation files such as "ReadMe" files, for example.

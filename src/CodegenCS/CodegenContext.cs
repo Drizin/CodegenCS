@@ -161,19 +161,33 @@ namespace CodegenCS
     {
         #region Members
         /// <summary>
-        /// Default Type for new OutputFiles
+        /// Default Type for new OutputFiles, if it's a fixed value.
         /// </summary>
-        protected FT _defaultType { get; set; }
+        protected FT? _defaultType { get; set; } = null;
+
+        /// <summary>
+        /// Default Type for new OutputFiles, if it's a Func
+        /// </summary>
+        protected Func<string, FT> _getDefaultType { get; set; } = null;
         #endregion
 
         #region ctors
         /// <summary>
         /// Creates new in-memory context.
         /// </summary>
-        /// <param name="defaultType">Default Type for files</param>
+        /// <param name="defaultType">Default Type for files (if file type is not defined)</param>
         public CodegenContext(FT defaultType)
         {
             _defaultType = defaultType;
+        }
+
+        /// <summary>
+        /// Creates new in-memory context.
+        /// </summary>
+        /// <param name="getDefaultType">Default Type for files (if file type is not defined)</param>
+        public CodegenContext(Func<string, FT> getDefaultType)
+        {
+            _getDefaultType = getDefaultType;
         }
         #endregion
 
@@ -188,7 +202,8 @@ namespace CodegenCS
         {
             get
             {
-                return this[relativePath, _defaultType];
+                FT type = _defaultType ?? _getDefaultType(relativePath);
+                return this[relativePath, type];
             }
             set
             {
@@ -220,7 +235,6 @@ namespace CodegenCS
             }
         }
         #endregion
-
     }
 
 }

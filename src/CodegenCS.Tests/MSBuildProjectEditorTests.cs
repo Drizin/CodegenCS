@@ -1,4 +1,5 @@
 using CodegenCS;
+using CodegenCS.DotNet;
 using CodegenCS.Utils;
 using NUnit.Framework;
 using System;
@@ -32,7 +33,7 @@ namespace Tests
         {
             MSBuildProjectEditor editor = new MSBuildProjectEditor(@"D:\Repositories\EntityFramework-Scripty-Templates4\src\Test.csproj");
             string outputFolder = @"D:\Repositories\CodegenCS\src\CodegenCS.Tests\";
-            MSBuildCodegenContext context = new MSBuildCodegenContext();
+            DotNetCodegenContext context = new DotNetCodegenContext();
             var file1 = context["File1.cs"];
             var file2 = context["Path2\\File2.cs"];
             file1.WriteLine("// Helloooooo");
@@ -50,7 +51,7 @@ namespace Tests
         {
             MSBuildProjectEditor editor = new MSBuildProjectEditor(@"D:\Repositories\CodegenCS\src\CodegenCS.Tests\CodegenCS.Tests.csproj");
             string outputFolder = @"D:\Repositories\CodegenCS\src\CodegenCS.Tests\";
-            MSBuildCodegenContext context = new MSBuildCodegenContext();
+            DotNetCodegenContext context = new DotNetCodegenContext();
 
             string templateFile = @"D:\Repositories\CodegenCS\src\CodegenCS.Tests\CodegenTextWriterTests.cs";
             editor.AddItem(templateFile);
