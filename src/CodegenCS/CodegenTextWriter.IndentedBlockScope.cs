@@ -73,11 +73,11 @@ namespace CodegenCS
                 // By definition an indented block cannot start on a dirty line
                 _writer.EnsureEmptyLine();
 
-                _writer.IncreaseIndent();
+                _writer.InnerIncreaseIndent();
             }
             private void Endblock()
             {
-                _writer.DecreaseIndent();
+                _writer.InnerDecreaseIndent();
 
                 // By definition what happens after an indented block needs to be written on a blank (non-dirty) line
                 _writer.EnsureEmptyLine();
