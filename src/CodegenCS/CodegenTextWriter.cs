@@ -203,45 +203,100 @@ namespace CodegenCS
         }
         #endregion
 
-        #region Indent class
-        internal class IndentedBlockScope : IDisposable
+        #region IndentedBlockScope
+        /// <summary>
+        /// An IndentedBlockScope defines the scope of an indented block of text <br />
+        /// When created it increases the indent level of the associated CodegenTextWriter, <br />
+        /// and when disposed it decreases the indent level (so it's important to use it in a "using" statements to automatically dispose scope at end). <br /><br />
+        /// 
+        /// Most programming languages use indented blocks to control scope: <br />
+        /// - Python-like languages define scope solely based on the indentation of the text blocks. <br />
+        /// - C/Java-like language define scope based on curly braces but use indented blocks for readibility. <br /><br />
+        /// 
+        /// For convenience/conciseness this helper allows to define some text to be written BEFORE the indented block starts, <br />
+        /// and some text to be written AFTER the indented block ends. <br /><br />
+        /// 
+        /// For convenience this helper will automatically add line breaks if it find "dirty" lines (lines which have some text but don't end in a line break): <br />
+        /// - The indented block will always start on an empty (non-dirty) line (adds linebreak if previous write didn't end in line break) <br />
+        /// - The indented block will always end on an empty (non-dirty) line (adds linebreak if previous write didn't end in line break) <br />
+        /// - The text that is written before the block (if provided) will always start on an empty (non-dirty) line (adds linebreak if previous write didn't end in line break) <br />
+        /// - The text that is written after the block (if provided) will always end "into" an empty (non-dirty) line (automatically adds final linebreak if not defined in text)
+        /// </summary>
+        protected class IndentedBlockScope : IDisposable
         {
+            #region Members
             private readonly CodegenTextWriter _writer;
             private bool _disposed = false;
-            private string _beforeBlock = null; // what to write immediately before we increase indent (before the line break, yet with outer indentation level)
-            private string _afterBlock = null; // what to write immediately after we decrease indent (right after the line break, back with outer indentation level)
-            // When we indent, we just get the IndentLevel of the writer, and increase it.
+            private string _beforeBlock = null; // What to write immediately before the indented block starts (before the line break, yet with outer indentation level)
+            private string _afterBlock = null; // What to write immediately after the indented block ends (right after the line break, back with outer indentation level)
+            #endregion
+
+            /// <summary>
+            /// An IndentedBlockScope defines the scope of an indented block of text
+            /// </summary>
+            /// <param name="writer"></param>
             public IndentedBlockScope(CodegenTextWriter writer)
             {
                 _writer = writer;
-                
-                // line break and increase indent
-                _writer.WriteLine();
-                writer.IncreaseIndent();
+                StartBlock();
             }
+
+            /// <summary>
+            /// An IndentedBlockScope defines the scope of an indented block of text
+            /// </summary>
+            /// <param name="writer"></param>
+            /// <param name="beforeBlock">What to write immediately before the indented block starts (before the line break, yet with outer indentation level)</param>
+            /// <param name="afterBlock">What to write immediately after the indented block ends (right after the line break, back with outer indentation level)</param>
             public IndentedBlockScope(CodegenTextWriter writer, string beforeBlock, string afterBlock)
             {
                 _writer = writer;
                 _beforeBlock = beforeBlock;
                 _afterBlock = afterBlock;
-                _writer.WriteWithIndents(_beforeBlock);
+                StartBlock();
+            }
+            private void StartBlock()
+            {
+                if (!string.IsNullOrEmpty(_beforeBlock))
+                {
+                    // If there's something to write before block, it's safe to assume that this should be on it's own line, right?
+                    // e.g. if the writer is in a dirty state (current line didn't end with a linebreak), it doesn't make sense to start a "if" statement which would open a new IndentedBlockScope
+                    _writer.EnsureEmptyLine(); 
 
-                // line break and increase indent
-                _writer.WriteLine();
-                writer.IncreaseIndent();
+                    _writer.InnerWrite(_beforeBlock);
+                }
+
+                // By definition an indented block cannot start on a dirty line
+                _writer.EnsureEmptyLine();
+
+                _writer.IncreaseIndent();
+            }
+            private void Endblock()
+            {
+                _writer.DecreaseIndent();
+
+                // By definition what happens after an indented block needs to be written on a blank (non-dirty) line
+                _writer.EnsureEmptyLine();
+
+                if (!string.IsNullOrEmpty(_afterBlock))
+                {
+                    _writer.InnerWrite(_afterBlock);
+
+                    // If we're writing something after the indented block finishes (after indent is reverted back) 
+                    // we can assume that this block-finisher should end up in a clean (non-dirty) line
+                    _writer.EnsureEmptyLine();
+                }
             }
 
-            // When we dispose, we just restore back the old level of the writer
+            /// <summary>
+            /// When we dispose, we just restore back the old level of the writer
+            /// </summary>
             public void Dispose()
             {
                 if (_disposed)
                 {
                     throw new ObjectDisposedException(nameof(IndentedBlockScope));
                 }
-                // line break and decrease indent
-                _writer.DecreaseIndent();
-                if (_afterBlock != null)
-                    _writer.WriteWithIndents(_afterBlock);
+                Endblock();
             }
         }
         #endregion
@@ -263,29 +318,63 @@ namespace CodegenCS
         /// You can change to whatever you want
         /// </summary>
         public string IndentString { get; set; } = "    ";
-        
+
         /// <summary>
-        /// Increases indentation level
+        /// Increases indentation level, so that the next text lines are all indented with an increased level. 
         /// </summary>
-        public void IncreaseIndent()
+        protected void InnerIncreaseIndent()
         {
             _levelIndent.Push(IndentString);
         }
 
         /// <summary>
-        /// Decreases indentation level
+        /// Manually Increases indentation level, <br />
+        /// so that the next text lines are all indented with an increased level. <br />
+        /// If you're using helpers like WithIndent, WithCurlyBraces or WithPythonBlock you don't need to manually control indent level.
         /// </summary>
-        public void DecreaseIndent()
+        public CodegenTextWriter IncreaseIndent()
+        {
+            InnerIncreaseIndent();
+            return this;
+        }
+
+        /// <summary>
+        /// Decreases indentation level, so that the next text lines are all indented with a decreased level. 
+        /// </summary>
+        protected void InnerDecreaseIndent()
         {
             _levelIndent.Pop();
         }
 
         /// <summary>
-        /// If the current line has some manually-written whitespace, this method will "save" current cursor position, and in case the inline action writes a multi-line text,
-        /// the subsequent lines (after the first) will "preserve" the cursor position by adding this extra indent.
-        /// ("manually-written whitespace" does not count the automatic indents written by this class).
+        /// Manually Decreases indentation level, <br />
+        /// so that the next text lines are all indented with an decreased level. <br />
+        /// If you're using helpers like WithIndent, WithCurlyBraces or WithPythonBlock you don't need to manually control indent level.
         /// </summary>
-        public void ExecuteInlineAction(Action inlineAction)
+        public CodegenTextWriter DecreaseIndent()
+        {
+            InnerDecreaseIndent();
+            return this;
+        }
+
+        /// <summary>
+        /// Ensures that current cursor position is not dirty (cursor position is zero). If dirty, writes line break
+        /// </summary>
+        /// <returns></returns>
+        public CodegenTextWriter EnsureEmptyLine()
+        {
+            if (_currentLine.Length > 0)
+                WriteLine();
+            return this;
+        }
+
+        /// <summary>
+        /// Invokes an inline action (which may reference current CodegenTextWriter and write to it) <br />
+        /// If the action writes multiple lines and current line has some manually-written whitespace, <br />
+        /// this method will "save" current cursor position and the subsequent lines (after the first) will "preserve" the cursor position by prepending this manual indentation. <br />
+        /// ("manually-written whitespace" does not count the automatic indents managed by this class, so this method will honor manually-written whitespace and preserve it in subsequent lines).
+        /// </summary>
+        public CodegenTextWriter ExecuteInlineAction(Action inlineAction)
         {
             string indent = _currentLine.ToString();
             if (indent != null && indent.Length > 0 && string.IsNullOrWhiteSpace(indent))
@@ -300,24 +389,43 @@ namespace CodegenCS
             {
                 inlineAction();
             }
+            return this;
+        }
+        /// <summary>
+        /// Invokes an inline action (which may reference current CodegenTextWriter and write to it) <br />
+        /// If the action writes multiple lines and current line has some manually-written whitespace, <br />
+        /// this method will "save" current cursor position and the subsequent lines (after the first) will "preserve" the cursor position by prepending this manual indentation. <br />
+        /// ("manually-written whitespace" does not count the automatic indents managed by this class, so this method will honor manually-written whitespace and preserve it in subsequent lines).
+        /// </summary>
+        public CodegenTextWriter ExecuteInlineAction(Action<CodegenTextWriter> inlineAction)
+        {
+            return ExecuteInlineAction(() => inlineAction(this));
         }
 
-        /// <summary>
-        /// Increases the indent level, and when disposed will decrease it.
-        /// </summary>
-        /// <returns></returns>
-        public IDisposable WithIndent() => new IndentedBlockScope(this);
 
         /// <summary>
         /// Opens a new indented Block. Will automatically handle increasing/decreasing indent. <br />
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent. <br />
-        /// This method will automatically write a line break right before the indented block starts, but will not automatically add a line break after it ends.
+        /// This method will automatically fix "dirty lines" (lines which do not end in a line break).
+        /// </summary>
+        /// <returns></returns>
+        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return CodegenTextWriter")]
+        public IDisposable WithIndent()
+        {
+            return new IndentedBlockScope(this);
+        }
+
+        /// <summary>
+        /// Opens a new indented Block. Will automatically handle increasing/decreasing indent. <br />
+        /// Should be disposed (use "using" block) to correctly close braces and decrease indent. <br />
+        /// This method will automatically fix "dirty lines" (lines which do not end in a line break).
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify something to be written BEFORE the indented block starts (before the automatic line break, yet with outer indentation)</param>
         /// <param name="afterBlock">Optional - you can specify something to be written immediately AFTER the block finishes (back with outer indentation)
         /// If you're closing with a curly brace you'll probably want to add a line-break after that curly brace.
         /// </param>
         /// <returns></returns>
+        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return CodegenTextWriter")]
         public IDisposable WithIndent(string beforeBlock = null, string afterBlock = null)
         {
             return new IndentedBlockScope(this, beforeBlock, afterBlock);
@@ -326,43 +434,128 @@ namespace CodegenCS
         /// <summary>
         /// This writes the whole indentation level (e.g. if indent level is 2 it will be 2 levels of 4 spaces each) //TODO: WriteIndent(levels)?
         /// </summary>
-        public void WriteIndent()
+        public CodegenTextWriter WriteIndent()
         {
             string indent = string.Join("", _levelIndent.Reverse().ToList());
             WriteRaw(indent);
             _currentLine.Clear();
+            return this;
         }
         #endregion
 
-        #region Indent-control: Language helper methods based on WithIndent()
+        #region Indent-control: Language helper methods based on IndentedBlockScope()
         /// <summary>
         /// Opens a new indented Curly-Braces Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
-        /// <param name="style">How Curly-Braces are written. If not defined will use current CurleBracesStyleType property (default is C-Style, which starts the curly braces in its own line) </param>
+        /// <param name="curlyBracesStyle">How Curly-Braces are written. If not defined will use current CurleBracesStyleType property (default is C-Style, which starts the curly braces in its own line) </param>
         /// <returns></returns>
-        public IDisposable WithCurlyBraces(string beforeBlock = null, CurlyBracesStyleType? style = null)
+        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return CodegenTextWriter")]
+        public IDisposable WithCurlyBraces(string beforeBlock, CurlyBracesStyleType curlyBracesStyle)
         {
-            CurlyBracesStyleType bracesStyleType = style ?? this.CurlyBracesStyle;
-            switch (bracesStyleType)
+            IDisposable innerBlock;
+            switch (curlyBracesStyle)
             {
                 case CurlyBracesStyleType.C:
                 default:
-                    if (string.IsNullOrEmpty(beforeBlock) && _currentLine.Length == 0) // if we're already at the beginning of a new line, just open block, no need to break line
-                        return WithIndent(
-                            beforeBlock: "{",
-                            afterBlock: "}" + Environment.NewLine);
-                    else
-                        return WithIndent(
-                            beforeBlock: beforeBlock + this.NewLine + "{",
-                            afterBlock: "}" + Environment.NewLine);
+                        innerBlock = new IndentedBlockScope(this, 
+                            beforeBlock: 
+                                (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + Environment.NewLine) :("")) 
+                                + "{", 
+                            afterBlock: "}");
+                    break;
                 case CurlyBracesStyleType.Java:
-                    return WithIndent(
-                        beforeBlock: beforeBlock + "{",
-                        afterBlock: "}" + Environment.NewLine);
+                    innerBlock = new IndentedBlockScope(this,
+                        beforeBlock:
+                            (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + " ") : (""))
+                            + "{",
+                        afterBlock: "}");
+                    break;
             }
+            return innerBlock;
         }
+        /// <summary>
+        /// Opens a new indented Curly-Braces Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
+        /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
+        /// <returns></returns>
+        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return CodegenTextWriter")]
+        public IDisposable WithCurlyBraces(string beforeBlock) => WithCurlyBraces(beforeBlock: beforeBlock, curlyBracesStyle: this.CurlyBracesStyle);
+
+        /// <summary>
+        /// Opens a new indented Curly-Braces Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
+        /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
+        /// </summary>
+        /// <returns></returns>
+        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return CodegenTextWriter")]
+        public IDisposable WithCurlyBraces() => WithCurlyBraces(beforeBlock: null, curlyBracesStyle: this.CurlyBracesStyle);
+
+        /// <summary>
+        /// Opens a new indented Curly-Braces Block. Action delegate (lambda) should be used to write contents "inside" the curly-braces block <br />
+        /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
+        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the curly-braces block.</param>
+        /// <returns></returns>
+        public CodegenTextWriter WithCurlyBraces(string beforeBlock, Action innerBlockAction)
+        {
+#pragma warning disable 612, 618 // WithCurlyBraces is currently public/obsolete - will be deprecated soon, to give preference to FluentAPI
+            IDisposable innerBlock = WithCurlyBraces(beforeBlock, CurlyBracesStyle);
+#pragma warning restore 612, 618
+            using (innerBlock)
+            {
+                innerBlockAction();
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Opens a new indented Curly-Braces Block. Action delegate (lambda) should be used to write contents "inside" the curly-braces block <br />
+        /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
+        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the curly-braces block.</param>
+        /// <returns></returns>
+        public CodegenTextWriter WithCurlyBraces(string beforeBlock, Action<CodegenTextWriter> innerBlockAction)
+        {
+            return WithCurlyBraces(beforeBlock, () => innerBlockAction(this));
+        }
+
+        /// <summary>
+        /// Opens a new indented Python-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Will automatically handle linebreaks, and increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
+        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the curly-braces block.</param>
+        /// <returns></returns>
+        public CodegenTextWriter WithPythonBlock(string beforeBlock, Action innerBlockAction)
+        {
+            IDisposable innerBlock = new IndentedBlockScope(this,
+                beforeBlock:
+                    (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + " :") : (""))
+                    + "{",
+                afterBlock: "");
+
+            using (innerBlock)
+            {
+                innerBlockAction();
+            }
+            return this;
+        }
+        /// <summary>
+        /// Opens a new indented Python-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Will automatically handle linebreaks, and increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
+        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the curly-braces block.</param>
+        /// <returns></returns>
+        public CodegenTextWriter WithPythonBlock(string beforeBlock, Action<CodegenTextWriter> innerBlockAction)
+        {
+            return WithPythonBlock(beforeBlock, () => innerBlockAction(this));
+        }
+
 
 
         /// <summary>
@@ -371,6 +564,7 @@ namespace CodegenCS
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the block starts (before curly braces)</param>
         /// <returns></returns>
+        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return CodegenTextWriter")]
         public IDisposable WithCBlock(string beforeBlock = null) => WithCurlyBraces(beforeBlock, CurlyBracesStyleType.C);
 
         /// <summary>
@@ -379,45 +573,72 @@ namespace CodegenCS
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the block starts (before curly braces)</param>
         /// <returns></returns>
-        public IDisposable WithJavascriptBlock(string beforeBlock = null) => WithCurlyBraces(beforeBlock, CurlyBracesStyleType.Java);
+        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return CodegenTextWriter")]
+        public IDisposable WithJavaBlock(string beforeBlock = null) => WithCurlyBraces(beforeBlock, CurlyBracesStyleType.Java);
 
         #endregion
 
         #region NotImplemented Writes (based on char[])
-        public override void Write(char[] buffer)
+        /// <summary>
+        /// </summary>
+        /// <param name="buffer"></param>
+        public CodegenTextWriter Write(char[] buffer)
         {
-            throw new NotImplementedException();
+            InnerWrite(new string(buffer));
+            return this;
         }
-        public override void Write(char[] buffer, int index, int count)
+        
+        /// <summary>
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        public CodegenTextWriter Write(char[] buffer, int index, int count)
         {
-            throw new NotImplementedException();
+            InnerWrite(new string(buffer, index, count));
+            return this;
         }
-        public override void WriteLine(char[] buffer)
+
+        /// <summary>
+        /// </summary>
+        /// <param name="buffer"></param>
+        public CodegenTextWriter WriteLine(char[] buffer)
         {
-            throw new NotImplementedException();
+            InnerWrite(new string(buffer));
+            WriteLine();
+            return this;
         }
-        public override void WriteLine(char[] buffer, int index, int count)
+
+        /// <summary>
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        public CodegenTextWriter WriteLine(char[] buffer, int index, int count)
         {
-            throw new NotImplementedException();
+            InnerWrite(new string(buffer, index, count));
+            WriteLine();
+            return this;
         }
         #endregion
 
         #region Raw Writes (to _innerWriter) - these don't add any indent
-        private void WriteRaw(string value)
+        private CodegenTextWriter WriteRaw(string value)
         {
             _innerWriter.Write(value);
             System.Diagnostics.Debug.Write(value);
+            return this;
         }
         #endregion
 
-        #region WriteWithIndents(string value): writes line by line, and writes the indent strings before each new line
+        #region InnerWrite(string value): writes line by line, and writes the indent strings before each new line
         /// <summary>
         /// This is the "heart" of this class. Basically, we split any multi-line string, and write line by line. 
         /// Before writing each new line we write the indent block, which could for example be 8 spaces (4 spaces in first indent level and 4 spaces for second indent level),
         /// or 2 tabs (one for each indent level), or any combination.
         /// </summary>
         /// <param name="value"></param>
-        protected void WriteWithIndents(string value)
+        protected void InnerWrite(string value)
         {
             if (string.IsNullOrEmpty(value))
                 return;
@@ -459,7 +680,7 @@ namespace CodegenCS
         /// The idea of writing Func&lt;FormattableString&gt; is that we do NOT evaluate the {arguments} BEFORE the outer string is being written - they are only evaluated when needed
         /// so we can capture the cursor position in current line, and preserve-it if the arguments render multi-line strings
         /// </summary>
-        protected void WriteFormattable(string format, params object[] arguments)
+        protected void InnerWriteFormattable(string format, params object[] arguments)
         {
             //https://www.meziantou.net/interpolated-strings-advanced-usages.htm
             var matches = Regex.Matches(format, @"{\d}");
@@ -468,7 +689,7 @@ namespace CodegenCS
             {
                 // unescape escaped curly braces
                 string text = format.Substring(lastPos, matches[i].Index - lastPos).Replace("{{", "{").Replace("}}", "}");
-                WriteWithIndents(text);
+                InnerWrite(text);
                 // arguments[i] may not work because same argument can be used multiple times
                 var arg = arguments[int.Parse(matches[i].Value.Substring(1, 1))];
 
@@ -599,7 +820,7 @@ namespace CodegenCS
                     ExecuteInlineAction(() =>
                     {
                         string subText = ((string)arg);
-                        Write(subText);
+                        InnerWrite(subText);
                     });
                 }
                 else
@@ -613,77 +834,91 @@ namespace CodegenCS
                 lastPos = matches[i].Index + matches[i].Length;
             }
             string lastPart = format.Substring(lastPos).Replace("{{", "{").Replace("}}", "}");
-            WriteWithIndents(lastPart);
+            InnerWrite(lastPart);
         }
         #endregion
 
         #region public Write/WriteLine methods for formattable strings (which basically are shortcuts to WriteFormattable())
-        public void Write(FormattableString formattable)
+        public CodegenTextWriter Write(FormattableString formattable)
         {
             string format = formattable.Format;
             format = AdjustMultilineString(format);
-            WriteFormattable(format, formattable.GetArguments());
+            InnerWriteFormattable(format, formattable.GetArguments());
+            return this;
         }
-        public void WriteLine(FormattableString formattable)
+        public CodegenTextWriter WriteLine(FormattableString formattable)
         {
             Write(formattable);
             WriteLine();
+            return this;
         }
 
-        public override void Write(string format, params object[] arguments)
+        public CodegenTextWriter Write(string format, params object[] arguments)
         {
             if (string.IsNullOrEmpty(format))
-                return;
+                return this;
             format = AdjustMultilineString(format);
 
-            WriteFormattable(format, arguments);
+            InnerWriteFormattable(format, arguments);
+            return this;
         }
-        public override void WriteLine(string format, params object[] arguments)
+        public CodegenTextWriter WriteLine(string format, params object[] arguments)
         {
             Write(format, arguments);
             WriteLine();
+            return this;
         }
-        public void Write(Func<FormattableString> fnFormattable)
+        public CodegenTextWriter Write(Func<FormattableString> fnFormattable)
         {
             FormattableString formattable = fnFormattable();
             Write(formattable);
+            return this;
         }
-        public void WriteLine(Func<FormattableString> fnFormattable)
+        public CodegenTextWriter WriteLine(Func<FormattableString> fnFormattable)
         {
             Write(fnFormattable());
             WriteLine();
+            return this;
         }
         #endregion
 
-        #region public Write/WriteLine methods (which basically are shortcuts to WriteWithIndents())
-        public override void WriteLine()
+        #region public Write/WriteLine methods (which basically are shortcuts to InnerWrite())
+        public CodegenTextWriter WriteLine()
         {
             WriteRaw(this.NewLine);
             _currentLine.Clear();
+            return this;
         }
-        public override void Write(string value)
+        
+        public CodegenTextWriter Write(string value)
         {
             if (!string.IsNullOrEmpty(value))
             {
                 value = AdjustMultilineString(value);
-                WriteWithIndents(value);
+                InnerWrite(value);
             }
+            return this;
         }
-        public void Write(Func<string> fnString)
+        
+        public CodegenTextWriter Write(Func<string> fnString)
         {
             string value = fnString();
             Write(value);
+            return this;
         }
-        public void WriteLine(Func<string> fnString)
+        
+        public CodegenTextWriter WriteLine(Func<string> fnString)
         {
             Write(fnString());
             WriteLine();
+            return this;
         }
 
-        public override void WriteLine(string value)
+        public CodegenTextWriter WriteLine(string value)
         {
             Write(value);
             WriteLine();
+            return this;
         }
         #endregion
 
