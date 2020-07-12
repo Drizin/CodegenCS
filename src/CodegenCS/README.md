@@ -1,4 +1,4 @@
-# CodegenCS (Core Library)
+.# CodegenCS (Core Library)
 
 C# Library for Code Generation
 
@@ -8,23 +8,24 @@ C# Library for Code Generation
 # Description
 
 CodegenCS is a class library for code generation:
-- Input can be a SQL Server Database, any other RDBMS or NoSQL database, or even JSON, XML, or any kind of structured data that you can read using C#.  
+- Input can be a database (SQL Server or any other type), a NoSQL database, JSON, YAML, XML, or any kind of structured data that you can read using C#.  
 - Output can be C# code, CSHTML, HTML, XML, Javascript, Java, Python, or any other text-based output.  
 
 Basically it provides a custom TextWriter tweaked to solve common code generation difficulties:
 - Keeps track of current Indent level.  
   When you write new lines it will automatically indent the line according to current level.  
   This was inspired by [Scripty](https://github.com/daveaglick/Scripty).
-- Helpers to concisely write C-style blocks  
+- Helpers to concisely write indented blocks (C-style, Java-style or Python-style) using a Fluent API
   (IDisposable context will automatically close blocks)
-- Helpers to write multi-line blocks without having to worry about different indentations for control logic and output code (you can align the multi-line blocks anywhere).
-- Allows writing **Interpolated strings** (FormattableString) and will process any kind of arguments (can be strings or callbacks), while "keeping cursor position" of inline arguments.
+- Helpers to write multi-line blocks without having to worry about different indentations for control logic and output code (you can align the multi-line blocks anywhere where it fits better inside your control code).
+- Allows writing **Interpolated strings** (FormattableString) and will process any kind of arguments (can be strings or Action delegates (callbacks)), while "keeping cursor position" of inline arguments.
 
 Besides the TextWriter, there are some helpers for common code generation tasks:
 - Keeps all code in memory until you can save all files at once (no need to save anything if something fails)
-- Adding files to old csproj (.NET Framework), possibly multiple files under a single file
-- Adding files to new csproj (.NET Core), possibly multiple files under a single file
+- Adding generated files to old csproj (non-SDK style), with the option to nest the generated files under a single file
+- Adding generated files to new csproj (SDK style) nested under a single file
 
+Besides CodegenCS Core Library, there are some other related projects [here](https://github.com/Drizin/CodegenCS), including Scripts to reverse engineer a SQL Server database into JSON schema, and templates to build C# POCOs or EF Entities from that JSON schema.
 
 This class library targets both netstandard2.0 and net472 and therefore it can be used both in .NET Framework or .NET Core.
 
@@ -41,93 +42,180 @@ Just install nuget package **[CodegenCS](https://www.nuget.org/packages/CodegenC
 
 ## Documentation
 
-In this [blog post](http://drizin.io/yet-another-code-generator/) I describe why I've created this library 
-(why T4 templates are difficult to use, and how I tried many other tools before deciding to write my own),
-and also I give some examples of the basic problems that CodegenCS solves.
-
-Some examples below, which are similar to what you'll see in my post:
-
-**Automatically indenting C-like blocks, which when disposed (`using` keyword) will automatically decrease indent level**:
+**Creating a TextWriter, writing lines, saving to file**
 
 ```cs
-var w = new TemplateTextWriter();
-string myNamespace = "codegencs";
-string myClass = "Test1";
-using (w.WithCBlock($"namespace {myNamespace}"))
-{
-    using (w.WithCBlock($"public class {myClass}"))
-    {
-         w.WriteLine("// My Properties start here");
-    }
-}
-```
-...this generates this code:
-```cs
-namespace codegencs
-{
-    public class Test1
-    {
-        // My Properties start here
-    }
-}
+var w = new CodegenTextWriter();
+w.WriteLine("Line1");
+w.SaveToFile("File1.cs");
 ```
 
-**Realigning multi-line blocks to the left, docking the longest line to the margin**:
-```cs
-if (something)
-{
-    if (something)
-    {
-        if (something)
-        {
-            w.WriteLine(@"
-                namespace codegencs
-                {
-                    public class Test1
-                    {
-                        // My Properties start here
-                    }
-                }");
-        }
-    }
-}
-```
-Even though the text-block is indented by 16 spaces (to match the control logic around it), when it's written to the output it will honor the internal indentation level.  
-To the whole block is realigned to the left, docking the outermost line to the left, so assuming that the current TextWriter was at IndentLevel 0 we would get this output:
-```cs
-namespace codegencs
-{
-    public class Test1
-    {
-        // My Properties start here
-    }
-}
-```
-
-If it weren't for the auto-docking, you would have to mix different indentations, which is how other engines (including T4 templates) work. You'd have to code like this:
+**Creating a Context to keep track of multiple files, and save all files at once**
 
 ```cs
-if (something)
-{
-    if (something)
+var ctx = new CodegenContext();
+
+var f1 = ctx["File1.cs"];
+var f2 = ctx["File2.cs"];
+
+f1.WriteLine("Line1");
+f2.WriteLine("Line1");
+
+ctx.SaveFiles(outputFolder);
+```
+
+
+**Writing C-like block using FluentAPI and `WithCBlock()`**
+```cs
+var w = new CodegenTextWriter();
+w
+    .WriteLine("// Testing FluentAPI")
+    .WithCBlock("void MyMethod()", () =>
     {
-        if (something)
-        {
-            w.WriteLine(@"
-namespace codegencs
+        w.WriteLine("OtherMethod();");
+    });
+    
+w.SaveToFile("File1.cs"); 
+```
+... will output this:
+
+```cs
+// Testing FluentAPI
+void MyMethod()
 {
-	public class Test1
+    OtherMethod();
+}
+```
+... while `WithJavaBlock()` would output this:
+```java
+// Testing FluentAPI
+void MyMethod() {
+    OtherMethod();
+}
+```
+**Writing Python-like block using FluentAPI and `WithPythonBlock()`**
+
+```cs
+var w = new CodegenTextWriter();
+w
+    .WriteLine("# Testing FluentAPI")
+    .WithPythonBlock("if a == b", () =>
+    {
+        w.WriteLine("print b");
+    });
+```
+... will output this:
+
+```python
+# Testing FluentAPI
+if a == b :
+    print b
+```
+
+**Using interpolated strings with variables**
+
+```cs
+string ns = "myNamespace";
+string cl = "myClass";
+string method = "MyMethod";
+
+w.WithCurlyBraces($"namespace {ns}", () =>
+{
+  w.WithCurlyBraces($"public class {cl}", () => {
+    w.WithCurlyBraces($"public void {method}()", () =>
+    {
+      w.WriteLine(@"test");
+    });
+  });
+});
+```
+
+... will output this:
+
+```cs
+namespace myNamespace
+{
+    public class myClass
+    {
+        public vod MyMethod()
 	{
-		// My Properties start here
+	    test
 	}
-}");
-        }
     }
 }
 ```
 
+**Writing multi-line blocks without worrying about mixed indentation**
 
-**Writing multi-line blocks (starting in any horizontal position) will preserve that same horizontal indenting for all lines**:
+```cs
+w.WithCurlyBraces($"public void MyMethod()", () =>
+{
+    w
+      .WriteLine("// I can add one-line text")
+      .WriteLine(@"
+        // And I can write multi-line texts
+	// which are indented wherever it fits best
+	// (according to the control logic)
+	// ... and in the end, it will be "realigned to the left" (left padding trimmed, docking the longest line to the margin)
+	// so that the extra spaces are all ignored
+        ")
+      .WriteLine("// No more worrying about mixed-indentations between literals and control logic");
+});
+```
+
+... will output this:
+
+```cs
+public void MyMethod()
+{
+    // I can add one-line text
+    // And I can write multi-line texts
+    // which are indented wherever it fits best
+    // (according to the control logic)
+    // ... and in the end, it will be "realigned to the left" (left padding trimmed, docking the longest line to the margin)
+    // so that the extra spaces are all ignored
+    // No more worrying about mixed-indentations between literals and control logic"
+}
+```
+
+**Another example of how multi-line blocks are realigned to the left (docking the longest line to the margin)**:
+```cs
+if (something)
+{
+    // As you can see below, I can add any number of whitspace before all my lines, and that will be removed
+    // The final block will respect the current indentation level of the TextWriter.
+    w.WriteLine(@"
+        namespace codegencs
+        {
+            public class Test1
+            {
+                // etc..
+            }
+        }");
+}
+
+// In other code-generation engines (including T4 templates) you would have to code like this:
+
+if (something)
+{
+    // Mixed indentation levels can get pretty confusing. 
+    // And if the outer indentation level is changed (e.g. if this is put inside an if block) 
+    // you would have to add more spaces to each line, since the TextWriter does not have any context information about the current indentation level
+    w.WriteLine(@"namespace codegencs
+{
+    public class Test1
+    {
+        // etc..
+    }
+}");
+}
+
+```
+
+**Reusable Action delegates can be used inside interpolated strings.**
+
+Writing multi-line blocks (starting in any horizontal position) will preserve that same horizontal indenting for all lines**:
+
 ```cs
 // This is a reusable method which you can embed anywhere inside your string-interpolated templates
 Func<FormattableString> RenderProperties(List<Property> props)
@@ -136,14 +224,16 @@ Func<FormattableString> RenderProperties(List<Property> props)
         {string.Join(Environment.NewLine, props.Select(prop => $"public {prop.Type} {prop.Name} {{ get; set; }}"))}"
     ;
 }
+
+List<Property> props = new List<Property>() 
+{ 
+	new Property() { Name = "Name", Type = "string" }, 
+	new Property() { Name = "Age", Type = "int" } 
+};
+
 public void GenerateMyClass()
 {
-    List<Property> props = new List<Property>() 
-	{ 
-		new Property() { Name = "Name", Type = "string" }, 
-		new Property() { Name = "Age", Type = "int" } 
-	};
-    var writer = new TemplateTextWriter();
+    var writer = new CodegenTextWriter();
     string myNamespace = "codegencs";
     string myClass = "Test1";
     writer.Write($@"
@@ -158,7 +248,8 @@ public void GenerateMyClass()
 }
 ```
 
-And the output is:
+... will output this:
+
 ```cs
 namespace codegencs
 {
@@ -175,24 +266,18 @@ In other words, the inner block was fully written in the "current cursor positio
 And again, if the text writer had indent level 1, all that output (outer and inner template) would have 4 more spaces before each line.  
 Cool, uh?
 
-For my inner template I used a `Func<FormattableString>` but it could be other types like `string`, `Func<string>`, or `FormattableString` itself.  
-They would all be evaluated "on demand", only by the moment we need to output those parameters.
-
+For my inner template I used a `Func<FormattableString>` but it could be other types like `FormattableString`,  `string`, `Func<string>`, `Action`, or `Action<CodegenTextWriter>`. They would all be evaluated "on demand", only by the moment that we need to output those parameters.
 
 
 
 ## Contributing
-This is a brand new project, and I hope with your help it can grow a lot.  
-As I like to say, **If you’re writing repetitive code by hand, you’re stealing from your employer or from your client.**
 
-If you you want to contribute, you can either:
-- Fork it, optionally create a feature branch, commit your changes, push it, and submit a Pull Request.
-- Drop me an email (http://drizin.io/pages/Contact/) and let me know how you can help. I really don't have much time and would appreciate your help.
+This is a brand new project, and your contribution can help a lot.  
 
-Some ideas for next steps:
-- Helpers to Write/Read json files (mostly for caching database schemas) - using Newtonsoft Json
-- Support for running templates without needing a dedicated csproj (probably using ScriptCS CSX files or Powershell scripts)
-- Helpers to Generate CSPROJ and SLN files
+**Would you like to collaborate or share your own template?**  
+
+Please submit a pull-request or if you prefer you can [contact me](http://drizin.io/pages/Contact/) to discuss your idea.
+
 
 
 ## History
@@ -201,6 +286,7 @@ Some ideas for next steps:
 - 2019-11-03: Published [nuget package 1.0.0](https://www.nuget.org/packages/CodegenCS/)
 - 2019-11-04: Published [nuget package 1.0.1](https://www.nuget.org/packages/CodegenCS/) 
 - 2020-07-05: New project/scripts [CodegenCS.SqlServer](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer) to reverse engineer a SQL Server database into JSON schema
+- 2020-07-12: Published [nuget package 1.0.2](https://www.nuget.org/packages/CodegenCS/) with Fluent API and other major changes
 
 
 ## License
