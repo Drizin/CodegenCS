@@ -845,7 +845,7 @@ namespace CodegenCS
         /// <summary>
         /// Writes to the stream/writer the result of Lazy evaluation of a Func&lt;string&gt;
         /// </summary>
-        public CodegenTextWriter Write(Func<string> fnString)
+        public CodegenTextWriter Write(Func<RawString> fnString)
         {
             string value = fnString();
             InnerWrite(AdjustMultilineString(value));
@@ -855,7 +855,7 @@ namespace CodegenCS
         /// <summary>
         /// Writes to the stream/writer the result of Lazy evaluation of a Func&lt;string&gt; and a new line
         /// </summary>
-        public CodegenTextWriter WriteLine(Func<string> fnString)
+        public CodegenTextWriter WriteLine(Func<RawString> fnString)
         {
             string value = fnString();
             InnerWrite(AdjustMultilineString(value));
