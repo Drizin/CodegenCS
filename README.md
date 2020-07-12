@@ -31,7 +31,7 @@ var w = new CodegenTextWriter();
 w.WithCBlock("public class MyClass", () =>
 {
     w
-        .WriteLine("// Testing FluentAPI");
+        .WriteLine("// Testing FluentAPI")
         .WithCBlock("void MyMethod()", () =>
         {
             w.WriteLine("OtherMethod();");
