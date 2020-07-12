@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>CodegenCS</id>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <title>CodegenCS</title>
     <authors>Rick Drizin</authors>
     <owners>Rick Drizin</owners>
@@ -12,11 +12,8 @@
     <description>C# Library for Code Generation</description>
     <copyright>Copyright Rick Drizin 2019</copyright>
     <tags>code generation;code generator;templating;codegencs</tags>
-    <repository type="git" url="https://github.com/Drizin/CodegenCS" commit="fbcc9d0efbf848c94ec0dc7e18d06a8e805dc186" />
+    <repository type="git" url="https://github.com/Drizin/CodegenCS" commit="2343c26ef0987db44b4da7bca262f3e3412fb3f7" />
     <dependencies>
-      <dependency id="Dapper" version="2.0.30" exclude="Build,Analyzers" />
-      <dependency id="Humanizer.Core" version="2.7.9" exclude="Build,Analyzers" />
-      <dependency id="System.Data.SqlClient" version="4.7.0" exclude="Build,Analyzers" />
     </dependencies>
   </metadata>
   <files>
