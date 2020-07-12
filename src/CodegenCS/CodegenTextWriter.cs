@@ -754,11 +754,18 @@ namespace CodegenCS
         #endregion
 
         #region public Write/WriteLine methods for formattable strings (which basically are shortcuts to InnerWriteFormattable())
+        /// <summary>
+        /// Writes to the stream/writer an interpolated string (which arguments can mix strings, variables, and also action delegates which will be lazy-evaluated)
+        /// </summary>
         public CodegenTextWriter Write(FormattableString formattable)
         {
             InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
             return this;
         }
+
+        /// <summary>
+        /// Writes to the stream/writer an interpolated string (which arguments can mix strings, variables, and also action delegates which will be lazy-evaluated) and a new line
+        /// </summary>
         public CodegenTextWriter WriteLine(FormattableString formattable)
         {
             InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
