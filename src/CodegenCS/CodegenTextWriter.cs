@@ -791,6 +791,25 @@ namespace CodegenCS
             WriteLine();
             return this;
         }
+
+        /// <summary>
+        /// Writes object to the stream/writer
+        /// </summary>
+        public CodegenTextWriter Write(object value)
+        {
+            InnerWriteFormattable(AdjustMultilineString(value.ToString()));
+            return this;
+        }
+
+        /// <summary>
+        /// Writes object and new line to the stream/writer
+        /// </summary>
+        public CodegenTextWriter WriteLine(object value)
+        {
+            InnerWriteFormattable(AdjustMultilineString(value.ToString()));
+            WriteLine();
+            return this;
+        }
         #endregion
 
         #region public Write/WriteLine methods (which basically are shortcuts to InnerWrite())
@@ -840,6 +859,28 @@ namespace CodegenCS
         {
             string value = fnString();
             InnerWrite(AdjustMultilineString(value));
+            WriteLine();
+            return this;
+        }
+
+
+        /// <summary>
+        /// Writes to the stream/writer the result of Lazy evaluation of a Func&lt;FormattableString&gt;
+        /// </summary>
+        public CodegenTextWriter Write(Func<FormattableString> fnFormattableString)
+        {
+            FormattableString formattable = fnFormattableString();
+            InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
+            return this;
+        }
+
+        /// <summary>
+        /// Writes to the stream/writer the result of Lazy evaluation of a Func&lt;FormattableString&gt; and a new line
+        /// </summary>
+        public CodegenTextWriter WriteLine(Func<FormattableString> fnFormattableString)
+        {
+            FormattableString formattable = fnFormattableString();
+            InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
             WriteLine();
             return this;
         }
