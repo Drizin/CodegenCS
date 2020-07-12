@@ -1,6 +1,5 @@
 using CodegenCS;
 using CodegenCS.DotNet;
-using CodegenCS.Utils;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -18,6 +17,7 @@ namespace Tests
             _w = new CodegenTextWriter();
         }
 
+        /* make relative path using GetCallerPath 
         [Test]
         public void TestMSProj()
         {
@@ -45,7 +45,9 @@ namespace Tests
                 editor.AddItem(itemPath: o.Key, parentItemPath: masterFile, itemType: o.Value.FileType);
             editor.Save();
         }
+        */
 
+        /*
         [Test]
         public void TestDatabase()
         {
@@ -69,7 +71,7 @@ namespace Tests
             context.SaveFiles(outputFolder);
             editor.Save();
         }
-
+        */
 
     }
 }
