@@ -18,6 +18,52 @@ namespace Tests
         }
 
         [Test]
+        public void ManualIndent()
+        {
+            _w.WriteLine("Line1");
+            _w.IncreaseIndent();
+            _w.WriteLine("Line2");
+            _w.IncreaseIndent();
+            _w.WriteLine("Line3");
+            _w.DecreaseIndent();
+            _w.WriteLine("Line4");
+            string expected =
+@"
+Line1
+    Line2
+        Line3
+    Line4
+";
+
+            Assert.AreEqual(expected.TrimStart(), _w.ToString());
+        }
+
+        [Test]
+        public void AutoIndent()
+        {
+            _w.WriteLine("Line1");
+            using (_w.WithIndent())
+            {
+                _w.WriteLine("Line2");
+                using (_w.WithIndent())
+                {
+                    _w.WriteLine("Line3");
+                }
+                _w.WriteLine("Line4");
+            }
+            string expected =
+@"
+Line1
+    Line2
+        Line3
+    Line4
+";
+
+            Assert.AreEqual(expected.TrimStart(), _w.ToString());
+        }
+
+
+        [Test]
         public void TestMultiline()
         {
             _w.WriteLine(@"
@@ -266,7 +312,7 @@ namespace Tests
         {
             // https://mariusschulz.com/blog/using-the-indentedtextwriter-class-to-output-hierarchically-structured-data
             WriteToDoList(todoList, _w);
-            string expected = @"- Get milk
+        string expected = @"- Get milk
 - Clean the house
     - Living room
     - Bathrooms
@@ -277,6 +323,7 @@ namespace Tests
 ";
             Assert.AreEqual(_w.ToString(), expected);
         }
+
 
 
 
