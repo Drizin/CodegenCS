@@ -1,4 +1,4 @@
-# CodegenCS (Core Library)
+.# CodegenCS (Core Library)
 
 C# Library for Code Generation
 
@@ -69,7 +69,7 @@ ctx.SaveFiles(outputFolder);
 ```cs
 var w = new CodegenTextWriter();
 w
-    .WriteLine("// Testing FluentAPI");
+    .WriteLine("// Testing FluentAPI")
     .WithCBlock("void MyMethod()", () =>
     {
         w.WriteLine("OtherMethod();");
@@ -98,7 +98,7 @@ void MyMethod() {
 ```cs
 var w = new CodegenTextWriter();
 w
-    .WriteLine("# Testing FluentAPI");
+    .WriteLine("# Testing FluentAPI")
     .WithPythonBlock("if a == b", () =>
     {
         w.WriteLine("print b");
@@ -150,15 +150,16 @@ namespace myNamespace
 ```cs
 w.WithCurlyBraces($"public void MyMethod()", () =>
 {
-    w.WriteLine("// I can add one-line text");
-    w.WriteLine(@"
+    w
+      .WriteLine("// I can add one-line text")
+      .WriteLine(@"
         // And I can write multi-line texts
 	// which are indented wherever it fits best
 	// (according to the control logic)
 	// ... and in the end, it will be "realigned to the left" (left padding trimmed, docking the longest line to the margin)
 	// so that the extra spaces are all ignored
-        ");
-    w.WriteLine("// No more worrying about mixed-indentations between literals and control logic");
+        ")
+      .WriteLine("// No more worrying about mixed-indentations between literals and control logic");
 });
 ```
 
