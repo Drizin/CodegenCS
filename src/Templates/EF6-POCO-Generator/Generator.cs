@@ -10,14 +10,14 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.IO;
 using CodegenCS;
-
+using CodegenCS.DotNet;
 
 namespace EF6POCOGenerator
 {
     public class Generator
     {
         private Generator() { }
-        public Generator(CodegenContext context, Func<DbConnection> createConnection, decimal targetFrameworkVersion)
+        public Generator(DotNetCodegenContext context, Func<DbConnection> createConnection, decimal targetFrameworkVersion)
         {
             //Settings.ConnectionString = connectionString;
             //Settings.ProviderName = providerName;
@@ -27,7 +27,7 @@ namespace EF6POCOGenerator
             this.Configure();
         }
 
-        private CodegenContext _context;
+        private DotNetCodegenContext _context;
         private CodegenTextWriter w;
         Func<DbConnection> _createConnection;
 
@@ -167,7 +167,7 @@ namespace EF6POCOGenerator
             //      2. Add the following to the top of this file and adjust path, and remove the space between the angle bracket and # at the beginning and end.
             //         < #@ assembly name="your full path to \EntityFramework.Contrib.dll" # >
             //      3. Change the line below to: Inflector.PluralizationService = new SpanishPluralizationService();
-            Inflector.PluralizationService = new CodegenCS.Utils.HumanizerInflector();
+            Inflector.PluralizationService = new HumanizerInflector();
             // If pluralisation does not do the right thing, override it here by adding in a custom entry.
             //Inflector.PluralizationService = new EnglishPluralizationService(new[]
             //{
@@ -2557,8 +2557,7 @@ namespace EF6POCOGenerator
         void StartNewFile(string path, bool writeHeader = true)
         {
             FinishCurrentFile();
-            CodegenOutputFile outputFile = _context.GetOutputFile(path, OutputFileType.Compile);
-            w = outputFile.Writer;
+            w = _context[path];
             if (writeHeader)
                 this.WriteFileHeader();
         }

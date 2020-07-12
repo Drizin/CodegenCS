@@ -1,5 +1,4 @@
-﻿using CodegenCS.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 namespace EF6POCOGenerator
 {
     /// <summary>
-    /// Summary for the Inflector class
+    /// Static language-inflection helpers
     /// </summary>
     public static class Inflector
     {

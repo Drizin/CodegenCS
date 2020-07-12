@@ -50,6 +50,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CodegenCS, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\CodegenCS.1.0.2\lib\net472\CodegenCS.dll</HintPath>
+    </Reference>
+    <Reference Include="Humanizer, Version=2.8.0.0, Culture=neutral, PublicKeyToken=979442b78dfc278e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Humanizer.Core.2.8.26\lib\netstandard2.0\Humanizer.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
@@ -64,6 +70,8 @@
     <Compile Include="DatabaseObjects.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Generator.cs" />
+    <Compile Include="HumanizerInflector.cs" />
+    <Compile Include="IInflector.cs" />
     <Compile Include="Inflector.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -73,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
@@ -85,12 +94,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\CodegenCS\CodegenCS.csproj">
-      <Project>{d645ba8a-5fc7-40da-adc7-4edcb58aada3}</Project>
-      <Name>CodegenCS</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="LICENSE.txt" />

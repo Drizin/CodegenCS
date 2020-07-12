@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EF6-POCO-Generator", "EF6-P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EF6-POCO-Generator.SampleOutput", "EF6-POCO-Generator.SampleOutput\EF6-POCO-Generator.SampleOutput.csproj", "{7D35329B-3FC3-442A-A997-5096AAD4F9BD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS", "..\CodegenCS\CodegenCS.csproj", "{D645BA8A-5FC7-40DA-ADC7-4EDCB58AADA3}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{7D35329B-3FC3-442A-A997-5096AAD4F9BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D35329B-3FC3-442A-A997-5096AAD4F9BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D35329B-3FC3-442A-A997-5096AAD4F9BD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D645BA8A-5FC7-40DA-ADC7-4EDCB58AADA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D645BA8A-5FC7-40DA-ADC7-4EDCB58AADA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D645BA8A-5FC7-40DA-ADC7-4EDCB58AADA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D645BA8A-5FC7-40DA-ADC7-4EDCB58AADA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
