@@ -65,7 +65,7 @@ ctx.SaveFiles(outputFolder);
 ```
 
 
-**Writing C-like block using FluentAPI and `WithCBlock`()**
+**Writing C-like block using FluentAPI and `WithCBlock()`**
 ```cs
 var w = new CodegenTextWriter();
 w
@@ -86,14 +86,14 @@ void MyMethod()
     OtherMethod();
 }
 ```
-... while `WithJavaBlock` would output this:
+... while `WithJavaBlock()` would output this:
 ```java
 // Testing FluentAPI
 void MyMethod() {
     OtherMethod();
 }
 ```
-**Writing Python-like block using FluentAPI and WithPythonBlock()**
+**Writing Python-like block using FluentAPI and `WithPythonBlock()`**
 
 ```cs
 var w = new CodegenTextWriter();
