@@ -580,149 +580,176 @@ namespace CodegenCS
                 if (arg == null)
                     arg = "";
 
-                // TODO: instead of accepting IEnumerable<FormattableString>, IEnumerable<string>, IEnumerable<Func<FormattableString>>, IEnumerable<Func<string>>, 
-                // we should probably create extensions that would convert those types into Action<CodegenTextWriter> - we could have extensions like "WriteLines" (writing one per line), maybe add parameters to format how the elements are written, etc
-                Type[] interfaceTypes = arg.GetType().GetInterfaces();
-                Type interfaceType;
-                if ((interfaceType = interfaceTypes.SingleOrDefault(t => 
-                    t.IsGenericType && 
-                    t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                    t.GetGenericArguments()[0].IsAssignableFrom(typeof(FormattableString))
-                    )) != null)
-                {
-                    InnerInlineAction(() =>
-                    {
-                        IEnumerable<FormattableString> list = (IEnumerable<FormattableString>)arg;
-                        for(int j = 0; j < list.Count(); j++)
-                        {
-                            FormattableString item = list.ElementAt(j);
-                            InnerWriteFormattable(item.Format, item.GetArguments());
-                            if (j < list.Count() - 1)
-                                WriteLine();
-                        }
-                    });
-                }
-                else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
-                    t.IsGenericType &&
-                    t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                    t.GetGenericArguments()[0].IsGenericType &&
-                    t.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<>) &&
-                    t.GetGenericArguments()[0].GetGenericArguments()[0].IsAssignableFrom(typeof(FormattableString))
-                    )) != null)
-                {
-                    InnerInlineAction(() =>
-                    {
-                        IEnumerable<Func<FormattableString>> list = (IEnumerable<Func<FormattableString>>)arg;
-                        for (int j = 0; j < list.Count(); j++)
-                        {
-                            Func<FormattableString> fnFormattable = list.ElementAt(j);
-                            FormattableString formattable = fnFormattable();
-                            InnerWriteFormattable(formattable.Format, formattable.GetArguments());
-                            if (j < list.Count() - 1)
-                                WriteLine();
-                        }
-                    });
-                }
-                else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
-                    t.IsGenericType &&
-                    t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                    t.GetGenericArguments()[0].IsGenericType &&
-                    t.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<>) &&
-                    t.GetGenericArguments()[0].GetGenericArguments()[0].IsAssignableFrom(typeof(string))
-                    )) != null)
-                {
-                    InnerInlineAction(() =>
-                    {
-                        IEnumerable<Func<string>> list = (IEnumerable<Func<string>>)arg;
-                        for (int j = 0; j < list.Count(); j++)
-                        {
-                            Func<string> item = list.ElementAt(j);
-                            InnerWrite(item());
-                            if (j < list.Count() - 1)
-                                WriteLine();
-                        }
-                    });
-                }
-                else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
-                    t.IsGenericType &&
-                    t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                    t.GetGenericArguments()[0].IsAssignableFrom(typeof(string))
-                    )) != null)
-                {
-                    InnerInlineAction(() =>
-                    {
-                        IEnumerable<string> list = (IEnumerable<string>)arg;
-                        for (int j = 0; j < list.Count(); j++)
-                        {
-                            string item = list.ElementAt(j);
-                            InnerWrite(item);
-                            if (j < list.Count() - 1)
-                                WriteLine();
-                        }
-                    });
-
-                }
-                else if (arg as FormattableString != null)
-                {
-                    InnerInlineAction(() =>
-                    {
-                        FormattableString subText = (FormattableString)arg;
-                        InnerWriteFormattable(subText.Format, subText.GetArguments());
-                    });
-                }
-                else if (arg as Func<FormattableString> != null)
-                {
-                    InnerInlineAction(() =>
-                    {
-                        Func<FormattableString> fnFormattable = ((Func<FormattableString>)arg);
-                        FormattableString formattable = fnFormattable();
-                        InnerWriteFormattable(formattable.Format, formattable.GetArguments());
-                    });
-                }
-                else if (arg as Action<CodegenTextWriter> != null)
-                {
-                    InnerInlineAction(() =>
-                    {
-                        Action<CodegenTextWriter> action = ((Action<CodegenTextWriter>)arg);
-                        action(this);
-                    });
-                }
-                else if (arg as Action<TextWriter> != null)
-                {
-                    InnerInlineAction(() =>
-                    {
-                        Action<TextWriter> action = ((Action<TextWriter>)arg);
-                        action(this);
-                    });
-                }
-                else if (arg as Func<string> != null)
-                {
-                    InnerInlineAction(() =>
-                    {
-                        string exec = ((Func<string>)arg)();
-                        InnerWrite(exec);
-                    });
-                }
-                else if (arg as string != null)
-                {
-                    InnerInlineAction(() =>
-                    {
-                        string subText = ((string)arg);
-                        InnerWrite(subText);
-                    });
-                }
-                else
-                {
-                    InnerInlineAction(() =>
-                    {
-                        InnerWrite(arg.ToString());
-                    });
-                }
+                InnerWriteFormattableArgument(arg);
 
                 lastPos = matches[i].Index + matches[i].Length;
             }
             string lastPart = format.Substring(lastPos).Replace("{{", "{").Replace("}}", "}");
             InnerWrite(lastPart);
+        }
+
+        /// <summary>
+        /// Interpolated strings used in CodegenTextWriter may contain as arguments (expressions) not only variables/expressions but also Action delegates. <br />
+        /// This method prints those arguments.
+        /// </summary>
+        protected void InnerWriteFormattableArgument(object arg)
+        {
+            // TODO: instead of accepting IEnumerable<FormattableString>, IEnumerable<string>, IEnumerable<Func<FormattableString>>, IEnumerable<Func<string>>, 
+            // we should probably create extensions that would convert those types into Action<CodegenTextWriter> - we could have extensions like "WriteLines" (writing one per line), maybe add parameters to format how the elements are written, etc
+            Type[] interfaceTypes = arg.GetType().GetInterfaces();
+            Type interfaceType;
+
+            #region if arg is string (most common case) or Func<string> (lazy-evaluated func which returns a string)
+            if (arg as string != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    string subText = ((string)arg);
+                    InnerWrite(subText);
+                });
+            }
+            else if (arg as Func<string> != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    string exec = ((Func<string>)arg)();
+                    InnerWrite(exec);
+                });
+            }
+            #endregion
+
+            #region if arg is FormattableString or Func<FormattableString>
+            else if (arg as FormattableString != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    FormattableString subText = (FormattableString)arg;
+                    InnerWriteFormattable(subText.Format, subText.GetArguments());
+                });
+            }
+            else if (arg as Func<FormattableString> != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    Func<FormattableString> fnFormattable = ((Func<FormattableString>)arg);
+                    FormattableString formattable = fnFormattable();
+                    InnerWriteFormattable(formattable.Format, formattable.GetArguments());
+                });
+            }
+            #endregion
+
+            #region if arg is Action<CodegenTextWriter> or Action<TextWriter>
+            else if (arg as Action<CodegenTextWriter> != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    Action<CodegenTextWriter> action = ((Action<CodegenTextWriter>)arg);
+                    action(this);
+                });
+            }
+            else if (arg as Action<TextWriter> != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    Action<TextWriter> action = ((Action<TextWriter>)arg);
+                    action(this);
+                });
+            }
+            #endregion
+
+            #region if arg is IEnumerable<string> or IEnumerable<Func<string>>
+            else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+                t.IsGenericType &&
+                t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                t.GetGenericArguments()[0].IsAssignableFrom(typeof(string))
+                )) != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    IEnumerable<string> list = (IEnumerable<string>)arg;
+                    for (int j = 0; j < list.Count(); j++)
+                    {
+                        string item = list.ElementAt(j);
+                        InnerWrite(item);
+                        if (j < list.Count() - 1)
+                            WriteLine();
+                    }
+                });
+            }
+            else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+                t.IsGenericType &&
+                t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                t.GetGenericArguments()[0].IsGenericType &&
+                t.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<>) &&
+                t.GetGenericArguments()[0].GetGenericArguments()[0].IsAssignableFrom(typeof(string))
+                )) != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    IEnumerable<Func<string>> list = (IEnumerable<Func<string>>)arg;
+                    for (int j = 0; j < list.Count(); j++)
+                    {
+                        Func<string> item = list.ElementAt(j);
+                        InnerWrite(item());
+                        if (j < list.Count() - 1)
+                            WriteLine();
+                    }
+                });
+            }
+            #endregion
+
+            #region if arg is IEnumerable<FormattableString> or IEnumerable<Func<FormattableString>>
+            else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+                t.IsGenericType &&
+                t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                t.GetGenericArguments()[0].IsAssignableFrom(typeof(FormattableString))
+                )) != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    IEnumerable<FormattableString> list = (IEnumerable<FormattableString>)arg;
+                    for (int j = 0; j < list.Count(); j++)
+                    {
+                        FormattableString item = list.ElementAt(j);
+                        InnerWriteFormattable(item.Format, item.GetArguments());
+                        if (j < list.Count() - 1)
+                            WriteLine();
+                    }
+                });
+            }
+            else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+                t.IsGenericType &&
+                t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                t.GetGenericArguments()[0].IsGenericType &&
+                t.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<>) &&
+                t.GetGenericArguments()[0].GetGenericArguments()[0].IsAssignableFrom(typeof(FormattableString))
+                )) != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    IEnumerable<Func<FormattableString>> list = (IEnumerable<Func<FormattableString>>)arg;
+                    for (int j = 0; j < list.Count(); j++)
+                    {
+                        Func<FormattableString> fnFormattable = list.ElementAt(j);
+                        FormattableString formattable = fnFormattable();
+                        InnerWriteFormattable(formattable.Format, formattable.GetArguments());
+                        if (j < list.Count() - 1)
+                            WriteLine();
+                    }
+                });
+            }
+            #endregion
+
+            #region else, just try ToString()
+            else
+            {
+                InnerInlineAction(() =>
+                {
+                    InnerWrite(arg.ToString());
+                });
+            }
+            #endregion
+
         }
         #endregion
 
@@ -739,53 +766,69 @@ namespace CodegenCS
             return this;
         }
 
+        /// <summary>
+        /// Writes to the stream/writer a formatted string (like string.Format, where arguments are replaced in the string)
+        /// </summary>
         public CodegenTextWriter Write(RawString format, params object[] arguments)
         {
             InnerWriteFormattable(AdjustMultilineString(format), arguments);
             return this;
         }
+
+        /// <summary>
+        /// Writes to the stream/writer a formatted string (like string.Format, where arguments are replaced in the string) and a new line
+        /// </summary>
         public CodegenTextWriter WriteLine(RawString format, params object[] arguments)
         {
             InnerWriteFormattable(AdjustMultilineString(format), arguments);
             WriteLine();
             return this;
         }
-        public CodegenTextWriter Write(Func<FormattableString> fnFormattable)
-        {
-            FormattableString formattable = fnFormattable();
-            InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
-            return this;
-        }
-        public CodegenTextWriter WriteLine(Func<FormattableString> fnFormattable)
-        {
-            FormattableString formattable = fnFormattable();
-            InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
-            WriteLine();
-            return this;
-        }
         #endregion
 
         #region public Write/WriteLine methods (which basically are shortcuts to InnerWrite())
+        /// <summary>
+        /// Writes to the stream/writer a new line
+        /// </summary>
         public CodegenTextWriter WriteLine()
         {
             InnerWriteRaw(this.NewLine);
             _currentLine.Clear();
             return this;
         }
-        
+
+        /// <summary>
+        /// Writes to the stream/writer a plain string 
+        /// </summary>
         public CodegenTextWriter Write(RawString value)
         {
             InnerWrite(AdjustMultilineString(value));
             return this;
         }
-        
+
+        /// <summary>
+        /// Writes to the stream/writer a plain string and a new line
+        /// </summary>
+        public CodegenTextWriter WriteLine(RawString value)
+        {
+            InnerWrite(AdjustMultilineString(value));
+            WriteLine();
+            return this;
+        }
+
+        /// <summary>
+        /// Writes to the stream/writer the result of Lazy evaluation of a Func&lt;string&gt;
+        /// </summary>
         public CodegenTextWriter Write(Func<string> fnString)
         {
             string value = fnString();
             InnerWrite(AdjustMultilineString(value));
             return this;
         }
-        
+
+        /// <summary>
+        /// Writes to the stream/writer the result of Lazy evaluation of a Func&lt;string&gt; and a new line
+        /// </summary>
         public CodegenTextWriter WriteLine(Func<string> fnString)
         {
             string value = fnString();
@@ -794,25 +837,28 @@ namespace CodegenCS
             return this;
         }
 
-        public CodegenTextWriter WriteLine(RawString value)
-        {
-            InnerWrite(AdjustMultilineString(value));
-            WriteLine();
-            return this;
-        }
 
+        /// <summary>
+        /// Writes buffer to the stream/writer a plain string 
+        /// </summary>
         public new CodegenTextWriter Write(char[] buffer)
         {
             InnerWrite(AdjustMultilineString(new string(buffer)));
             return this;
         }
 
+        /// <summary>
+        /// Writes buffer to the stream/writer a plain string 
+        /// </summary>
         public new CodegenTextWriter Write(char[] buffer, int index, int count)
         {
             InnerWrite(AdjustMultilineString(new string(buffer, index, count)));
             return this;
         }
 
+        /// <summary>
+        /// Writes buffer to the stream/writer a plain string 
+        /// </summary>
         public new CodegenTextWriter WriteLine(char[] buffer)
         {
             InnerWrite(AdjustMultilineString(new string(buffer)));
@@ -820,6 +866,9 @@ namespace CodegenCS
             return this;
         }
 
+        /// <summary>
+        /// Writes buffer to the stream/writer
+        /// </summary>
         public new CodegenTextWriter WriteLine(char[] buffer, int index, int count)
         {
             InnerWrite(AdjustMultilineString(new string(buffer, index, count)));
