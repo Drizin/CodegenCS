@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS/</PackageProjectUrl>
     <Description>C# Library for Code Generation
 ... or Yet Another Code Generator</Description>
     <Copyright>Rick Drizin</Copyright>
