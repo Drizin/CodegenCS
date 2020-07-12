@@ -1,4 +1,4 @@
-.# CodegenCS (Core Library)
+# CodegenCS (Core Library)
 
 C# Library for Code Generation
 
@@ -154,8 +154,7 @@ w.WithCurlyBraces($"public void MyMethod()", () =>
       .WriteLine("// I can add one-line text")
       .WriteLine(@"
         // And I can write multi-line texts
-	// which are indented wherever it fits best
-	// (according to the control logic)
+	// which can be indented wherever it fits best (according to the outer control logic)
 	// ... and in the end, it will be "realigned to the left" (left padding trimmed, docking the longest line to the margin)
 	// so that the extra spaces are all ignored
         ")
@@ -170,11 +169,10 @@ public void MyMethod()
 {
     // I can add one-line text
     // And I can write multi-line texts
-    // which are indented wherever it fits best
-    // (according to the control logic)
+    // which can be indented wherever it fits best (according to the outer control logic)
     // ... and in the end, it will be "realigned to the left" (left padding trimmed, docking the longest line to the margin)
     // so that the extra spaces are all ignored
-    // No more worrying about mixed-indentations between literals and control logic"
+    // No more worrying about mixed-indentations between literals and control logic
 }
 ```
 
