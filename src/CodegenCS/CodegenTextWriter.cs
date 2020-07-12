@@ -341,7 +341,7 @@ namespace CodegenCS
                 default:
                         innerBlock = new IndentedBlockScope(this, 
                             beforeBlock: 
-                                (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + Environment.NewLine) :("")) 
+                                (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + NewLine) :("")) 
                                 + "{", 
                             afterBlock: "}");
                     break;
@@ -458,50 +458,6 @@ namespace CodegenCS
 
         #endregion
 
-        #region NotImplemented Writes (based on char[])
-        /// <summary>
-        /// </summary>
-        /// <param name="buffer"></param>
-        public new CodegenTextWriter Write(char[] buffer)
-        {
-            InnerWrite(new string(buffer));
-            return this;
-        }
-        
-        /// <summary>
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="index"></param>
-        /// <param name="count"></param>
-        public new CodegenTextWriter Write(char[] buffer, int index, int count)
-        {
-            InnerWrite(new string(buffer, index, count));
-            return this;
-        }
-
-        /// <summary>
-        /// </summary>
-        /// <param name="buffer"></param>
-        public new CodegenTextWriter WriteLine(char[] buffer)
-        {
-            InnerWrite(new string(buffer));
-            WriteLine();
-            return this;
-        }
-
-        /// <summary>
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="index"></param>
-        /// <param name="count"></param>
-        public new CodegenTextWriter WriteLine(char[] buffer, int index, int count)
-        {
-            InnerWrite(new string(buffer, index, count));
-            WriteLine();
-            return this;
-        }
-        #endregion
-
         #region Raw Writes to _innerWriter (raw methods don't add any indent): InnerWriteRaw
         /// <summary>
         /// This is the lowest-level Write method. All writing methods end up here.
@@ -608,6 +564,8 @@ namespace CodegenCS
         /// </summary>
         protected void InnerWriteFormattable(string format, params object[] arguments)
         {
+            if (string.IsNullOrEmpty(format))
+                return;
             //https://www.meziantou.net/interpolated-strings-advanced-usages.htm
             var matches = Regex.Matches(format, @"{\d}");
             int lastPos = 0;
@@ -768,47 +726,40 @@ namespace CodegenCS
         }
         #endregion
 
-
         #region public Write/WriteLine methods for formattable strings (which basically are shortcuts to InnerWriteFormattable())
         public CodegenTextWriter Write(FormattableString formattable)
         {
-            string format = formattable.Format;
-            format = AdjustMultilineString(format);
-            InnerWriteFormattable(format, formattable.GetArguments());
+            InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
             return this;
         }
         public CodegenTextWriter WriteLine(FormattableString formattable)
         {
-            Write(formattable);
+            InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
             WriteLine();
             return this;
         }
 
-        public CodegenTextWriter Write(string format, params object[] arguments)
+        public CodegenTextWriter Write(RawString format, params object[] arguments)
         {
-            if (string.IsNullOrEmpty(format))
-                return this;
-            format = AdjustMultilineString(format);
-
-            InnerWriteFormattable(format, arguments);
+            InnerWriteFormattable(AdjustMultilineString(format), arguments);
             return this;
         }
-        public CodegenTextWriter WriteLine(string format, params object[] arguments)
+        public CodegenTextWriter WriteLine(RawString format, params object[] arguments)
         {
-            InnerWriteFormattable(format, arguments);
+            InnerWriteFormattable(AdjustMultilineString(format), arguments);
             WriteLine();
             return this;
         }
         public CodegenTextWriter Write(Func<FormattableString> fnFormattable)
         {
             FormattableString formattable = fnFormattable();
-            InnerWriteFormattable(formattable.Format, formattable.GetArguments());
+            InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
             return this;
         }
         public CodegenTextWriter WriteLine(Func<FormattableString> fnFormattable)
         {
             FormattableString formattable = fnFormattable();
-            InnerWriteFormattable(formattable.Format, formattable.GetArguments());
+            InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
             WriteLine();
             return this;
         }
@@ -822,33 +773,56 @@ namespace CodegenCS
             return this;
         }
         
-        public CodegenTextWriter Write(string value)
+        public CodegenTextWriter Write(RawString value)
         {
-            if (!string.IsNullOrEmpty(value))
-            {
-                value = AdjustMultilineString(value);
-                InnerWrite(value);
-            }
+            InnerWrite(AdjustMultilineString(value));
             return this;
         }
         
         public CodegenTextWriter Write(Func<string> fnString)
         {
             string value = fnString();
-            Write(value);
+            InnerWrite(AdjustMultilineString(value));
             return this;
         }
         
         public CodegenTextWriter WriteLine(Func<string> fnString)
         {
-            Write(fnString());
+            string value = fnString();
+            InnerWrite(AdjustMultilineString(value));
             WriteLine();
             return this;
         }
 
-        public CodegenTextWriter WriteLine(string value)
+        public CodegenTextWriter WriteLine(RawString value)
         {
-            Write(value);
+            InnerWrite(AdjustMultilineString(value));
+            WriteLine();
+            return this;
+        }
+
+        public new CodegenTextWriter Write(char[] buffer)
+        {
+            InnerWrite(AdjustMultilineString(new string(buffer)));
+            return this;
+        }
+
+        public new CodegenTextWriter Write(char[] buffer, int index, int count)
+        {
+            InnerWrite(AdjustMultilineString(new string(buffer, index, count)));
+            return this;
+        }
+
+        public new CodegenTextWriter WriteLine(char[] buffer)
+        {
+            InnerWrite(AdjustMultilineString(new string(buffer)));
+            WriteLine();
+            return this;
+        }
+
+        public new CodegenTextWriter WriteLine(char[] buffer, int index, int count)
+        {
+            InnerWrite(AdjustMultilineString(new string(buffer, index, count)));
             WriteLine();
             return this;
         }
@@ -894,6 +868,8 @@ namespace CodegenCS
         /// <returns></returns>
         protected string AdjustMultilineString(string block)
         {
+            if (string.IsNullOrEmpty(block))
+                return null;
             if (MultilineBehavior == MultilineBehaviorType.None)
                 return block;
             string[] parts = _lineBreaksRegex.Split(block);
@@ -936,6 +912,5 @@ namespace CodegenCS
             return sb.ToString();
         }
         #endregion
-
     }
 }

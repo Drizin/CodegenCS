@@ -165,6 +165,53 @@ namespace Tests
             ;
         }
 
+        [Test]
+        public void TestInlineTemplate2()
+        {
+            List<Property> props = new List<Property>() { new Property() { Name = "Name", Type = "string" }, new Property() { Name = "Age", Type = "int" } };
+            string myNamespace = "codegencs";
+            string myClass = "Test1";
+            int i = 0;
+            _w.WithCurlyBraces($"namespace {myNamespace}", (_) => {
+                _w.WithCurlyBraces($"public class {myClass}", (_2) => {
+                    _w.WriteLine($"// My Properties start here");
+                    _w.WriteLine($"Properties.Count={props.Count}");
+                    props.Select(prop => (Func<string>)(() => $"[{i++}]. public {prop.Type} {prop.Name} {{ get; set; }}")).ToList().ForEach(action => _w.WriteLine(action));
+                });
+            });
+            var c1 = _w.GetContents();
+            i = 0;
+            _w = new CodegenTextWriter();
+            _w.WithCurlyBraces($"namespace {myNamespace}", (_) => {
+                _w.WithCurlyBraces($"public class {myClass}", (_2) => {
+                    _w.WriteLine($@"
+                            // My Properties start here
+                            Properties.Count={props.Count}
+                            {props.Select(prop => (Func<string>)(() => $"[{i++}]. public {prop.Type} {prop.Name} {{ get; set; }}"))}");
+                });
+            });
+            var c2 = _w.GetContents();
+
+            System.Diagnostics.Debug.WriteLine(c1);
+            System.Diagnostics.Debug.WriteLine(c2);
+
+            string expected =
+@"namespace codegencs
+{
+    public class Test1
+    {
+        // My Properties start here
+        Properties.Count=2
+        [0]. public string Name { get; set; }
+        [1]. public int Age { get; set; }
+    }
+}
+";
+
+            Assert.AreEqual(c1, expected);
+            Assert.AreEqual(c2, expected);
+        }
+
 
 
         public class TodoItem
