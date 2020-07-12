@@ -142,8 +142,8 @@ void method() {
         public void TestPython()
         {
             _w
-                .WriteLine("// will open a Java block")
-                .WriteLine("// and write-inline")
+                .WriteLine("# will open a Python block")
+                .WriteLine("# and write-inline")
                 .WithPythonBlock("if a == b", (w) =>
                 {
                     _w.WriteLine("print b");
@@ -161,14 +161,14 @@ void method() {
                 });
 
             string expected = @"
-// will open a Java block
-// and write-inline
-if a == b :{
+# will open a Python block
+# and write-inline
+if a == b :
     print b
-    if b > c :{
+    if b > c :
         print 'b > c'
-    for a in range(1,n) :{
-        for b in range(a,n) :{
+    for a in range(1,n) :
+        for b in range(a,n) :
             print 'b > c'
 ";
             Assert.AreEqual(_w.ToString(), expected.TrimStart());

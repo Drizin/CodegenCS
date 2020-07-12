@@ -414,8 +414,7 @@ namespace CodegenCS
         {
             IDisposable innerBlock = new IndentedBlockScope(this,
                 beforeBlock:
-                    (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + " :") : (""))
-                    + "{",
+                    (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + " :") : ("")),
                 afterBlock: "");
 
             using (innerBlock)
@@ -797,6 +796,12 @@ namespace CodegenCS
         /// </summary>
         public CodegenTextWriter Write(object value)
         {
+            // since we use RawString (to prioritize FormattableString overloads), it happens that strings may end up using this object overload.
+            if (value is string)
+                return Write((string)value);
+            if (value is Func<string>)
+                return Write(() => ((Func<string>)value)());
+
             InnerWriteFormattable(AdjustMultilineString(value.ToString()));
             return this;
         }
@@ -806,6 +811,12 @@ namespace CodegenCS
         /// </summary>
         public CodegenTextWriter WriteLine(object value)
         {
+            // since we use RawString (to prioritize FormattableString overloads), it happens that strings may end up using this object overload.
+            if (value is string)
+                return WriteLine((string)value);
+            if (value is Func<string>)
+                return WriteLine(() => ((Func<string>)value)());
+
             InnerWriteFormattable(AdjustMultilineString(value.ToString()));
             WriteLine();
             return this;
