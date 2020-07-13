@@ -212,12 +212,16 @@ if (something)
 
 **Reusable Action delegates can be used inside interpolated strings.**
 
-Writing multi-line blocks (starting in any horizontal position) will preserve that same horizontal indenting for all lines**:
-
 ```cs
 // This is a reusable method which you can embed anywhere inside your string-interpolated templates
 Func<FormattableString> RenderProperties(List<Property> props)
 {
+    // This will select multiple lines, and join then with line breaks separators
+    // Nice feature: since RenderProperties is invoked after 8 spaces (added manually), 
+    // all subsequent lines (after the first one which obviously is padded by 8 spaces)
+    // will also be padded by 8 spaces (and possibly they can also have other indentation if defined in other indentation blocks (like WithCurlyBraces)
+    // In other words, when you're writing multi-line blocks "inline" inside another interpolated string, 
+    // all lines will have the same horizontal indenting as the first line.
     return () => $@"
         {string.Join(Environment.NewLine, props.Select(prop => $"public {prop.Type} {prop.Name} {{ get; set; }}"))}"
     ;
