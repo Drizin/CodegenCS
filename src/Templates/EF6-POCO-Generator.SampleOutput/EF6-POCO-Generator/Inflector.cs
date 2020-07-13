@@ -5,8 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace EF6POCOGenerator
-{
     /// <summary>
     /// Static language-inflection helpers
     /// </summary>
@@ -167,4 +165,3 @@ namespace EF6POCOGenerator
         }
     }
 
-}

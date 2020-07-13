@@ -6,8 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace EF6POCOGenerator
-{
     public static class Settings
     {
         // Main settings
@@ -137,4 +135,3 @@ namespace EF6POCOGenerator
             return isSupported <= TargetFrameworkVersion;
         };
     };
-}

@@ -8,8 +8,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace EF6POCOGenerator
-{
     public class SqlServerSchemaReader : SchemaReader
     {
         private static string _sqlDatabaseEdition, _sqlDatabaseEngineEdition, _sqlDatabaseProductVersion;
@@ -2219,4 +2217,3 @@ SELECT  SERVERPROPERTY('Edition') AS Edition,
 
 
     }
-}

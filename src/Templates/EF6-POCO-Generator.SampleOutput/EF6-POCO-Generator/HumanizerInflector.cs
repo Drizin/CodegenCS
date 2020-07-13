@@ -5,8 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Humanizer;
 
-namespace EF6POCOGenerator
-{
     public class HumanizerInflector : IInflector
     {
         public string Pluralize(string word)
@@ -72,4 +70,3 @@ namespace EF6POCOGenerator
             return underscoredWord.Dasherize();
         }
     }
-}

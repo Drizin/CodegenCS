@@ -6,8 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace EF6POCOGenerator
-{
     public abstract class SchemaReader
     {
         protected readonly DbCommand Cmd;
@@ -45,4 +43,3 @@ namespace EF6POCOGenerator
             return false;
         }
     }
-}

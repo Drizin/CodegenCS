@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EF6POCOGenerator
-{
     [Flags]
     public enum CommentsStyle
     {
@@ -33,4 +31,3 @@ namespace EF6POCOGenerator
         public string EnumType;
     }
 
-}

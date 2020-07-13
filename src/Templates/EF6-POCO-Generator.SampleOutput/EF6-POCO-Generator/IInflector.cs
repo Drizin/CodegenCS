@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EF6POCOGenerator
-{
     public interface IInflector
     {
         /// <summary>
@@ -172,4 +170,3 @@ namespace EF6POCOGenerator
         /// <returns>The dasherised word.</returns>
         string Dasherise(string underscoredWord);
     }
-}

@@ -5,8 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EF6POCOGenerator
-{
 
     #region Nested type: Column
 
@@ -1030,4 +1028,3 @@ namespace EF6POCOGenerator
         }
     }
 
-}
