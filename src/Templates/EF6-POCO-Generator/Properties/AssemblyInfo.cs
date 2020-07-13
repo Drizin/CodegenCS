@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("EF6POCOGenerator.SampleOutput")]
+[assembly: AssemblyTitle("EF6POCOGenerator")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rick Drizin")]
-[assembly: AssemblyProduct("EF6POCOGenerator.SampleOutput")]
+[assembly: AssemblyProduct("EF6POCOGenerator")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

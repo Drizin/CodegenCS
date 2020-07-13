@@ -8,8 +8,8 @@
     <ProjectGuid>{7D35329B-3FC3-442A-A997-5096AAD4F9BD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EF6POCOGenerator.SampleOutput</RootNamespace>
-    <AssemblyName>EF6POCOGenerator.SampleOutput</AssemblyName>
+    <RootNamespace>EF6POCOGenerator</RootNamespace>
+    <AssemblyName>EF6POCOGenerator</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

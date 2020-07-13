@@ -46,7 +46,7 @@ public static string GetScriptFolder([CallerFilePath] string path = null) => Pat
 // locations relative to the CSX script
 string projectFolder = GetScriptFolder();
 string targetFolder = Path.GetFullPath(Path.Combine(GetScriptFolder(), @"..\GeneratedCode\"));
-string csproj = Path.GetFullPath(Path.Combine(GetScriptFolder(), @"..\EF6-POCO-Generator.SampleOutput.csproj"));
+string csproj = Path.GetFullPath(Path.Combine(GetScriptFolder(), @"..\EF6-POCO-Generator.csproj"));
 
 DotNetCodegenContext context = new DotNetCodegenContext();
 Generator generator = new Generator(
