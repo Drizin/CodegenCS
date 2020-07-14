@@ -36,7 +36,8 @@ This is cross-platform code and can be embedded into any project (even a class l
 Actually the scripts are executed using CSI (C# REPL), which is a scripting engine - the CSPROJ just helps us to test/compile, use NuGet packages, etc.  
 
 ## Installation
-Just install nuget package **[CodegenCS](https://www.nuget.org/packages/CodegenCS/)**.
+Just install nuget package **[CodegenCS](https://www.nuget.org/packages/CodegenCS/)**, add `using CodegenCS`, and start using.  
+See documentation below, or more examples in [unit tests](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Tests/CoreTests).
 
 
 
@@ -270,6 +271,7 @@ Cool, uh?
 
 For my inner template I used a `Func<FormattableString>` but it could be other types like `FormattableString`,  `string`, `Func<string>`, `Action`, or `Action<CodegenTextWriter>`. They would all be evaluated "on demand", only by the moment that we need to output those parameters.
 
+See examples in [unit tests](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Tests/CoreTests).
 
 
 ## Contributing
@@ -289,6 +291,7 @@ Please submit a pull-request or if you prefer you can [contact me](http://drizin
 - 2019-11-04: Published [nuget package 1.0.1](https://www.nuget.org/packages/CodegenCS/) 
 - 2020-07-05: New project/scripts [CodegenCS.SqlServer](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer) to reverse engineer a SQL Server database into JSON schema
 - 2020-07-12: Published [nuget package 1.0.2](https://www.nuget.org/packages/CodegenCS/) with Fluent API and other major changes
+- 2020-07-13: Published [nuget package 1.0.3](https://www.nuget.org/packages/CodegenCS/) with minor fixes
 
 
 ## License
