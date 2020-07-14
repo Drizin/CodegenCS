@@ -404,18 +404,32 @@ namespace CodegenCS
         }
 
         /// <summary>
-        /// Opens a new indented Python-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
-        /// Will automatically handle linebreaks, and increasing/decreasing indent.
+        /// Opens a new indented Python-Braces Block. Will automatically handle linebreaks, and increasing/decreasing indent. <br />
+        /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
-        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the curly-braces block.</param>
         /// <returns></returns>
-        public CodegenTextWriter WithPythonBlock(string beforeBlock, Action innerBlockAction)
+        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return CodegenTextWriter")]
+        public IDisposable WithPythonBlock(string beforeBlock)
         {
             IDisposable innerBlock = new IndentedBlockScope(this,
                 beforeBlock:
                     (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + " :") : ("")),
                 afterBlock: "");
+            return innerBlock;
+        }
+        /// <summary>
+        /// Opens a new indented Python-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Will automatically handle linebreaks, and increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts.</param>
+        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the indented block.</param>
+        /// <returns></returns>
+        public CodegenTextWriter WithPythonBlock(string beforeBlock, Action innerBlockAction)
+        {
+#pragma warning disable 612, 618 // WithCBlock is currently public/obsolete - will be deprecated soon, to give preference to FluentAPI
+            IDisposable innerBlock = WithPythonBlock(beforeBlock);
+#pragma warning restore 612, 618
 
             using (innerBlock)
             {
@@ -427,8 +441,8 @@ namespace CodegenCS
         /// Opens a new indented Python-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
         /// Will automatically handle linebreaks, and increasing/decreasing indent.
         /// </summary>
-        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
-        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the curly-braces block.</param>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts.</param>
+        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the indented block.</param>
         /// <returns></returns>
         public CodegenTextWriter WithPythonBlock(string beforeBlock, Action<CodegenTextWriter> innerBlockAction)
         {
@@ -447,6 +461,37 @@ namespace CodegenCS
         public IDisposable WithCBlock(string beforeBlock = null) => WithCurlyBraces(beforeBlock, CurlyBracesStyleType.C);
 
         /// <summary>
+        /// Opens a new indented C-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
+        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the curly-braces block.</param>
+        /// <returns></returns>
+        public CodegenTextWriter WithCBlock(string beforeBlock, Action innerBlockAction)
+        {
+#pragma warning disable 612, 618 // WithCBlock is currently public/obsolete - will be deprecated soon, to give preference to FluentAPI
+            IDisposable innerBlock = WithCBlock(beforeBlock);
+#pragma warning restore 612, 618
+            using (innerBlock)
+            {
+                innerBlockAction();
+            }
+            return this;
+        }
+        /// <summary>
+        /// Opens a new indented C-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
+        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the curly-braces block.</param>
+        /// <returns></returns>
+        public CodegenTextWriter WithCBlock(string beforeBlock, Action<CodegenTextWriter> innerBlockAction)
+        {
+            return WithCBlock(beforeBlock, () => innerBlockAction(this));
+        }
+
+
+        /// <summary>
         /// Opens a new indented Java-Style Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
         /// </summary>
@@ -454,6 +499,37 @@ namespace CodegenCS
         /// <returns></returns>
         [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return CodegenTextWriter")]
         public IDisposable WithJavaBlock(string beforeBlock = null) => WithCurlyBraces(beforeBlock, CurlyBracesStyleType.Java);
+
+        /// <summary>
+        /// Opens a new indented Java-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
+        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the curly-braces block.</param>
+        /// <returns></returns>
+        public CodegenTextWriter WithJavaBlock(string beforeBlock, Action innerBlockAction)
+        {
+#pragma warning disable 612, 618 // WithJavaBlock is currently public/obsolete - will be deprecated soon, to give preference to FluentAPI
+            IDisposable innerBlock = WithJavaBlock(beforeBlock);
+#pragma warning restore 612, 618
+            using (innerBlock)
+            {
+                innerBlockAction();
+            }
+            return this;
+        }
+        /// <summary>
+        /// Opens a new indented Java-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
+        /// <param name="innerBlockAction">Action delegate (lambda) should be used to write contents "inside" the curly-braces block.</param>
+        /// <returns></returns>
+        public CodegenTextWriter WithJavaBlock(string beforeBlock, Action<CodegenTextWriter> innerBlockAction)
+        {
+            return WithJavaBlock(beforeBlock, () => innerBlockAction(this));
+        }
+
 
         #endregion
 
@@ -623,7 +699,7 @@ namespace CodegenCS
                 InnerInlineAction(() =>
                 {
                     FormattableString subText = (FormattableString)arg;
-                    InnerWriteFormattable(subText.Format, subText.GetArguments());
+                    InnerWriteFormattable(AdjustMultilineString(subText.Format), subText.GetArguments());
                 });
             }
             else if (arg as Func<FormattableString> != null)
@@ -632,7 +708,7 @@ namespace CodegenCS
                 {
                     Func<FormattableString> fnFormattable = ((Func<FormattableString>)arg);
                     FormattableString formattable = fnFormattable();
-                    InnerWriteFormattable(formattable.Format, formattable.GetArguments());
+                    InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
                 });
             }
             #endregion
@@ -670,8 +746,6 @@ namespace CodegenCS
                     {
                         string item = list.ElementAt(j);
                         InnerWrite(item);
-                        if (j < list.Count() - 1)
-                            WriteLine();
                     }
                 });
             }
@@ -690,8 +764,6 @@ namespace CodegenCS
                     {
                         Func<string> item = list.ElementAt(j);
                         InnerWrite(item());
-                        if (j < list.Count() - 1)
-                            WriteLine();
                     }
                 });
             }
@@ -710,9 +782,7 @@ namespace CodegenCS
                     for (int j = 0; j < list.Count(); j++)
                     {
                         FormattableString item = list.ElementAt(j);
-                        InnerWriteFormattable(item.Format, item.GetArguments());
-                        if (j < list.Count() - 1)
-                            WriteLine();
+                        InnerWriteFormattable(AdjustMultilineString(item.Format), item.GetArguments());
                     }
                 });
             }
@@ -731,9 +801,7 @@ namespace CodegenCS
                     {
                         Func<FormattableString> fnFormattable = list.ElementAt(j);
                         FormattableString formattable = fnFormattable();
-                        InnerWriteFormattable(formattable.Format, formattable.GetArguments());
-                        if (j < list.Count() - 1)
-                            WriteLine();
+                        InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
                     }
                 });
             }
@@ -801,6 +869,16 @@ namespace CodegenCS
                 return Write((string)value);
             if (value is Func<string>)
                 return Write(() => ((Func<string>)value)());
+            if (value is Action)
+            {
+                ((Action)value).Invoke();
+                return this;
+            }
+            if (value is Action<CodegenTextWriter>)
+            {
+                ((Action<CodegenTextWriter>)value).Invoke(this);
+                return this;
+            }
 
             InnerWriteFormattable(AdjustMultilineString(value.ToString()));
             return this;
@@ -816,6 +894,18 @@ namespace CodegenCS
                 return WriteLine((string)value);
             if (value is Func<string>)
                 return WriteLine(() => ((Func<string>)value)());
+            if (value is Action)
+            {
+                ((Action)value).Invoke();
+                WriteLine();
+                return this;
+            }
+            if (value is Action<CodegenTextWriter>)
+            {
+                ((Action<CodegenTextWriter>)value).Invoke(this);
+                WriteLine();
+                return this;
+            }
 
             InnerWriteFormattable(AdjustMultilineString(value.ToString()));
             WriteLine();

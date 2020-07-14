@@ -7,61 +7,113 @@ using System.Text;
 namespace CodegenCS.Extensions
 {
     /// <summary>
-    /// FormattableStrings-based templates can contain {arguments} which are lazy-executed (Func[strings] or Func[FormattableStrings]). <br />
-    /// Extensions can convert arguments to other lazy-evaluatable types (Func[strings] Func[FormattableStrings]) to add behavior. <br />
+    /// One of the major features of CodegenTextWriter is that it allows to write FormattableStrings (interpolated strings)  <br />
+    /// which can contain {arguments} which are lazy-executed. <br />
+    /// With extensions we can convert some arguments to add behavior or make shorter syntax. <br />
+    /// By returning Func{FormattableString} we ensure that the arguments are still lazy-executed.
     /// Example: given a IEnumerable[strings] we can render one by one with line breaks at the end.
     /// </summary>
     public static class CodegenTextWriterExtensions
     {
+        #region Join(IEnumerable<T>) - Concatenates all the elements of the list using the specified separator (defaults to NewLine) between elements.
+        
+        #region IEnumerable<Func<FormattableString>>
         /// <summary>
-        /// Sample extension: given an IEnumerable[Func[FormattableString]], this will execute each one (lazy execution) and will add a line break after each item.
+        /// Concatenates all the elements of the list using the specified separator (defaults to NewLine) between elements. <br />
+        /// Like string.Join, but will return Func[FormattableString] so still keeps deferred execution.
         /// </summary>
-        public static Func<FormattableString> WriteLines(this IEnumerable<Func<FormattableString>> items)
+        public static Func<FormattableString> Join(this IEnumerable<Func<FormattableString>> items, string separator = null)
         {
-            if (items.Any())
-            {
-                var teste = items.ToList()[0].Invoke();
-            }
             return new Func<FormattableString>(() =>
             {
-                int i = 0;
                 StringBuilder format = new StringBuilder();
                 List<object> parms = new List<object>();
-                foreach (var fn in items)
+                for (int i = 0; i < items.Count(); i++)
                 {
+                    Func<FormattableString> fn = items.ElementAt(i);
                     format.Append("{" + i.ToString() + "}");
-                    format.Append(Environment.NewLine);
+                    if (i < items.Count() - 1)
+                        format.Append(separator ?? Environment.NewLine);
                     parms.Add(fn);
-                    i++;
                 }
                 return FormattableStringFactory.Create(format.ToString(), parms.ToArray());
             });
         }
+        #endregion
 
+        #region IEnumerable<FormattableString>
         /// <summary>
-        /// Sample extension: given an IEnumerable[Func[FormattableString]], this will execute each one (lazy execution) and will add a line break before each item.
+        /// Concatenates all the elements of the list using the specified separator (defaults to NewLine) between elements. <br />
+        /// Like string.Join, but will return Func[FormattableString] so still keeps deferred execution.
         /// </summary>
-        public static Func<FormattableString> LinesWrite(this IEnumerable<Func<FormattableString>> items)
+        public static Func<FormattableString> Join(this IEnumerable<FormattableString> items, string separator = null)
         {
-            if (items.Any())
-            {
-                var teste = items.ToList()[0].Invoke();
-            }
             return new Func<FormattableString>(() =>
             {
-                int i = 0;
                 StringBuilder format = new StringBuilder();
                 List<object> parms = new List<object>();
-                foreach (var fn in items)
+                for (int i = 0; i < items.Count(); i++)
                 {
-                    format.Append(Environment.NewLine);
+                    FormattableString formattable = items.ElementAt(i);
                     format.Append("{" + i.ToString() + "}");
-                    parms.Add(fn);
-                    i++;
+                    if (i < items.Count() - 1)
+                        format.Append(separator ?? Environment.NewLine);
+                    parms.Add(formattable);
                 }
                 return FormattableStringFactory.Create(format.ToString(), parms.ToArray());
             });
         }
+        #endregion
+
+        #region IEnumerable<Func<string>>
+        /// <summary>
+        /// Concatenates all the elements of the list using the specified separator (defaults to NewLine) between elements. <br />
+        /// Like string.Join, but will return Func[FormattableString] so still keeps deferred execution.
+        /// </summary>
+        public static Func<FormattableString> Join(this IEnumerable<Func<string>> items, string separator = null)
+        {
+            return new Func<FormattableString>(() =>
+            {
+                StringBuilder format = new StringBuilder();
+                List<object> parms = new List<object>();
+                for (int i = 0; i < items.Count(); i++)
+                {
+                    Func<string> fn = items.ElementAt(i);
+                    format.Append("{" + i.ToString() + "}");
+                    if (i < items.Count() - 1)
+                        format.Append(separator ?? Environment.NewLine);
+                    parms.Add(fn);
+                }
+                return FormattableStringFactory.Create(format.ToString(), parms.ToArray());
+            });
+        }
+        #endregion
+
+        #region IEnumerable<string>
+        /// <summary>
+        /// Concatenates all the elements of the list using the specified separator (defaults to NewLine) between elements. <br />
+        /// Like string.Join, but will return Func[FormattableString] so still keeps deferred execution.
+        /// </summary>
+        public static Func<FormattableString> Join(this IEnumerable<string> items, string separator = null)
+        {
+            return new Func<FormattableString>(() =>
+            {
+                StringBuilder format = new StringBuilder();
+                List<object> parms = new List<object>();
+                for (int i = 0; i < items.Count(); i++)
+                {
+                    string fn = items.ElementAt(i);
+                    format.Append("{" + i.ToString() + "}");
+                    if (i < items.Count() - 1)
+                        format.Append(separator ?? Environment.NewLine);
+                    parms.Add(fn);
+                }
+                return FormattableStringFactory.Create(format.ToString(), parms.ToArray());
+            });
+        }
+        #endregion
+
+        #endregion
 
     }
 }
