@@ -37,7 +37,7 @@ void MyMethod()
                 {
                     _w.WriteLine("int i = 0;");
                 });
-            Assert.AreEqual(expected_C, _w.ToString());
+            Assert.AreEqual(expected_C, _w.GetContents());
         }
 
         [Test]
@@ -48,7 +48,7 @@ void MyMethod()
             {
                 _w.WriteLine("int i = 0;");
             }
-            Assert.AreEqual(expected_C, _w.ToString());
+            Assert.AreEqual(expected_C, _w.GetContents());
         }
 
 
@@ -72,7 +72,7 @@ void MyMethod() {
                 {
                     _w.WriteLine("int i = 0;");
                 });
-            Assert.AreEqual(expected_java, _w.ToString());
+            Assert.AreEqual(expected_java, _w.GetContents());
         }
 
         [Test]
@@ -83,7 +83,7 @@ void MyMethod() {
             {
                 _w.WriteLine("int i = 0;");
             }
-            Assert.AreEqual(expected_java,_w.ToString());
+            Assert.AreEqual(expected_java, _w.GetContents());
         }
 
         #endregion
@@ -107,7 +107,7 @@ if a == b :
                     _w.WriteLine("print b");
                 });
 
-           Assert.AreEqual(expectedPython, _w.ToString());
+           Assert.AreEqual(expectedPython, _w.GetContents());
         }
 
 
@@ -119,7 +119,7 @@ if a == b :
             {
                 _w.WriteLine("print b");
             }
-            Assert.AreEqual(expectedPython, _w.ToString());
+            Assert.AreEqual(expectedPython, _w.GetContents());
         }
         #endregion
 
@@ -149,7 +149,7 @@ Line1
                 _w.WriteLine("Line4");
             }
 
-            Assert.AreEqual(expectedGeneric, _w.ToString());
+            Assert.AreEqual(expectedGeneric, _w.GetContents());
         }
 
         [Test]
@@ -166,7 +166,7 @@ Line1
                 _w.WriteLine("Line4");
             }
 
-            Assert.AreEqual(expectedGeneric, _w.ToString());
+            Assert.AreEqual(expectedGeneric, _w.GetContents());
         }
 
         [Test]
@@ -181,7 +181,7 @@ Line1
             _w.DecreaseIndent();
             _w.WriteLine("Line4");
 
-            Assert.AreEqual(expectedGeneric, _w.ToString());
+            Assert.AreEqual(expectedGeneric, _w.GetContents());
         }
 
 

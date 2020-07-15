@@ -59,8 +59,8 @@ void MyMethod3()
     Hello3
 }
 Hello3
-";
-            Assert.AreEqual(_w.ToString(), expected.TrimStart());
+".TrimStart();
+            Assert.AreEqual(expected, _w.GetContents());
         }
         #endregion
 
@@ -116,7 +116,7 @@ Hello3
 - Clean the house
 - Mow the lawn
 ".TrimStart(Environment.NewLine.ToCharArray());
-            Assert.AreEqual(_w.ToString(), expected);
+            Assert.AreEqual(expected, _w.GetContents());
         }
         #endregion
 
@@ -148,7 +148,7 @@ Hello3
     - Bedroom
 - Mow the lawn
 ";
-            Assert.AreEqual(_w.ToString(), expected);
+            Assert.AreEqual(expected, _w.GetContents());
         }
         #endregion
 
@@ -165,7 +165,7 @@ I have a LOT of things to do today:
     - Clean the house
     - Mow the lawn".TrimStart(Environment.NewLine.ToCharArray());
 
-            Assert.AreEqual(expected, _w.ToString());
+            Assert.AreEqual(expected, _w.GetContents());
         }
         #endregion
 

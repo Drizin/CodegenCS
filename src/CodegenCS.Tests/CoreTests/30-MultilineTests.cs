@@ -154,7 +154,7 @@ namespace MyNameSpace
     }
 }
 ";
-            Assert.AreEqual(_w.ToString(), expected.TrimStart());
+            Assert.AreEqual(expected.TrimStart(), _w.GetContents());
         }
 
 
@@ -185,8 +185,6 @@ namespace MyNameSpace
                 }
             }
 
-            string content = _w.GetContents();
-
             string expected =
 @"namespace mynamespace
 {
@@ -202,7 +200,7 @@ namespace MyNameSpace
 }
 ";
 
-            Assert.AreEqual(content, expected);
+            Assert.AreEqual(expected, _w.GetContents());
         }
 
 
@@ -234,8 +232,6 @@ namespace MyNameSpace
                 });
             });
 
-            string content = _w.GetContents();
-
             string expected =
 @"namespace myNamespace
 {
@@ -251,7 +247,7 @@ namespace MyNameSpace
 }
 ";
 
-            Assert.AreEqual(content, expected);
+            Assert.AreEqual(expected, _w.GetContents());
         }
 
 

@@ -629,6 +629,14 @@ namespace CodegenCS
         #endregion
 
         #region InnerWriteFormattable: By using interpolated strings we can mix strings and action delegates, which will be lazy-evaluated (so will respect the order of execution)
+        private static Regex _formattableArgumentRegex = new Regex(
+              "{\\d(:(?<Format>[^}]*))?}",
+            RegexOptions.IgnoreCase
+            | RegexOptions.Singleline
+            | RegexOptions.CultureInvariant
+            | RegexOptions.IgnorePatternWhitespace
+            | RegexOptions.Compiled
+            );
         /// <summary>
         /// All public Write methods pass through this method <br />.
         /// This method splits an interpolated string and writes block by block, doing lazy-evaluation of arguments <br />
@@ -639,23 +647,23 @@ namespace CodegenCS
         /// </summary>
         protected void InnerWriteFormattable(string format, params object[] arguments)
         {
+            // this is like ICustomFormatter.Format, but writing directly to stream. Maybe we should add a IFormatProvider/ICustomFormatter associated to the TextWriter?
+
             if (string.IsNullOrEmpty(format))
                 return;
             //https://www.meziantou.net/interpolated-strings-advanced-usages.htm
-            var matches = Regex.Matches(format, @"{\d}");
+            var matches = _formattableArgumentRegex.Matches(format);
             int lastPos = 0;
             for (int i = 0; i < matches.Count; i++)
             {
                 // unescape escaped curly braces
-                string text = format.Substring(lastPos, matches[i].Index - lastPos).Replace("{{", "{").Replace("}}", "}");
-                InnerWrite(text);
+                string literal = format.Substring(lastPos, matches[i].Index - lastPos).Replace("{{", "{").Replace("}}", "}");
+                InnerWrite(literal);
                 // arguments[i] may not work because same argument can be used multiple times
                 var arg = arguments[int.Parse(matches[i].Value.Substring(1, 1))];
+                string argFormat = matches[i].Groups["Format"].Value;
 
-                if (arg == null)
-                    arg = "";
-
-                InnerWriteFormattableArgument(arg);
+                InnerWriteFormattableArgument(arg, argFormat);
 
                 lastPos = matches[i].Index + matches[i].Length;
             }
@@ -667,10 +675,11 @@ namespace CodegenCS
         /// Interpolated strings used in CodegenTextWriter may contain as arguments (expressions) not only variables/expressions but also Action delegates. <br />
         /// This method prints those arguments.
         /// </summary>
-        protected void InnerWriteFormattableArgument(object arg)
+        protected void InnerWriteFormattableArgument(object arg, string format)
         {
-            // TODO: instead of accepting IEnumerable<FormattableString>, IEnumerable<string>, IEnumerable<Func<FormattableString>>, IEnumerable<Func<string>>, 
-            // we should probably create extensions that would convert those types into Action<CodegenTextWriter> - we could have extensions like "WriteLines" (writing one per line), maybe add parameters to format how the elements are written, etc
+            if (arg == null)
+                return; 
+
             Type[] interfaceTypes = arg.GetType().GetInterfaces();
             Type interfaceType;
 
@@ -682,27 +691,32 @@ namespace CodegenCS
                     string subText = ((string)arg);
                     InnerWrite(subText);
                 });
+                return;
             }
-            else if (arg as Func<string> != null)
+            
+            if (arg as Func<string> != null)
             {
                 InnerInlineAction(() =>
                 {
                     string exec = ((Func<string>)arg)();
                     InnerWrite(exec);
                 });
+                return;
             }
             #endregion
 
             #region if arg is FormattableString or Func<FormattableString>
-            else if (arg as FormattableString != null)
+            if (arg as FormattableString != null)
             {
                 InnerInlineAction(() =>
                 {
                     FormattableString subText = (FormattableString)arg;
                     InnerWriteFormattable(AdjustMultilineString(subText.Format), subText.GetArguments());
                 });
+                return;
             }
-            else if (arg as Func<FormattableString> != null)
+
+            if (arg as Func<FormattableString> != null)
             {
                 InnerInlineAction(() =>
                 {
@@ -710,30 +724,46 @@ namespace CodegenCS
                     FormattableString formattable = fnFormattable();
                     InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
                 });
+                return;
             }
             #endregion
 
+            #region if arg is IFormattable
+            if (arg is IFormattable)
+            {
+                InnerWrite(((IFormattable)arg).ToString(format, System.Globalization.CultureInfo.InvariantCulture));
+                return;
+            }
+            #endregion
+
+
             #region if arg is Action<CodegenTextWriter> or Action<TextWriter>
-            else if (arg as Action<CodegenTextWriter> != null)
+            if (arg as Action<CodegenTextWriter> != null)
             {
                 InnerInlineAction(() =>
                 {
                     Action<CodegenTextWriter> action = ((Action<CodegenTextWriter>)arg);
                     action(this);
                 });
+                return;
             }
-            else if (arg as Action<TextWriter> != null)
+
+            if (arg as Action<TextWriter> != null)
             {
                 InnerInlineAction(() =>
                 {
                     Action<TextWriter> action = ((Action<TextWriter>)arg);
                     action(this);
                 });
+                return;
             }
             #endregion
 
+            // TODO: maybe instead of accepting IEnumerable<FormattableString>, IEnumerable<string>, IEnumerable<Func<FormattableString>>, IEnumerable<Func<string>>, 
+            // we should just remove this and expect users to use extensions like Join() that process each item and add separators (default is NewLine) between the items
+
             #region if arg is IEnumerable<string> or IEnumerable<Func<string>>
-            else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+            if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
                 t.IsGenericType &&
                 t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
                 t.GetGenericArguments()[0].IsAssignableFrom(typeof(string))
@@ -748,8 +778,10 @@ namespace CodegenCS
                         InnerWrite(item);
                     }
                 });
+                return;
             }
-            else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+
+            if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
                 t.IsGenericType &&
                 t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
                 t.GetGenericArguments()[0].IsGenericType &&
@@ -766,11 +798,12 @@ namespace CodegenCS
                         InnerWrite(item());
                     }
                 });
+                return;
             }
             #endregion
 
             #region if arg is IEnumerable<FormattableString> or IEnumerable<Func<FormattableString>>
-            else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+            if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
                 t.IsGenericType &&
                 t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
                 t.GetGenericArguments()[0].IsAssignableFrom(typeof(FormattableString))
@@ -785,8 +818,10 @@ namespace CodegenCS
                         InnerWriteFormattable(AdjustMultilineString(item.Format), item.GetArguments());
                     }
                 });
+                return;
             }
-            else if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
+            
+            if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
                 t.IsGenericType &&
                 t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
                 t.GetGenericArguments()[0].IsGenericType &&
@@ -804,17 +839,15 @@ namespace CodegenCS
                         InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
                     }
                 });
+                return;
             }
             #endregion
 
             #region else, just try ToString()
-            else
+            InnerInlineAction(() =>
             {
-                InnerInlineAction(() =>
-                {
-                    InnerWrite(arg.ToString());
-                });
-            }
+                InnerWrite(arg.ToString());
+            });
             #endregion
 
         }
