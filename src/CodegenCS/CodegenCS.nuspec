@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>CodegenCS</id>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <title>CodegenCS</title>
     <authors>Rick Drizin</authors>
     <owners>Rick Drizin</owners>
@@ -12,7 +12,7 @@
     <description>C# Library for Code Generation</description>
     <copyright>Copyright Rick Drizin 2019</copyright>
     <tags>code generation;code generator;templating;codegencs</tags>
-    <repository type="git" url="https://github.com/Drizin/CodegenCS" commit="6a4621949acc5714fe312b7d23b36a3224a65a50" />
+    <repository type="git" url="https://github.com/Drizin/CodegenCS" commit="d827be7ce5134e9467406b8a323f4e2e78bac6c2" />
     <dependencies>
     </dependencies>
   </metadata>
