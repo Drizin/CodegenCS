@@ -39,6 +39,21 @@ namespace CodegenCS.DotNet
                     return BuildActionType.None;
             }
         }
+
+        /// <summary>
+        /// Ensures that all files generated under this Context are added to the MSBuild project (csproj, vbproj) <br />
+        /// This is mostly for old non-SDK-Style projects (before Visual Studio 2017), <br />
+        /// since the new SDK-Style automatically builds all CS files which are under the csproj folder (they don't need to be explicitly referenced in csproj).
+        /// </summary>
+        /// <param name="csproj">Full path of csproj/vbproj</param>
+        /// <param name="outputFolder">Base folder where your output files were saved. Same as used in SaveFiles()</param>
+        public void AddToProject(string csproj, string outputFolder)
+        {
+            var projectEditor = new MSBuildProjectEditor(csproj);
+            foreach (var file in this.OutputFiles)
+                projectEditor.AddItem(Path.GetFullPath(Path.Combine(outputFolder, file.RelativePath)));
+            projectEditor.Save();
+        }
     }
 
 

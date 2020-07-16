@@ -6,14 +6,25 @@ using System.Xml;
 
 namespace CodegenCS.DotNet
 {
+    /// <summary>
+    /// Allows to load a MSBuild project (csproj, vbproj, etc), to automatically include files. <br />
+    /// Accepts projects both in new SDK-Style format and in the old non-SDK-Style format, <br />
+    /// although the new SDK-Style automatically builds all CS files even if they are not referenced <br />
+    /// (actually it's the opposite, in new SDK-Style the EXCLUDED files should be described).
+    /// </summary>
     public class MSBuildProjectEditor
     {
-        string _projectFileFullPath;
-        XmlDocument _doc;
-        XmlNamespaceManager _nsmgr;
+        private string _projectFileFullPath;
+        private XmlDocument _doc;
+        private XmlNamespaceManager _nsmgr;
+        private ProjectType _projectType;
+        private Dictionary<string, List<string>> _addedDependentItems = new Dictionary<string, List<string>>();
+        private HashSet<string> _addedIndependentItems = new HashSet<string>();
 
-        bool IsCore = false;
-
+        /// <summary>
+        /// New in-memory editor.
+        /// </summary>
+        /// <param name="projectFilePath"></param>
         public MSBuildProjectEditor(string projectFilePath)
         {
             this._projectFileFullPath = new FileInfo(projectFilePath).FullName;
@@ -23,11 +34,11 @@ namespace CodegenCS.DotNet
             _nsmgr.AddNamespace("msbuild", _doc.DocumentElement.NamespaceURI);
             XmlNode element = _doc.SelectSingleNode("//msbuild:Project", _nsmgr);
             if (element.Attributes["Sdk"] != null) // Microsoft.NET.Sdk
-                IsCore = true;
-        }
+                _projectType = ProjectType.SDKStyle;
+            else
+                _projectType = ProjectType.NonSDKStyle;
 
-        public Dictionary<string, List<string>> _addedDependentItems = new Dictionary<string, List<string>>();
-        public HashSet<string> _addedIndependentItems = new HashSet<string>();
+        }
 
         /// <summary>
         /// Adds a single item, optionally dependent of a parent item (DependentUpon). 
@@ -39,11 +50,11 @@ namespace CodegenCS.DotNet
             if (parentItemPath != null)
                 parentItemPath = new Uri(this._projectFileFullPath).MakeRelativeUri(new Uri(new FileInfo(parentItemPath).FullName)).ToString().Replace("/", "\\");
 
-            if (parentItemPath != null && !IsCore)
+            if (parentItemPath != null && _projectType == ProjectType.NonSDKStyle)
             {
                 // ensure parent file is in msbuild project
                 XmlNode parentNode = _doc.SelectSingleNode("//*[@Include='" + parentItemPath + "'][local-name()='None' or local-name()='Compile']");
-                if (!IsCore && parentNode == null)
+                if (_projectType == ProjectType.NonSDKStyle && parentNode == null)
                     throw new Exception($"Parent item not found in project file {this._projectFileFullPath}");
                 itemGroup = parentNode.ParentNode;
             }
@@ -71,13 +82,13 @@ namespace CodegenCS.DotNet
             }
 
 
-            if (IsCore)
+            if (_projectType == ProjectType.SDKStyle)
             {
-                //TODO: double check that file is under csproj folder?
+                //TODO: double check that file is under csproj folder? if it's not under we have to include!
             }
 
             // Checking the netcore "Compile Remove" nodes.
-            if (IsCore)
+            if (_projectType == ProjectType.SDKStyle)
             {
                 XmlNode compileRemoveNode = _doc.SelectSingleNode("//msbuild:Compile[@Remove='" + itemPath + "']", _nsmgr);
 
@@ -108,15 +119,15 @@ namespace CodegenCS.DotNet
                 { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
 
                 // node exists but wrong type
-                if (!IsCore && itemType.ToString() != existingElement.Name)
+                if (_projectType == ProjectType.NonSDKStyle && itemType.ToString() != existingElement.Name)
                 { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
 
                 // node exists but wrong type
-                if (!IsCore && itemType.ToString() != existingElement.Name)
+                if (_projectType == ProjectType.NonSDKStyle && itemType.ToString() != existingElement.Name)
                 { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
 
                 // node exists but is not necessary
-                if (IsCore && itemType == BuildActionType.Compile && parentItemPath == null)
+                if (_projectType == ProjectType.SDKStyle && itemType == BuildActionType.Compile && parentItemPath == null)
                 { existingElement.ParentNode.RemoveChild(existingElement); existingElement = null; }
 
                 //// node exists shouldn't be there
@@ -129,11 +140,11 @@ namespace CodegenCS.DotNet
             if (itemType == BuildActionType.NonProjectItem)
                 return;
             // core projects don't need to declare regular compiled files
-            if (existingElement == null && (IsCore && itemType == BuildActionType.Compile) && parentItemPath == null)
+            if (existingElement == null && (_projectType == ProjectType.SDKStyle && itemType == BuildActionType.Compile) && parentItemPath == null)
                 return;
 
             string expectedType = "Include";
-            if (IsCore && itemType == BuildActionType.Compile)
+            if (_projectType == ProjectType.SDKStyle && itemType == BuildActionType.Compile)
                 expectedType = "Update";
 
             if (existingElement != null)
@@ -146,7 +157,7 @@ namespace CodegenCS.DotNet
             if (existingElement == null)
             {
                 existingElement = _doc.CreateElement(itemType.ToString(), _doc.DocumentElement.NamespaceURI);
-                existingElement.SetAttribute(((IsCore && itemType == BuildActionType.Compile) ? "Update" : "Include"), itemPath);
+                existingElement.SetAttribute(((_projectType == ProjectType.SDKStyle && itemType == BuildActionType.Compile) ? "Update" : "Include"), itemPath);
             }
             if (existingElement.Attributes["Include"] == null && expectedType == "Include")
                 existingElement.SetAttribute("Include", itemPath);
@@ -179,7 +190,7 @@ namespace CodegenCS.DotNet
         {
             parentItemPath = new Uri(this._projectFileFullPath).MakeRelativeUri(new Uri(new FileInfo(parentItemPath).FullName)).ToString().Replace("/", "\\");
             XmlNode parentNode = _doc.SelectSingleNode("//*[@Include='" + parentItemPath + "'][local-name()='None' or local-name()='Compile']");
-            if (!IsCore && parentNode == null)
+            if (_projectType == ProjectType.NonSDKStyle && parentNode == null)
                 throw new Exception($"Parent item not found in project file {this._projectFileFullPath}");
 
             XmlNodeList children = _doc.SelectNodes("//msbuild:*[msbuild:DependentUpon/text()='" + parentItemPath + "'][local-name()='None' or local-name()='Compile']", _nsmgr);
@@ -198,7 +209,7 @@ namespace CodegenCS.DotNet
         {
             parentFolderPath = new Uri(this._projectFileFullPath).MakeRelativeUri(new Uri(new DirectoryInfo(parentFolderPath).FullName)).ToString().Replace("/", "\\");
 
-            if (!IsCore)
+            if (_projectType == ProjectType.NonSDKStyle)
             {
                 XmlNodeList children = _doc.SelectNodes("//*[contains(@Include,'" + parentFolderPath + "')][local-name()='None' or local-name()='Compile']");
                 for (int i = 0; i < children.Count; i++)
@@ -211,6 +222,9 @@ namespace CodegenCS.DotNet
             //TODO: for core, do we need to remove anything?
         }
 
+        /// <summary>
+        /// Saves all changes into the csproj/vbproj
+        /// </summary>
         public void Save()
         {
             _doc.Save(this._projectFileFullPath);
