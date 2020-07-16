@@ -9,7 +9,7 @@
 ... or Yet Another Code Generator</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <DocumentationFile>CodegenCS.xml</DocumentationFile>
   </PropertyGroup>
