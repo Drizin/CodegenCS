@@ -311,6 +311,38 @@ namespace CodegenCS
         }
 
         /// <summary>
+        /// Opens a new indented indented Block. Action delegate (lambda) should be used to write contents "inside" the block <br />
+        /// Will automatically handle increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify something to be written BEFORE the indented block starts (before the automatic line break, yet with outer indentation)</param>
+        /// <param name="afterBlock">Optional - you can specify something to be written immediately AFTER the block finishes (back with outer indentation)
+        /// <returns></returns>
+        public CodegenTextWriter WithIndent(string beforeBlock, string afterBlock, Action innerBlockAction)
+        {
+#pragma warning disable 612, 618 // WithCurlyBraces is currently public/obsolete - will be deprecated soon, to give preference to FluentAPI
+            IDisposable innerBlock = WithIndent(beforeBlock, afterBlock);
+#pragma warning restore 612, 618
+            using (innerBlock)
+            {
+                innerBlockAction();
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Opens a new indented indented Block. Action delegate (lambda) should be used to write contents "inside" the block <br />
+        /// Will automatically handle increasing/decreasing indent.
+        /// </summary>
+        /// <param name="beforeBlock">Optional - you can specify something to be written BEFORE the indented block starts (before the automatic line break, yet with outer indentation)</param>
+        /// <param name="afterBlock">Optional - you can specify something to be written immediately AFTER the block finishes (back with outer indentation)
+        /// <returns></returns>
+        public CodegenTextWriter WithIndent(string beforeBlock, string afterBlock, Action<CodegenTextWriter> innerBlockAction)
+        {
+            return WithIndent(beforeBlock, afterBlock, () => innerBlockAction(this));
+        }
+
+
+        /// <summary>
         /// This writes the whole indentation before the current line writes any text <br />
         /// E.g. Usually for IndentLevel 1 this would be 4 spaces, for IndentLevel 2 it would be 8 spaces. <br />
         /// Depending on settings it can be based on tabs, or different number of spaces, etc.
