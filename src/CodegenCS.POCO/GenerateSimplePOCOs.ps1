@@ -12,7 +12,18 @@
 
 $dir = Split-Path $MyInvocation.MyCommand.Path 
 $script = Join-Path $dir ".\GenerateSimplePOCOs.csx"
+$requiredLibs = @(
+    @{ Name = "Newtonsoft.Json"; Version = "12.0.3" },
+    @{ Name = "CodegenCS"; Version = "1.0.1" }
+);
 
+# By default we'll only use NuGet 4 locations. But you can change to 3 if you're hosting 
+# your scripts in a project with the old packages.config format and want to rely on existing project packages
+$NuGetVersion = 4; 
+
+
+
+$ErrorActionPreference = "Stop"
 
 # Locate CSI.EXE by searching common paths
 $csi = ( 
@@ -33,14 +44,132 @@ if (!$csi)
     Write-Host "---------------------------------------" -for red
     Exit 1
 }
+Write-Host "Found csi.exe: $csi" -for cyan
 
+# List of locations to search for assembly references
+$libPaths = @()
+$libPaths += $dir
+
+if ($NuGetVersion -eq 4)
+{
+    # New NuGet 4.0+ (PackageReference) saves User-specific packages in %userprofile%\.nuget\packages\
+    $libPaths += "${env:userprofile}\.nuget\packages";
+    if (Test-Path "${env:userprofile}\.nuget\packages") { $missingNuGetPackagesLocation = "${env:userprofile}\.nuget\packages" }
+
+    # New NuGet 4.0+ (PackageReference) saves Machine-wide packages in %ProgramFiles(x86)%\Microsoft SDKs\NuGetPackages\"
+    $libPaths += "${env:ProgramFiles(x86)}\Microsoft SDKs\NuGetPackages";
+}
+
+if ($NuGetVersion -eq 3)
+{
+    # Old NuGet (packages.config) saves packages in "\packages" folder at solution level.
+    # Locate by searching a few levels above the script
+    $missingNuGetPackagesLocation = ( 
+        (Join-Path $dir ".\packages"),
+        (Join-Path $dir "..\packages"),
+        (Join-Path $dir "..\..\packages"),
+        (Join-Path $dir "..\..\..\packages"),
+        (Join-Path $dir "..\..\..\..\packages")
+    ) | Where-Object { Test-Path $_ } | Select-Object -first 1
+    $libPaths += $missingNuGetPackagesLocation
+}
+
+# where to download missing NuGet packages
+if ((Test-Path $missingNuGetPackagesLocation) -eq $false)
+{
+    $missingNuGetPackagesLocation = $dir
+}
+
+
+# csi /lib parameter allows multiple paths but does not accept spaces (or quotes) so we have to use short DOS 8.3 paths
+$fso = New-Object -ComObject Scripting.FileSystemObject
+$libPaths = ($libPaths | Where-Object { Test-Path $_ } | ForEach { $fso.GetFolder($_).shortpath  });
+
+
+Write-Host "CSI will use the following paths to search for assembly references:`r`n   - $($libPaths -Join "`r`n   - ")" -for cyan
+
+
+$missingLibs = @()
+$requiredLibs | foreach {
+    $requiredLib = $_;
+    Write-Host "Checking for $($requiredLib.Name) version $($requiredLib.Version)..." -for Cyan -NoNewLine
+
+    if ($NuGetVersion -eq 4)
+    {
+        # NuGet 4+ format
+        $found = $libPaths | 
+        ForEach { Join-Path $_ ($requiredLib.Name + '\' + $requiredLib.Version) } | 
+        Where-Object { Test-Path $_ } | Select-Object -first 1
+
+        if ($found -eq $null)
+        {
+            Write-Host "`n$($requiredLib.Name) not found. Will install using NuGet" -for Yellow
+            $missingLibs += $requiredLib
+        }
+        else
+        {
+             Write-Host "Found: $found" -for Cyan
+        }
+    }
+
+    if ($NuGetVersion -eq 3)
+    {
+        # NuGet <=3 format
+        $found = $libPaths | 
+        ForEach { Join-Path $_ ($requiredLib.Name + '.' + $requiredLib.Version) } | 
+        Where-Object { Test-Path $_ } | Select-Object -first 1
+
+        if ($found -eq $null)
+        {
+            Write-Host "`n$($requiredLib.Name) not found. Will install using NuGet" -for Yellow
+            $missingLibs += $requiredLib
+        }
+        else
+        {
+             Write-Host "Found: $found4 $found3" -for Cyan
+        }
+    }
+
+
+}
+
+if ($missingLibs)
+{
+    $nuget = Join-Path $env:TEMP "nuget.exe"
+    if ((Test-Path $nuget) -eq $False)
+    {
+        Write-Host "Downloading NuGet.exe into $nuget" -for cyan
+        $webClient = New-Object System.Net.WebClient 
+        $webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", $nuget)
+    }
+
+    $missingLibs | foreach {
+        $missingLib = $_
+        Write-Host "Downloading $missingLib...";
+        $libName = $missingLib.Name
+        $libVersion = $missingLib.Version
+        if ($libVersion -eq $null)
+        {
+            & $nuget install $libName -OutputDirectory $missingNuGetPackagesLocation
+        }
+        else
+        {
+            & $nuget install $libName -Version $libVersion -OutputDirectory $missingNuGetPackagesLocation
+        }
+        if ($lastExitCode -ne 0)
+        {
+            Write-host "-------------`nError downloading $missingLib - aborting...`n-------------" -for red
+            Exit 1
+        }
+    }
+}
 
 
 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-
 Write-host "Starting csi.exe $script ..." -for yellow
-& $csi /lib:"$Env:userprofile\.nuget\packages\" $script
+& $csi /lib:$($libPaths -Join ';') $script
 
+$stopwatch.Stop()
 Write-Host "Finished in $($stopwatch.Elapsed.TotalMilliSeconds) milliseconds"
 
 # Since I configured "-noexit" parameter in Visual Studio I don't need this

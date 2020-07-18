@@ -1,7 +1,7 @@
 ﻿/// <summary>
-/// This CSX Script will invoke SqlServerSchemaReader, which extracts the schema of SQL database and saves into a JSON file.
-/// The easiest way to launch csi.exe (which is shipped with Visual Studio) to run this script is by using PowerShell script RefreshDatabaseSchema.ps1
-/// You can do that from Visual Studio (see instructions in RefreshDatabaseSchema.ps1) or you can just execute "Powershell RefreshDatabaseSchema.ps1"
+/// This CSX Script will invoke SimplePOCOGenerator, which builds simple POCO classes based on a JSON file with schema of SQL database
+/// The easiest way to launch csi.exe (which is shipped with Visual Studio) to run this script is by using PowerShell script GenerateSimplePOCOs.ps1
+/// You can do that from Visual Studio (see instructions in RefreshDatabaseSchema.ps1) or you can just execute "Powershell GenerateSimplePOCOs.ps1"
 /// </summary>
 
 // System libraries
