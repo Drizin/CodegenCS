@@ -65,6 +65,18 @@ f2.WriteLine("Line1");
 ctx.SaveFiles(outputFolder);
 ```
 
+**How to add generated files to a .NET Framework project (csproj)**:
+
+```cs
+var ctx = new DotNetCodegenContext();
+
+var f1 = ctx["File1.cs"];
+f1.WriteLine("Line1");
+
+ctx.SaveFiles(outputFolder);
+ctx.AddToProject(csProj, outputFolder);
+```
+
 
 **Writing C-like block using FluentAPI and `WithCBlock()`**
 ```cs
@@ -271,7 +283,7 @@ Cool, uh?
 
 For my inner template I used a `Func<FormattableString>` but it could be other types like `FormattableString`,  `string`, `Func<string>`, `Action`, or `Action<CodegenTextWriter>`. They would all be evaluated "on demand", only by the moment that we need to output those parameters.
 
-See examples in [unit tests](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Tests/CoreTests).
+See more examples in [unit tests](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Tests/CoreTests).
 
 
 ## Contributing
