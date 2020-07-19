@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class SqlServerTable
+public class Table
 {
     public string Database { get; set; }
     public string TableSchema { get; set; }
@@ -14,22 +14,22 @@ public class SqlServerTable
 
     public string TableDescription { get; set; }
 
-    public List<SqlServerColumn> Columns { get; set; } = new List<SqlServerColumn>();
+    public List<Column> Columns { get; set; } = new List<Column>();
 
     /// <summary>
     /// FKs which point from THIS (Child) table to the primary key of OTHER (Parent) tables
     /// </summary>
-    public List<SqlServerForeignKey> ForeignKeys { get; set; } = new List<SqlServerForeignKey>();
+    public List<ForeignKey> ForeignKeys { get; set; } = new List<ForeignKey>();
 
     /// <summary>
     /// FKs which point from OTHER (Child) tables to the primary key of THIS (Parent) table
     /// </summary>
-    public List<SqlServerForeignKey> ChildForeignKeys { get; set; } = new List<SqlServerForeignKey>();
+    public List<ForeignKey> ChildForeignKeys { get; set; } = new List<ForeignKey>();
 
     public string PrimaryKeyName { get; set; }
 
     public bool PrimaryKeyIsClustered { get; set; }
 
-    public List<SqlServerIndex> Indexes { get; set; } = new List<SqlServerIndex>();
+    public List<Index> Indexes { get; set; } = new List<Index>();
 
 }

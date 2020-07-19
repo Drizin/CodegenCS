@@ -2,17 +2,8 @@
 using System;
 using System.Collections.Generic;
 
-public class SqlServerIndex
+public class Index
 {
-    [JsonIgnore] // only used in-memory to associate column with parent table
-    public string Database { get; set; }
-
-    [JsonIgnore] // only used in-memory to associate column with parent table
-    public string TableSchema { get; set; }
-
-    [JsonIgnore] // only used in-memory to associate column with parent table
-    public string TableName { get; set; }
-
     public string IndexName { get; set; }
 
     public int IndexId { get; set; }
@@ -49,6 +40,6 @@ public class SqlServerIndex
 
     public string IndexDescription { get; set; }
 
-    public List<SqlServerIndexMember> Columns { get; set; }
+    public List<IndexMember> Columns { get; set; }
 
 }

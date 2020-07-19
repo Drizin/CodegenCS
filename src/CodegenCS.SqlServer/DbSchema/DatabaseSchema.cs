@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
-public class SqlServerDatabaseSchema
+public class DatabaseSchema
 {
     public DateTimeOffset LastRefreshed { get; set; }
-    public List<SqlServerTable> Tables { get; set; }
+    public List<Table> Tables { get; set; }
 }

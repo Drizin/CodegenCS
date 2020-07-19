@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-public class SqlServerForeignKey
+public class ForeignKey
 {
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] // when constraint is serialized under parent table we don't need to serialize redundant attributes
     public string PrimaryKeyName { get; set; }
@@ -41,5 +41,5 @@ public class SqlServerForeignKey
 
     public bool IsNotEnforced { get; set; }
 
-    public List<SqlServerForeignKeyMember> Columns { get; set; }
+    public List<ForeignKeyMember> Columns { get; set; }
 }

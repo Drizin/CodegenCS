@@ -12,14 +12,14 @@
 #r "newtonsoft.json\12.0.3\lib\netstandard2.0\Newtonsoft.Json.dll"
 
 // CS files are better than CSX because Intellisense and Compile-time checks works better. 
-#load "SqlServerTable.cs"
-#load "SqlServerColumn.cs"
-#load "SqlServerForeignKey.cs"
-#load "SqlServerForeignKeyMember.cs"
-#load "SqlServerDatabaseSchema.cs"
-#load "SqlServerSchemaReader.cs"
-#load "SqlServerIndex.cs"
-#load "SqlServerIndexMember.cs"
+#load "DbSchema\Table.cs"
+#load "DbSchema\Column.cs"
+#load "DbSchema\ForeignKey.cs"
+#load "DbSchema\ForeignKeyMember.cs"
+#load "DbSchema\DatabaseSchema.cs"
+#load "DbSchema\Index.cs"
+#load "DbSchema\IndexMember.cs"
+#load "SqlServer\SqlServerSchemaReader.cs"
 
 using System;
 using System.IO;

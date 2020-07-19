@@ -2,17 +2,8 @@
 using System;
 using System.Collections.Generic;
 
-public class SqlServerColumn
+public class Column
 {
-    [JsonIgnore] // only used in-memory to associate column with parent table
-    public string Database { get; set; }
-
-    [JsonIgnore] // only used in-memory to associate column with parent table
-    public string TableSchema { get; set; }
-
-    [JsonIgnore] // only used in-memory to associate column with parent table
-    public string TableName { get; set; }
-
     public string ColumnName { get; set; }
 
     public int OrdinalPosition { get; set; }
