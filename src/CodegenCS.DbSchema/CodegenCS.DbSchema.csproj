@@ -4,13 +4,22 @@
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema</PackageProjectUrl>
     <Description>C# Code and Scripts to extract schema from SQL database into json files.</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
     <Version>1.0.0</Version>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema</RepositoryUrl>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>DLL</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.txt" pack="true" PackagePath="." />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.35" />

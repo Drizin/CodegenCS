@@ -12,14 +12,14 @@
 #r "newtonsoft.json\12.0.3\lib\netstandard2.0\Newtonsoft.Json.dll"
 
 // CS files are better than CSX because Intellisense and Compile-time checks works better. 
-#load "DbSchema\Table.cs"
-#load "DbSchema\Column.cs"
-#load "DbSchema\ForeignKey.cs"
-#load "DbSchema\ForeignKeyMember.cs"
-#load "DbSchema\DatabaseSchema.cs"
-#load "DbSchema\Index.cs"
-#load "DbSchema\IndexMember.cs"
-#load "SqlServer\SqlServerSchemaReader.cs"
+#load "..\DbSchema\Table.cs"
+#load "..\DbSchema\Column.cs"
+#load "..\DbSchema\ForeignKey.cs"
+#load "..\DbSchema\ForeignKeyMember.cs"
+#load "..\DbSchema\DatabaseSchema.cs"
+#load "..\DbSchema\Index.cs"
+#load "..\DbSchema\IndexMember.cs"
+#load "SqlServerSchemaReader.cs"
 
 using System;
 using System.IO;
@@ -33,8 +33,8 @@ public static string GetScriptFolder([CallerFilePath] string path = null) => Pat
 
 
 // location relative to the CSX script
-string outputJsonSchema = Path.GetFullPath(Path.Combine(GetScriptFolder(), "AdventureWorksSchema.json")); 
-string connectionString = @"Data Source=MYDESKTOP\SQLEXPRESS;
+string outputJsonSchema = Path.GetFullPath(Path.Combine(GetScriptFolder(), @".\AdventureWorksSchema.json")); 
+string connectionString = @"Data Source=LENOVOFLEX5\SQLEXPRESS;
                             Initial Catalog=AdventureWorks;
                             Integrated Security=True;";
 

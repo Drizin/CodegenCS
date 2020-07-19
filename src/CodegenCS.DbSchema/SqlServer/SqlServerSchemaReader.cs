@@ -5,22 +5,27 @@ using System.Data;
 using System.IO;
 using System.Linq;
 
-public class SqlServerSchemaReader
+#if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
+namespace CodegenCS.DbSchema.SqlServer
 {
-    public Func<IDbConnection> CreateDbConnection { get; set; }
+#endif
 
-    public SqlServerSchemaReader(Func<IDbConnection> createDbConnection)
+    public class SqlServerSchemaReader
     {
-        CreateDbConnection = createDbConnection;
-    }
+        public Func<IDbConnection> CreateDbConnection { get; set; }
 
-    public void ExportSchemaToJSON(string outputJsonSchema)
-    {
-        Console.WriteLine("Reading Database...");
-
-        using (var cn = CreateDbConnection())
+        public SqlServerSchemaReader(Func<IDbConnection> createDbConnection)
         {
-            var tables = cn.Query<Table>(@"
+            CreateDbConnection = createDbConnection;
+        }
+
+        public void ExportSchemaToJSON(string outputJsonSchema)
+        {
+            Console.WriteLine("Reading Database...");
+
+            using (var cn = CreateDbConnection())
+            {
+                var tables = cn.Query<Table>(@"
                 SELECT 
                     t.TABLE_CATALOG as [Database], 
                     t.TABLE_SCHEMA as [TableSchema], 
@@ -38,8 +43,8 @@ public class SqlServerSchemaReader
 		        ORDER BY t.TABLE_SCHEMA, t.TABLE_TYPE, t.TABLE_NAME
             ").AsList();
 
-            // Based on PetaPoco T4 Templates (https://github.com/CollaboratingPlatypus/PetaPoco/blob/development/T4Templates/PetaPoco.Core.ttinclude)
-            var allColumns = cn.Query<ColumnTmp>(@"
+                // Based on PetaPoco T4 Templates (https://github.com/CollaboratingPlatypus/PetaPoco/blob/development/T4Templates/PetaPoco.Core.ttinclude)
+                var allColumns = cn.Query<ColumnTmp>(@"
                 IF OBJECT_ID('tempdb..#PrimaryKeyColumns') IS NOT NULL DROP TABLE #PrimaryKeyColumns;
                 SELECT cu.TABLE_SCHEMA, cu.TABLE_NAME, cu.COLUMN_NAME, cu.ORDINAL_POSITION INTO #PrimaryKeyColumns
                 FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE cu INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc ON cu.TABLE_SCHEMA COLLATE DATABASE_DEFAULT = tc.CONSTRAINT_SCHEMA COLLATE DATABASE_DEFAULT AND cu.TABLE_NAME = tc.TABLE_NAME AND cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
@@ -83,7 +88,7 @@ public class SqlServerSchemaReader
 		        ORDER BY 1,2,3,OrdinalPosition ASC
             ").AsList();
 
-            var fks = cn.Query<ForeignKey>(@"
+                var fks = cn.Query<ForeignKey>(@"
                 SELECT 
                     i.name as PrimaryKeyName,
 	                pksch.name as PKTableSchema,
@@ -115,7 +120,7 @@ public class SqlServerSchemaReader
 	                LEFT OUTER JOIN sys.extended_properties ep ON ep.name='MS_Description' AND  ep.class = 1  AND ep.major_id = f.object_id AND ep.minor_id = 0
             ").AsList();
 
-            var fkCols = cn.Query<ForeignKeyMemberTmp>(@"
+                var fkCols = cn.Query<ForeignKeyMemberTmp>(@"
                 SELECT 
                     f.name as [ForeignKeyConstraintName],
                     fksch.name as FKTableSchema,
@@ -135,7 +140,7 @@ public class SqlServerSchemaReader
 	                INNER JOIN sys.schemas fksch ON fk.schema_id = fksch.schema_id
             ").AsList();
 
-            var indexes = cn.Query<IndexTmp>(@"
+                var indexes = cn.Query<IndexTmp>(@"
                 SELECT 
 	                sch.name as [TableSchema],
 	                t.name as [TableName],
@@ -164,7 +169,7 @@ public class SqlServerSchemaReader
                      sch.name, t.name, ind.name, ind.index_id;
             ");
 
-            var indexesCols = cn.Query<IndexMemberTmp>(@"
+                var indexesCols = cn.Query<IndexMemberTmp>(@"
                 SELECT 
 	                sch.name as [TableSchema],
 	                t.name as [TableName],
@@ -188,159 +193,161 @@ public class SqlServerSchemaReader
             ");
 
 
-            foreach (var fk in fks)
-            {
-                fk.Columns = fkCols.Where(c => c.ForeignKeyConstraintName == fk.ForeignKeyConstraintName && c.FKTableSchema == fk.FKTableSchema)
-                    .OrderBy(c => c.PKColumnOrdinalPosition)
-                    .Select(c => Map<ForeignKeyMember, ForeignKeyMemberTmp>(c))
-                    .ToList();
-            }
-
-            foreach (var index in indexes)
-            {
-                index.Columns = indexesCols.Where(c => c.TableSchema == index.TableSchema && c.TableName == index.TableName && c.IndexName == index.IndexName)
-                    .OrderBy(c => c.IndexOrdinalPosition)
-                    .Select(c => Map<IndexMember, IndexMemberTmp>(c))
-                    .ToList();
-            }
-
-            foreach (var table in tables)
-            {
-                table.Columns = allColumns.Where(c => c.TableSchema == table.TableSchema && c.TableName == table.TableName).Select(c => Map<Column, ColumnTmp>(c)).ToList();
-                foreach(var column in table.Columns)
+                foreach (var fk in fks)
                 {
-                    column.ClrType = GetClrType(table, column);
+                    fk.Columns = fkCols.Where(c => c.ForeignKeyConstraintName == fk.ForeignKeyConstraintName && c.FKTableSchema == fk.FKTableSchema)
+                        .OrderBy(c => c.PKColumnOrdinalPosition)
+                        .Select(c => Map<ForeignKeyMember, ForeignKeyMemberTmp>(c))
+                        .ToList();
                 }
 
-                // We copy FKs and remove redundant properties of the parent object (table) which we're attaching this FK into
-                table.ForeignKeys = Clone(fks.Where(fk => fk.FKTableSchema == table.TableSchema && fk.FKTableName == table.TableName).ToList());
-                table.ForeignKeys.ForEach(fk => { fk.FKTableSchema = null; fk.FKTableName = null; });
+                foreach (var index in indexes)
+                {
+                    index.Columns = indexesCols.Where(c => c.TableSchema == index.TableSchema && c.TableName == index.TableName && c.IndexName == index.IndexName)
+                        .OrderBy(c => c.IndexOrdinalPosition)
+                        .Select(c => Map<IndexMember, IndexMemberTmp>(c))
+                        .ToList();
+                }
 
-                // We copy FKs and remove redundant properties of the parent object (table) which we're attaching this FK into
-                table.ChildForeignKeys = Clone(fks.Where(fk => fk.PKTableSchema == table.TableSchema && fk.PKTableName == table.TableName).ToList());
-                table.ChildForeignKeys.ForEach(fk => { fk.PKTableSchema = null; fk.PKTableName = null; });
+                foreach (var table in tables)
+                {
+                    table.Columns = allColumns.Where(c => c.TableSchema == table.TableSchema && c.TableName == table.TableName).Select(c => Map<Column, ColumnTmp>(c)).ToList();
+                    foreach (var column in table.Columns)
+                    {
+                        column.ClrType = GetClrType(table, column);
+                    }
 
-                table.Indexes = indexes.Where(i => i.TableSchema == table.TableSchema && i.TableName == table.TableName)
-                    .Select(i => Map<Index, IndexTmp>(i))
-                    .ToList();
+                    // We copy FKs and remove redundant properties of the parent object (table) which we're attaching this FK into
+                    table.ForeignKeys = Clone(fks.Where(fk => fk.FKTableSchema == table.TableSchema && fk.FKTableName == table.TableName).ToList());
+                    table.ForeignKeys.ForEach(fk => { fk.FKTableSchema = null; fk.FKTableName = null; });
+
+                    // We copy FKs and remove redundant properties of the parent object (table) which we're attaching this FK into
+                    table.ChildForeignKeys = Clone(fks.Where(fk => fk.PKTableSchema == table.TableSchema && fk.PKTableName == table.TableName).ToList());
+                    table.ChildForeignKeys.ForEach(fk => { fk.PKTableSchema = null; fk.PKTableName = null; });
+
+                    table.Indexes = indexes.Where(i => i.TableSchema == table.TableSchema && i.TableName == table.TableName)
+                        .Select(i => Map<Index, IndexTmp>(i))
+                        .ToList();
+                }
+
+                DatabaseSchema schema = new DatabaseSchema()
+                {
+                    LastRefreshed = DateTimeOffset.Now,
+                    Tables = tables,
+                };
+
+                Console.WriteLine($"Saving into {outputJsonSchema}...");
+                File.WriteAllText(outputJsonSchema, JsonConvert.SerializeObject(schema, Newtonsoft.Json.Formatting.Indented));
             }
 
-            DatabaseSchema schema = new DatabaseSchema()
-            {
-                LastRefreshed = DateTimeOffset.Now,
-                Tables = tables,
-            };
-
-            Console.WriteLine($"Saving into {outputJsonSchema}...");
-            File.WriteAllText(outputJsonSchema, JsonConvert.SerializeObject(schema, Newtonsoft.Json.Formatting.Indented));
+            Console.WriteLine("Success!");
         }
 
-        Console.WriteLine("Success!");
-    }
-
-    string GetClrType(Table table, Column column)
-    {
-        string sqlDataType = column.SqlDataType;
-        switch (sqlDataType)
+        string GetClrType(Table table, Column column)
         {
-            case "bigint":
-                return typeof(long).FullName;
-            case "smallint":
-                return typeof(short).FullName;
-            case "int":
-                return typeof(int).FullName;
-            case "uniqueidentifier":
-                return typeof(Guid).FullName;
-            case "smalldatetime":
-            case "datetime":
-            case "datetime2":
-            case "date":
-            case "time":
-                return typeof(DateTime).FullName;
-            case "datetimeoffset":
-                return typeof(DateTimeOffset).FullName;
-            case "float":
-                return typeof(double).FullName;
-            case "real":
-                return typeof(float).FullName;
-            case "numeric":
-            case "smallmoney":
-            case "decimal":
-            case "money":
-                return typeof(decimal).FullName;
-            case "tinyint":
-                return typeof(byte).FullName;
-            case "bit":
-                return typeof(bool).FullName;
-            case "image":
-            case "binary":
-            case "varbinary":
-            case "timestamp":
-                return typeof(byte[]).FullName;
-            case "nvarchar":
-            case "varchar":
-            case "nchar":
-            case "char":
-            case "text":
-            case "ntext":
-            case "xml":
-                return typeof(string).FullName;
-            default:
-                Console.WriteLine($"Unknown sqlDataType for {table.TableName}.{column.ColumnName}: {sqlDataType}");
-                return null;
+            string sqlDataType = column.SqlDataType;
+            switch (sqlDataType)
+            {
+                case "bigint":
+                    return typeof(long).FullName;
+                case "smallint":
+                    return typeof(short).FullName;
+                case "int":
+                    return typeof(int).FullName;
+                case "uniqueidentifier":
+                    return typeof(Guid).FullName;
+                case "smalldatetime":
+                case "datetime":
+                case "datetime2":
+                case "date":
+                case "time":
+                    return typeof(DateTime).FullName;
+                case "datetimeoffset":
+                    return typeof(DateTimeOffset).FullName;
+                case "float":
+                    return typeof(double).FullName;
+                case "real":
+                    return typeof(float).FullName;
+                case "numeric":
+                case "smallmoney":
+                case "decimal":
+                case "money":
+                    return typeof(decimal).FullName;
+                case "tinyint":
+                    return typeof(byte).FullName;
+                case "bit":
+                    return typeof(bool).FullName;
+                case "image":
+                case "binary":
+                case "varbinary":
+                case "timestamp":
+                    return typeof(byte[]).FullName;
+                case "nvarchar":
+                case "varchar":
+                case "nchar":
+                case "char":
+                case "text":
+                case "ntext":
+                case "xml":
+                    return typeof(string).FullName;
+                default:
+                    Console.WriteLine($"Unknown sqlDataType for {table.TableName}.{column.ColumnName}: {sqlDataType}");
+                    return null;
 
-            // Vendor-specific types
-            case "hierarchyid":
-                return "Microsoft.SqlServer.Types.SqlHierarchyId"; // requires Microsoft.SqlServer.Types.dll (EF or Dapper 1.34+)
-            case "geography":
-                return "Microsoft.SqlServer.Types.SqlGeography";  // requires Microsoft.SqlServer.Types.dll (EF or Dapper 1.32+)
-            case "geometry":
-                return "Microsoft.SqlServer.Types.SqlGeometry";  // requires Microsoft.SqlServer.Types.dll (EF or Dapper 1.33)+
+                // Vendor-specific types
+                case "hierarchyid":
+                    return "Microsoft.SqlServer.Types.SqlHierarchyId"; // requires Microsoft.SqlServer.Types.dll (EF or Dapper 1.34+)
+                case "geography":
+                    return "Microsoft.SqlServer.Types.SqlGeography";  // requires Microsoft.SqlServer.Types.dll (EF or Dapper 1.32+)
+                case "geometry":
+                    return "Microsoft.SqlServer.Types.SqlGeometry";  // requires Microsoft.SqlServer.Types.dll (EF or Dapper 1.33)+
+            }
         }
-    }
 
-    public static T Clone<T>(T source)
-    {
-        var serialized = JsonConvert.SerializeObject(source);
-        return JsonConvert.DeserializeObject<T>(serialized);
-    }
-    public static T Map<T, S>(S source)
-    {
-        var serialized = JsonConvert.SerializeObject(source);
-        return JsonConvert.DeserializeObject<T>(serialized);
-    }
+        public static T Clone<T>(T source)
+        {
+            var serialized = JsonConvert.SerializeObject(source);
+            return JsonConvert.DeserializeObject<T>(serialized);
+        }
+        public static T Map<T, S>(S source)
+        {
+            var serialized = JsonConvert.SerializeObject(source);
+            return JsonConvert.DeserializeObject<T>(serialized);
+        }
 
-    #region Temporary Classes used just for Bulk Loads
-    class ColumnTmp : Column
-    {
-        public string Database { get; set; }
-        public string TableSchema { get; set; }
-        public string TableName { get; set; }
+        #region Temporary Classes used just for Bulk Loads
+        class ColumnTmp : Column
+        {
+            public string Database { get; set; }
+            public string TableSchema { get; set; }
+            public string TableName { get; set; }
+
+        }
+        class IndexTmp : Index
+        {
+            public string Database { get; set; }
+
+            public string TableSchema { get; set; }
+
+            public string TableName { get; set; }
+        }
+        class ForeignKeyMemberTmp : ForeignKeyMember
+        {
+            public string ForeignKeyConstraintName { get; set; }
+            public string FKTableSchema { get; set; }
+        }
+        class IndexMemberTmp : IndexMember
+        {
+            public string Database { get; set; }
+            public string TableSchema { get; set; }
+            public string TableName { get; set; }
+            public string IndexName { get; set; }
+            public int IndexId { get; set; }
+
+        }
+        #endregion
 
     }
-    class IndexTmp : Index
-    {
-        public string Database { get; set; }
-
-        public string TableSchema { get; set; }
-
-        public string TableName { get; set; }
-    }
-    class ForeignKeyMemberTmp: ForeignKeyMember
-    {
-        public string ForeignKeyConstraintName { get; set; }
-        public string FKTableSchema { get; set; }
-    }
-    class IndexMemberTmp : IndexMember
-    {
-        public string Database { get; set; }
-        public string TableSchema { get; set; }
-        public string TableName { get; set; }
-        public string IndexName { get; set; }
-        public int IndexId { get; set; }
-
-    }
-    #endregion
-
+#if DLL
 }
-
+#endif
