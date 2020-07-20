@@ -9,10 +9,11 @@
 
 // Load third-party libraries by their relative paths, relative to "$Env:userprofile\.nuget\packages\"
 #r "newtonsoft.json\12.0.3\lib\netstandard2.0\Newtonsoft.Json.dll"
-#r "codegencs\1.0.1\lib\netstandard2.0\CodegenCS.dll"
+#r "codegencs\1.0.5\lib\netstandard2.0\CodegenCS.dll"
+#r "codegencs.dbschema\1.0.0\lib\netstandard2.0\CodegenCS.DbSchema.dll"
 
 // CS files are better than CSX because Intellisense and Compile-time checks works better. 
-#load "DatabaseSchema.cs"
+#load "LogicalSchema.cs"
 #load "SimplePOCOGenerator.cs"
 
 using System;
@@ -32,5 +33,5 @@ string targetFolder = Path.GetFullPath(Path.Combine(GetScriptFolder(), @".\POCOs
 
 
 var generator = new SimplePOCOGenerator(inputJsonSchema);
-generator.Namespace = "DotnetCore_DBFirst";
+generator.Namespace = "CodegenCS.AdventureWorksPOCOSample";
 generator.Generate(targetFolder);

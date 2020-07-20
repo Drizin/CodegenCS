@@ -11,10 +11,10 @@
 # For more info about launching CSX scripts from PowerShell or from Visual Studio, check https://drizin.io/code-generation-csx-scripts-part1/
 
 $dir = Split-Path $MyInvocation.MyCommand.Path 
-$script = Join-Path $dir ".\GenerateSimplePOCOs.csx"
+$script = Join-Path $dir ".\RefreshSqlServerSchema.csx"
 $requiredLibs = @(
     @{ Name = "Newtonsoft.Json"; Version = "12.0.3" },
-    @{ Name = "CodegenCS"; Version = "1.0.5" },
+    @{ Name = "Dapper"; Version = "2.0.35" },
     @{ Name = "CodegenCS.DbSchema"; Version = "1.0.0" }
 );
 
