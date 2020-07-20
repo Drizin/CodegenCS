@@ -301,9 +301,10 @@ Please submit a pull-request or if you prefer you can [contact me](http://drizin
 - 2019-10-30: Published Sample Template [EF 6 POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator)
 - 2019-11-03: Published [nuget package 1.0.0](https://www.nuget.org/packages/CodegenCS/)
 - 2019-11-04: Published [nuget package 1.0.1](https://www.nuget.org/packages/CodegenCS/) 
-- 2020-07-05: New project/scripts [CodegenCS.SqlServer](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer) to reverse engineer a SQL Server database into JSON schema
+- 2020-07-05: New project/scripts [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) to reverse engineer a SQL Server database into JSON schema
 - 2020-07-12: Published [nuget package 1.0.2](https://www.nuget.org/packages/CodegenCS/) with Fluent API and other major changes
 - 2020-07-13: Published [nuget package 1.0.3](https://www.nuget.org/packages/CodegenCS/) with minor fixes
+- 2020-07-19: New project/scripts [CodegenCS.POCO](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) to create POCOs (Dapper or other ORM) based on a Database Schema in JSON file
 
 
 ## License

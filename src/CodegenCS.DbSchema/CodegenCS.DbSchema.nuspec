@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>CodegenCS.DbSchema</id>
+    <version>1.0.0</version>
+    <title>CodegenCS.DbSchema</title>
+    <authors>Rick Drizin</authors>
+    <owners>Rick Drizin</owners>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>This is a Plugin (Datasource Provider) to be used with CodegenCS code generator, which allows CodegenCS to generate code based on a Database Schema. Repository (Github) contains Code and Scripts to extract schema from SQL database into json files, and this schema can be used by any application.</description>
+    <copyright>Copyright Rick Drizin 2019</copyright>
+    <tags>code generation;code generator;templating;codegencs</tags>
+    <repository type="git" url="https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema" commit="da2d0b953623b22f6f345646b8344ecad12be2f9" />
+    <dependencies>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\net472\CodegenCS.DbSchema.*" target="lib\net472" />
+    <file src="bin\Release\netstandard2.0\CodegenCS.DbSchema.*" target="lib\netstandard2.0" />
+  </files>
+</package>

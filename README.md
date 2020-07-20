@@ -8,8 +8,8 @@ This project is comprised of a few different components (maybe you're looking fo
 Project | Description
 ------------ | -------------
 [**CodegenCS (Core)**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS) | Class library for code generation. Basically it provides a custom TextWriter tweaked to solve common code generation difficulties
- [**CodegenCS.SqlServer**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer) | C#/CSX/Powershell Scripts to reverse engineer a SQL Server database into JSON schema
-[**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) | C# Templates / CSX/Powershell Scripts to read a JSON database schema (created with [CodegenCS.SqlServer](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.SqlServer) above) and generate POCO classes
+ [**CodegenCS.DbSchema**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) | C#/CSX/Powershell Scripts to reverse engineer a SQL Server database into JSON schema
+[**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) | C# Templates / CSX/Powershell Scripts to read a JSON database schema (created with [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) above) and generate POCO classes
 [EF 6 POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator) | This is a port of [Simon Hughes T4 templates for EF6](https://github.com/sjh37/EntityFramework-Reverse-POCO-Code-First-Generator) converted from T4 templates to C#/CodegenCS. <br/>  It's a Console application that reads a SQL Server Database and generates a DbContext and POCOS for Entity Framework 6. <br/> It's provided here only as a sample template. In his repository you may find up-to-date code, which now supports EFCore.
 
 

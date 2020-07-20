@@ -1,6 +1,6 @@
 # CodegenCS.POCO
 C# Code and Scripts to generate POCO classes (can be used by Dapper, PetaPoco or other micro-ORMs).  
-The input file for this generator is a JSON file with the schema of a database (Check [this other project](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.SqlServer) for extracting this JSON schema).  
+The input file for this generator is a JSON file with the schema of a database (Check [this other project](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema) for extracting this JSON schema).  
 This generator uses [CodegenCS](https://github.com/Drizin/CodegenCS) library for writing text-files without going crazy about indentation.  
 
 Based on https://drizin.io/code-generation-in-c-csx-extracting-sql-server-schema/
@@ -18,7 +18,7 @@ This code only uses netstandard2.0 libraries, so any project (.NET Framework or 
 Actually the scripts are executed using CSI (C# REPL), which is a scripting engine - the CSPROJ just helps us to test/compile, use NuGet packages, etc.  
 
 ## Usage
-First, you'll need a JSON file with the schema of your SQL database. Check [this other project](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.SqlServer) for that.  
+First, you'll need a JSON file with the schema of your SQL database. Check [this other project](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema) for that.  
 Then, just copy these scripts into your project, set the location of the JSON schema, and execute the PowerShell script.  
 
 ## Contributing
