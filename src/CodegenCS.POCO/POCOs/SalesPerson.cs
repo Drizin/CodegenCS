@@ -7,6 +7,7 @@ using Dapper;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
+    [Table("SalesPerson", Schema = "Sales")]
     public partial class SalesPerson
     {
         #region Members
@@ -35,7 +36,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                INSERT INTO [SalesPerson]
+                INSERT INTO [Sales].[SalesPerson]
                 (
                     [Bonus],
                     [BusinessEntityID],
@@ -66,7 +67,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [SalesPerson] SET
+                UPDATE [Sales].[SalesPerson] SET
                     [Bonus] = @Bonus,
                     [BusinessEntityID] = @BusinessEntityId,
                     [CommissionPct] = @CommissionPct,

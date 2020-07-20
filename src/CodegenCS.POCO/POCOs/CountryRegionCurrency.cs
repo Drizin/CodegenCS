@@ -7,6 +7,7 @@ using Dapper;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
+    [Table("CountryRegionCurrency", Schema = "Sales")]
     public partial class CountryRegionCurrency
     {
         #region Members
@@ -30,7 +31,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                INSERT INTO [CountryRegionCurrency]
+                INSERT INTO [Sales].[CountryRegionCurrency]
                 (
                     [CountryRegionCode],
                     [CurrencyCode],
@@ -51,7 +52,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [CountryRegionCurrency] SET
+                UPDATE [Sales].[CountryRegionCurrency] SET
                     [CountryRegionCode] = @CountryRegionCode,
                     [CurrencyCode] = @CurrencyCode,
                     [ModifiedDate] = @ModifiedDate

@@ -136,10 +136,10 @@ public class SimplePOCOGenerator
 
         string entityClassName = GetClassNameForTable(table);
 
-        var schemaAndtable = new Tuple<string, string>(table.TableSchema, table.TableName);
-
-        // We'll decorate [Table("Name")] only if table name doesn't match entity name
-        if (entityClassName.ToLower() != table.TableName.ToLower())
+        // We'll decorate [Table("Name")] only if schema not default or if table name doesn't match entity name
+        if (table.TableSchema != "dbo") //TODO or table different than clas name?
+            writer.WriteLine($"[Table(\"{table.TableName}\", Schema = \"{table.TableSchema}\")]");
+        else if (entityClassName.ToLower() != table.TableName.ToLower())
             writer.WriteLine($"[Table(\"{table.TableName}\")]");
 
         writer.WithCBlock($"public partial class {entityClassName}", () =>
@@ -221,7 +221,7 @@ public class SimplePOCOGenerator
                     .Where(c => !c.IsRowGuid) //TODO: should be used only if they have value set (not default value)
                     .Where(c => !c.IsComputed) //TODO: should be used only if they have value set (not default value)
                     .OrderBy(c => GetPropertyNameForDatabaseColumn(table, c.ColumnName));
-                writer.WithIndent($"string cmd = @\"{Environment.NewLine}INSERT INTO [{table.TableName}]{Environment.NewLine}(", ")", () =>
+                writer.WithIndent($"string cmd = @\"{Environment.NewLine}INSERT INTO {(table.TableSchema == "dbo" ? "" : $"[{table.TableSchema}].")}[{table.TableName}]{Environment.NewLine}(", ")", () =>
                 {
                     writer.WriteLine(string.Join($",{Environment.NewLine}", cols.Select(col => $"[{col.ColumnName}]")));
                 });
@@ -254,7 +254,7 @@ public class SimplePOCOGenerator
                     .Where(c => !c.IsRowGuid) //TODO: should be used only if they have value set (not default value)
                     .Where(c => !c.IsComputed) //TODO: should be used only if they have value set (not default value)
                     .OrderBy(c => GetPropertyNameForDatabaseColumn(table, c.ColumnName));
-                writer.WithIndent($"string cmd = @\"{Environment.NewLine}UPDATE [{table.TableName}] SET", "", () =>
+                writer.WithIndent($"string cmd = @\"{Environment.NewLine}UPDATE {(table.TableSchema == "dbo" ? "" : $"[{table.TableSchema}].")}[{table.TableName}] SET", "", () =>
                 {
                     writer.WriteLine(string.Join($",{Environment.NewLine}", cols.Select(col => $"[{col.ColumnName}] = @{GetPropertyNameForDatabaseColumn(table, col.ColumnName)}")));
                 });

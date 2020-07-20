@@ -7,6 +7,7 @@ using Dapper;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
+    [Table("Document", Schema = "Production")]
     public partial class Document
     {
         #region Members

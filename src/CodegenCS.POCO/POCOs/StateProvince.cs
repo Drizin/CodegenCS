@@ -7,6 +7,7 @@ using Dapper;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
+    [Table("StateProvince", Schema = "Person")]
     public partial class StateProvince
     {
         #region Members
@@ -34,7 +35,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                INSERT INTO [StateProvince]
+                INSERT INTO [Person].[StateProvince]
                 (
                     [CountryRegionCode],
                     [IsOnlyStateProvinceFlag],
@@ -61,7 +62,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [StateProvince] SET
+                UPDATE [Person].[StateProvince] SET
                     [CountryRegionCode] = @CountryRegionCode,
                     [IsOnlyStateProvinceFlag] = @IsOnlyStateProvinceFlag,
                     [ModifiedDate] = @ModifiedDate,

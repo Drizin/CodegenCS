@@ -7,6 +7,7 @@ using Dapper;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
+    [Table("ProductCostHistory", Schema = "Production")]
     public partial class ProductCostHistory
     {
         #region Members
@@ -32,7 +33,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                INSERT INTO [ProductCostHistory]
+                INSERT INTO [Production].[ProductCostHistory]
                 (
                     [EndDate],
                     [ModifiedDate],
@@ -57,7 +58,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [ProductCostHistory] SET
+                UPDATE [Production].[ProductCostHistory] SET
                     [EndDate] = @EndDate,
                     [ModifiedDate] = @ModifiedDate,
                     [ProductID] = @ProductId,

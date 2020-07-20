@@ -7,6 +7,7 @@ using Dapper;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
+    [Table("CreditCard", Schema = "Sales")]
     public partial class CreditCard
     {
         #region Members
@@ -32,7 +33,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                INSERT INTO [CreditCard]
+                INSERT INTO [Sales].[CreditCard]
                 (
                     [CardNumber],
                     [CardType],
@@ -57,7 +58,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [CreditCard] SET
+                UPDATE [Sales].[CreditCard] SET
                     [CardNumber] = @CardNumber,
                     [CardType] = @CardType,
                     [ExpMonth] = @ExpMonth,
