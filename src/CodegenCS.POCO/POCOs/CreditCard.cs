@@ -57,12 +57,12 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [CreditCard]
-                    SET [CardNumber] = @CardNumber,
-                    SET [CardType] = @CardType,
-                    SET [ExpMonth] = @ExpMonth,
-                    SET [ExpYear] = @ExpYear,
-                    SET [ModifiedDate] = @ModifiedDate
+                UPDATE [CreditCard] SET
+                    [CardNumber] = @CardNumber,
+                    [CardType] = @CardType,
+                    [ExpMonth] = @ExpMonth,
+                    [ExpYear] = @ExpYear,
+                    [ModifiedDate] = @ModifiedDate
                 WHERE
                     [CreditCardID] = @CreditCardId";
                 conn.Execute(cmd, this);

@@ -60,13 +60,13 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [CurrencyRate]
-                    SET [AverageRate] = @AverageRate,
-                    SET [CurrencyRateDate] = @CurrencyRateDate,
-                    SET [EndOfDayRate] = @EndOfDayRate,
-                    SET [FromCurrencyCode] = @FromCurrencyCode,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [ToCurrencyCode] = @ToCurrencyCode
+                UPDATE [CurrencyRate] SET
+                    [AverageRate] = @AverageRate,
+                    [CurrencyRateDate] = @CurrencyRateDate,
+                    [EndOfDayRate] = @EndOfDayRate,
+                    [FromCurrencyCode] = @FromCurrencyCode,
+                    [ModifiedDate] = @ModifiedDate,
+                    [ToCurrencyCode] = @ToCurrencyCode
                 WHERE
                     [CurrencyRateID] = @CurrencyRateId";
                 conn.Execute(cmd, this);

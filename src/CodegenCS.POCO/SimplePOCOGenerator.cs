@@ -254,9 +254,9 @@ public class SimplePOCOGenerator
                     .Where(c => !c.IsRowGuid) //TODO: should be used only if they have value set (not default value)
                     .Where(c => !c.IsComputed) //TODO: should be used only if they have value set (not default value)
                     .OrderBy(c => GetPropertyNameForDatabaseColumn(table, c.ColumnName));
-                writer.WithIndent($"string cmd = @\"{Environment.NewLine}UPDATE [{table.TableName}]", "", () =>
+                writer.WithIndent($"string cmd = @\"{Environment.NewLine}UPDATE [{table.TableName}] SET", "", () =>
                 {
-                    writer.WriteLine(string.Join($",{Environment.NewLine}", cols.Select(col => $"SET [{col.ColumnName}] = @{GetPropertyNameForDatabaseColumn(table, col.ColumnName)}")));
+                    writer.WriteLine(string.Join($",{Environment.NewLine}", cols.Select(col => $"[{col.ColumnName}] = @{GetPropertyNameForDatabaseColumn(table, col.ColumnName)}")));
                 });
 
                 var pkCols = table.Columns

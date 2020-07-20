@@ -82,20 +82,20 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [Employee]
-                    SET [BirthDate] = @BirthDate,
-                    SET [BusinessEntityID] = @BusinessEntityId,
-                    SET [CurrentFlag] = @CurrentFlag,
-                    SET [Gender] = @Gender,
-                    SET [HireDate] = @HireDate,
-                    SET [JobTitle] = @JobTitle,
-                    SET [LoginID] = @LoginId,
-                    SET [MaritalStatus] = @MaritalStatus,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [NationalIDNumber] = @NationalIdNumber,
-                    SET [SalariedFlag] = @SalariedFlag,
-                    SET [SickLeaveHours] = @SickLeaveHours,
-                    SET [VacationHours] = @VacationHours
+                UPDATE [Employee] SET
+                    [BirthDate] = @BirthDate,
+                    [BusinessEntityID] = @BusinessEntityId,
+                    [CurrentFlag] = @CurrentFlag,
+                    [Gender] = @Gender,
+                    [HireDate] = @HireDate,
+                    [JobTitle] = @JobTitle,
+                    [LoginID] = @LoginId,
+                    [MaritalStatus] = @MaritalStatus,
+                    [ModifiedDate] = @ModifiedDate,
+                    [NationalIDNumber] = @NationalIdNumber,
+                    [SalariedFlag] = @SalariedFlag,
+                    [SickLeaveHours] = @SickLeaveHours,
+                    [VacationHours] = @VacationHours
                 WHERE
                     [BusinessEntityID] = @BusinessEntityId";
                 conn.Execute(cmd, this);

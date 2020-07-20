@@ -112,30 +112,30 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [Product]
-                    SET [Class] = @Class,
-                    SET [Color] = @Color,
-                    SET [DaysToManufacture] = @DaysToManufacture,
-                    SET [DiscontinuedDate] = @DiscontinuedDate,
-                    SET [FinishedGoodsFlag] = @FinishedGoodsFlag,
-                    SET [ListPrice] = @ListPrice,
-                    SET [MakeFlag] = @MakeFlag,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [Name] = @Name,
-                    SET [ProductLine] = @ProductLine,
-                    SET [ProductModelID] = @ProductModelId,
-                    SET [ProductNumber] = @ProductNumber,
-                    SET [ProductSubcategoryID] = @ProductSubcategoryId,
-                    SET [ReorderPoint] = @ReorderPoint,
-                    SET [SafetyStockLevel] = @SafetyStockLevel,
-                    SET [SellEndDate] = @SellEndDate,
-                    SET [SellStartDate] = @SellStartDate,
-                    SET [Size] = @Size,
-                    SET [SizeUnitMeasureCode] = @SizeUnitMeasureCode,
-                    SET [StandardCost] = @StandardCost,
-                    SET [Style] = @Style,
-                    SET [Weight] = @Weight,
-                    SET [WeightUnitMeasureCode] = @WeightUnitMeasureCode
+                UPDATE [Product] SET
+                    [Class] = @Class,
+                    [Color] = @Color,
+                    [DaysToManufacture] = @DaysToManufacture,
+                    [DiscontinuedDate] = @DiscontinuedDate,
+                    [FinishedGoodsFlag] = @FinishedGoodsFlag,
+                    [ListPrice] = @ListPrice,
+                    [MakeFlag] = @MakeFlag,
+                    [ModifiedDate] = @ModifiedDate,
+                    [Name] = @Name,
+                    [ProductLine] = @ProductLine,
+                    [ProductModelID] = @ProductModelId,
+                    [ProductNumber] = @ProductNumber,
+                    [ProductSubcategoryID] = @ProductSubcategoryId,
+                    [ReorderPoint] = @ReorderPoint,
+                    [SafetyStockLevel] = @SafetyStockLevel,
+                    [SellEndDate] = @SellEndDate,
+                    [SellStartDate] = @SellStartDate,
+                    [Size] = @Size,
+                    [SizeUnitMeasureCode] = @SizeUnitMeasureCode,
+                    [StandardCost] = @StandardCost,
+                    [Style] = @Style,
+                    [Weight] = @Weight,
+                    [WeightUnitMeasureCode] = @WeightUnitMeasureCode
                 WHERE
                     [ProductID] = @ProductId";
                 conn.Execute(cmd, this);

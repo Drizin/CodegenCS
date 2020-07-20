@@ -50,10 +50,10 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [Currency]
-                    SET [CurrencyCode] = @CurrencyCode,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [Name] = @Name
+                UPDATE [Currency] SET
+                    [CurrencyCode] = @CurrencyCode,
+                    [ModifiedDate] = @ModifiedDate,
+                    [Name] = @Name
                 WHERE
                     [CurrencyCode] = @CurrencyCode";
                 conn.Execute(cmd, this);

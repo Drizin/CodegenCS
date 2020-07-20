@@ -111,29 +111,29 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [SalesOrderHeader]
-                    SET [AccountNumber] = @AccountNumber,
-                    SET [BillToAddressID] = @BillToAddressId,
-                    SET [Comment] = @Comment,
-                    SET [CreditCardApprovalCode] = @CreditCardApprovalCode,
-                    SET [CreditCardID] = @CreditCardId,
-                    SET [CurrencyRateID] = @CurrencyRateId,
-                    SET [CustomerID] = @CustomerId,
-                    SET [DueDate] = @DueDate,
-                    SET [Freight] = @Freight,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [OnlineOrderFlag] = @OnlineOrderFlag,
-                    SET [OrderDate] = @OrderDate,
-                    SET [PurchaseOrderNumber] = @PurchaseOrderNumber,
-                    SET [RevisionNumber] = @RevisionNumber,
-                    SET [SalesPersonID] = @SalesPersonId,
-                    SET [ShipDate] = @ShipDate,
-                    SET [ShipMethodID] = @ShipMethodId,
-                    SET [ShipToAddressID] = @ShipToAddressId,
-                    SET [Status] = @Status,
-                    SET [SubTotal] = @SubTotal,
-                    SET [TaxAmt] = @TaxAmt,
-                    SET [TerritoryID] = @TerritoryId
+                UPDATE [SalesOrderHeader] SET
+                    [AccountNumber] = @AccountNumber,
+                    [BillToAddressID] = @BillToAddressId,
+                    [Comment] = @Comment,
+                    [CreditCardApprovalCode] = @CreditCardApprovalCode,
+                    [CreditCardID] = @CreditCardId,
+                    [CurrencyRateID] = @CurrencyRateId,
+                    [CustomerID] = @CustomerId,
+                    [DueDate] = @DueDate,
+                    [Freight] = @Freight,
+                    [ModifiedDate] = @ModifiedDate,
+                    [OnlineOrderFlag] = @OnlineOrderFlag,
+                    [OrderDate] = @OrderDate,
+                    [PurchaseOrderNumber] = @PurchaseOrderNumber,
+                    [RevisionNumber] = @RevisionNumber,
+                    [SalesPersonID] = @SalesPersonId,
+                    [ShipDate] = @ShipDate,
+                    [ShipMethodID] = @ShipMethodId,
+                    [ShipToAddressID] = @ShipToAddressId,
+                    [Status] = @Status,
+                    [SubTotal] = @SubTotal,
+                    [TaxAmt] = @TaxAmt,
+                    [TerritoryID] = @TerritoryId
                 WHERE
                     [SalesOrderID] = @SalesOrderId";
                 conn.Execute(cmd, this);

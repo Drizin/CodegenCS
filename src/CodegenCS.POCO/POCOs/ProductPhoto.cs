@@ -57,12 +57,12 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [ProductPhoto]
-                    SET [LargePhoto] = @LargePhoto,
-                    SET [LargePhotoFileName] = @LargePhotoFileName,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [ThumbNailPhoto] = @ThumbNailPhoto,
-                    SET [ThumbnailPhotoFileName] = @ThumbnailPhotoFileName
+                UPDATE [ProductPhoto] SET
+                    [LargePhoto] = @LargePhoto,
+                    [LargePhotoFileName] = @LargePhotoFileName,
+                    [ModifiedDate] = @ModifiedDate,
+                    [ThumbNailPhoto] = @ThumbNailPhoto,
+                    [ThumbnailPhotoFileName] = @ThumbnailPhotoFileName
                 WHERE
                     [ProductPhotoID] = @ProductPhotoId";
                 conn.Execute(cmd, this);

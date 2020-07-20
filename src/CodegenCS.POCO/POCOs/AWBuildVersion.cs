@@ -52,10 +52,10 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [AWBuildVersion]
-                    SET [Database Version] = @DatabaseVersion,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [VersionDate] = @VersionDate
+                UPDATE [AWBuildVersion] SET
+                    [Database Version] = @DatabaseVersion,
+                    [ModifiedDate] = @ModifiedDate,
+                    [VersionDate] = @VersionDate
                 WHERE
                     [SystemInformationID] = @SystemInformationId";
                 conn.Execute(cmd, this);

@@ -63,14 +63,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [DatabaseLog]
-                    SET [DatabaseUser] = @DatabaseUser,
-                    SET [Event] = @Event,
-                    SET [Object] = @Object,
-                    SET [PostTime] = @PostTime,
-                    SET [Schema] = @Schema,
-                    SET [TSQL] = @Tsql,
-                    SET [XmlEvent] = @XmlEvent
+                UPDATE [DatabaseLog] SET
+                    [DatabaseUser] = @DatabaseUser,
+                    [Event] = @Event,
+                    [Object] = @Object,
+                    [PostTime] = @PostTime,
+                    [Schema] = @Schema,
+                    [TSQL] = @Tsql,
+                    [XmlEvent] = @XmlEvent
                 WHERE
                     [DatabaseLogID] = @DatabaseLogId";
                 conn.Execute(cmd, this);

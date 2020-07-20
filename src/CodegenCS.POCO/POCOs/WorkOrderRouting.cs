@@ -79,19 +79,19 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [WorkOrderRouting]
-                    SET [ActualCost] = @ActualCost,
-                    SET [ActualEndDate] = @ActualEndDate,
-                    SET [ActualResourceHrs] = @ActualResourceHrs,
-                    SET [ActualStartDate] = @ActualStartDate,
-                    SET [LocationID] = @LocationId,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [OperationSequence] = @OperationSequence,
-                    SET [PlannedCost] = @PlannedCost,
-                    SET [ProductID] = @ProductId,
-                    SET [ScheduledEndDate] = @ScheduledEndDate,
-                    SET [ScheduledStartDate] = @ScheduledStartDate,
-                    SET [WorkOrderID] = @WorkOrderId
+                UPDATE [WorkOrderRouting] SET
+                    [ActualCost] = @ActualCost,
+                    [ActualEndDate] = @ActualEndDate,
+                    [ActualResourceHrs] = @ActualResourceHrs,
+                    [ActualStartDate] = @ActualStartDate,
+                    [LocationID] = @LocationId,
+                    [ModifiedDate] = @ModifiedDate,
+                    [OperationSequence] = @OperationSequence,
+                    [PlannedCost] = @PlannedCost,
+                    [ProductID] = @ProductId,
+                    [ScheduledEndDate] = @ScheduledEndDate,
+                    [ScheduledStartDate] = @ScheduledStartDate,
+                    [WorkOrderID] = @WorkOrderId
                 WHERE
                     [WorkOrderID] = @WorkOrderId AND 
                     [ProductID] = @ProductId AND 

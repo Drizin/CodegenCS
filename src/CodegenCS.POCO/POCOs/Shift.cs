@@ -54,11 +54,11 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [Shift]
-                    SET [EndTime] = @EndTime,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [Name] = @Name,
-                    SET [StartTime] = @StartTime
+                UPDATE [Shift] SET
+                    [EndTime] = @EndTime,
+                    [ModifiedDate] = @ModifiedDate,
+                    [Name] = @Name,
+                    [StartTime] = @StartTime
                 WHERE
                     [ShiftID] = @ShiftId";
                 conn.Execute(cmd, this);

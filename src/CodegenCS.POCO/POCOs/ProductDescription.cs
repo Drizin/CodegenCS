@@ -49,9 +49,9 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [ProductDescription]
-                    SET [Description] = @Description,
-                    SET [ModifiedDate] = @ModifiedDate
+                UPDATE [ProductDescription] SET
+                    [Description] = @Description,
+                    [ModifiedDate] = @ModifiedDate
                 WHERE
                     [ProductDescriptionID] = @ProductDescriptionId";
                 conn.Execute(cmd, this);

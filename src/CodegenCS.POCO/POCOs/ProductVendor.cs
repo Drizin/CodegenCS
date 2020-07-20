@@ -75,18 +75,18 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [ProductVendor]
-                    SET [AverageLeadTime] = @AverageLeadTime,
-                    SET [BusinessEntityID] = @BusinessEntityId,
-                    SET [LastReceiptCost] = @LastReceiptCost,
-                    SET [LastReceiptDate] = @LastReceiptDate,
-                    SET [MaxOrderQty] = @MaxOrderQty,
-                    SET [MinOrderQty] = @MinOrderQty,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [OnOrderQty] = @OnOrderQty,
-                    SET [ProductID] = @ProductId,
-                    SET [StandardPrice] = @StandardPrice,
-                    SET [UnitMeasureCode] = @UnitMeasureCode
+                UPDATE [ProductVendor] SET
+                    [AverageLeadTime] = @AverageLeadTime,
+                    [BusinessEntityID] = @BusinessEntityId,
+                    [LastReceiptCost] = @LastReceiptCost,
+                    [LastReceiptDate] = @LastReceiptDate,
+                    [MaxOrderQty] = @MaxOrderQty,
+                    [MinOrderQty] = @MinOrderQty,
+                    [ModifiedDate] = @ModifiedDate,
+                    [OnOrderQty] = @OnOrderQty,
+                    [ProductID] = @ProductId,
+                    [StandardPrice] = @StandardPrice,
+                    [UnitMeasureCode] = @UnitMeasureCode
                 WHERE
                     [ProductID] = @ProductId AND 
                     [BusinessEntityID] = @BusinessEntityId";

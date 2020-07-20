@@ -65,15 +65,15 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [Vendor]
-                    SET [AccountNumber] = @AccountNumber,
-                    SET [ActiveFlag] = @ActiveFlag,
-                    SET [BusinessEntityID] = @BusinessEntityId,
-                    SET [CreditRating] = @CreditRating,
-                    SET [ModifiedDate] = @ModifiedDate,
-                    SET [Name] = @Name,
-                    SET [PreferredVendorStatus] = @PreferredVendorStatus,
-                    SET [PurchasingWebServiceURL] = @PurchasingWebServiceUrl
+                UPDATE [Vendor] SET
+                    [AccountNumber] = @AccountNumber,
+                    [ActiveFlag] = @ActiveFlag,
+                    [BusinessEntityID] = @BusinessEntityId,
+                    [CreditRating] = @CreditRating,
+                    [ModifiedDate] = @ModifiedDate,
+                    [Name] = @Name,
+                    [PreferredVendorStatus] = @PreferredVendorStatus,
+                    [PurchasingWebServiceURL] = @PurchasingWebServiceUrl
                 WHERE
                     [BusinessEntityID] = @BusinessEntityId";
                 conn.Execute(cmd, this);

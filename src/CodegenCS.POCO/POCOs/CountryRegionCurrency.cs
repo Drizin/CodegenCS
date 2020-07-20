@@ -51,10 +51,10 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [CountryRegionCurrency]
-                    SET [CountryRegionCode] = @CountryRegionCode,
-                    SET [CurrencyCode] = @CurrencyCode,
-                    SET [ModifiedDate] = @ModifiedDate
+                UPDATE [CountryRegionCurrency] SET
+                    [CountryRegionCode] = @CountryRegionCode,
+                    [CurrencyCode] = @CurrencyCode,
+                    [ModifiedDate] = @ModifiedDate
                 WHERE
                     [CountryRegionCode] = @CountryRegionCode AND 
                     [CurrencyCode] = @CurrencyCode";

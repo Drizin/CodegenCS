@@ -66,15 +66,15 @@ namespace CodegenCS.AdventureWorksPOCOSample
             using (var conn = IDbConnectionFactory.CreateConnection())
             {
                 string cmd = @"
-                UPDATE [ErrorLog]
-                    SET [ErrorLine] = @ErrorLine,
-                    SET [ErrorMessage] = @ErrorMessage,
-                    SET [ErrorNumber] = @ErrorNumber,
-                    SET [ErrorProcedure] = @ErrorProcedure,
-                    SET [ErrorSeverity] = @ErrorSeverity,
-                    SET [ErrorState] = @ErrorState,
-                    SET [ErrorTime] = @ErrorTime,
-                    SET [UserName] = @UserName
+                UPDATE [ErrorLog] SET
+                    [ErrorLine] = @ErrorLine,
+                    [ErrorMessage] = @ErrorMessage,
+                    [ErrorNumber] = @ErrorNumber,
+                    [ErrorProcedure] = @ErrorProcedure,
+                    [ErrorSeverity] = @ErrorSeverity,
+                    [ErrorState] = @ErrorState,
+                    [ErrorTime] = @ErrorTime,
+                    [UserName] = @UserName
                 WHERE
                     [ErrorLogID] = @ErrorLogId";
                 conn.Execute(cmd, this);
