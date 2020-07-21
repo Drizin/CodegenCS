@@ -1,40 +1,59 @@
 # CodegenCS.POCO
-C# Code and Scripts to generate POCO classes (can be used by Dapper, PetaPoco or other micro-ORMs).  
-The input file for this generator is a JSON file with the schema of a database (Check [this other project](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema) for extracting this JSON schema).  
+
+**CodegenCS.POCO** is a Code-generation template which reads a JSON database schema and generates [POCOS](https://stackoverflow.com/a/250006/3606250) for your tables. (See [example POCO](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/POCOs/Product.cs)).
+
+These POCOs can be used by Dapper, PetaPoco or any other micro-ORMs or full ORMs.
+
+The generator will optionally create code for `override bool Equals()`, `override int GetHashCode()`, and can also create **ActiveRecord** CRUD queries (Insert/Update).
+
+To use this template you first need to use [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema), which is a Script that extracts the schema of a MS SQL Server database and saves it in a JSON file.
+
+# Usage
+
+## 1. Download project files into any folder
+
+You'll only need CSX files, PS1 files, and CS files. 
+
+You can save these files in any folder, it's not necessary to add to your solution or project folder.
+
+## 2. Extract the JSON Schema for your database
+
+- Edit the connection string and paths in [RefreshSqlServerSchema.csx](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/RefreshSqlServerSchema.csx)
+- Execute the PowerShell script [RefreshSqlServerSchema.ps1](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/RefreshSqlServerSchema.ps1)  
+  This script will automatically install required NuGet packages (CodegenCS.DbSchema, Dapper and Newtonsoft), and will read all your tables, columns, indexes, primary keys, foreign keys.  
+  This script invokes SqlServerSchemaReader from CodegenCS.DbSchema.dll, but if you need to modify the code you can find [CodegenCS.DbSchema sources here](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema).
+  
+## 3. Generate POCOs 
+ 
+- Edit the paths and the POCOs Namespace in [GenerateSimplePOCOs.csx](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/GenerateSimplePOCOs.csx)
+- Execute the PowerShell script [GenerateSimplePOCOs.ps1](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/GenerateSimplePOCOs.ps1)  
+  This script will automatically install required NuGet packages (CodegenCS and Newtonsoft), will read the JSON file and generates POCOs.
+  Optionally you can specify a csproj file and all POCOs will be added to your csproj file.
+
+The [generator script](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/SimplePOCOGenerator.cs) is very simple to understand and customize.
+
+# Architecture
+
+This project contains C# Scripts (CSX files, which invoke C# classes) and use PowerShell scripts (PS1 files) to install the required dependencies (NuGet packages) and invoke the CSX scripts. You don't need to embed this scripts or code into your projects, but if you do it should work both in .NET Framework or .NET Core since this project only uses netstandard2.0 libraries.
+
+To learn more about CSX files, check [this post](https://drizin.io/code-generation-csx-scripts-part1/).
+
 This generator uses [CodegenCS](https://github.com/Drizin/CodegenCS) library for writing text-files without going crazy about indentation.  
 
-Based on https://drizin.io/code-generation-in-c-csx-extracting-sql-server-schema/
+# Contributing
 
-# Description
+This is a brand new project, and your contribution can help a lot.  
 
-By using a full-featured language (C#) and a full featured IDE (Visual Studio or Visual Studio Code) we can write complex and reusable scripts, with strong-typing, intellisense, debugging support, etc.  
-We can use Dapper, Newtonsoft, and other amazing libraries.  
-Generating code with C# is much easier (and less ugly) than using T4 templates - easier to read, easier to write, easier to debug, easier to reuse.  
+**Would you like to collaborate or share your own template?**  
 
-This project contains C# code and a CSX (C# Script file) which executes the C# code. There's also a PowerShell Script which helps to launch the CSX script.  
-This is cross-platform code and can be embedded into any project (even a class library, there's no need to build an exe since CSX is just invoked by a scripting runtime).  
-
-This code only uses netstandard2.0 libraries, so any project (.NET Framework or .NET Core) can use these scripts.  
-Actually the scripts are executed using CSI (C# REPL), which is a scripting engine - the CSPROJ just helps us to test/compile, use NuGet packages, etc.  
-
-## Usage
-First, you'll need a JSON file with the schema of your SQL database. Check [this other project](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema) for that.  
-Then, just copy these scripts into your project, set the location of the JSON schema, and execute the PowerShell script.  
-
-## Contributing
-This is a brand new project, and I hope with your help it can grow a lot.  
-As I like to say, **If you’re writing repetitive code by hand, you’re stealing from your employer or from your client.**
-
-If you you want to contribute, you can either:
-- Fork it, optionally create a feature branch, commit your changes, push it, and submit a Pull Request.
-- Drop me an email (http://drizin.io/pages/Contact/) and let me know how you can help. I really don't have much time and would appreciate your help.
+Please submit a pull-request or if you prefer you can [contact me](http://drizin.io/pages/Contact/) or [open an issue](https://github.com/Drizin/CodegenCS/issues) to discuss your idea.
 
 Some ideas for next steps:
 - Scripts to generate EFCore Entities/DbContext
 
 
-## History
+# History
 - 2020-07-05: Initial public version. See [blog post here](https://drizin.io/code-generation-in-c-csx-extracting-sql-server-schema/)
 
-## License
+# License
 MIT License
