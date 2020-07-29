@@ -4,23 +4,69 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("TransactionHistoryArchive", Schema = "Production")]
-    public partial class TransactionHistoryArchive
+    public partial class TransactionHistoryArchive : INotifyPropertyChanged
     {
         #region Members
+        private int _transactionId;
         [Key]
-        public int TransactionId { get; set; }
-        public decimal ActualCost { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public int ProductId { get; set; }
-        public int Quantity { get; set; }
-        public int ReferenceOrderId { get; set; }
-        public int ReferenceOrderLineId { get; set; }
-        public DateTime TransactionDate { get; set; }
-        public string TransactionType { get; set; }
+        public int TransactionId 
+        { 
+            get { return _transactionId; } 
+            set { SetField(ref _transactionId, value, nameof(TransactionId)); } 
+        }
+        private decimal _actualCost;
+        public decimal ActualCost 
+        { 
+            get { return _actualCost; } 
+            set { SetField(ref _actualCost, value, nameof(ActualCost)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private int _productId;
+        public int ProductId 
+        { 
+            get { return _productId; } 
+            set { SetField(ref _productId, value, nameof(ProductId)); } 
+        }
+        private int _quantity;
+        public int Quantity 
+        { 
+            get { return _quantity; } 
+            set { SetField(ref _quantity, value, nameof(Quantity)); } 
+        }
+        private int _referenceOrderId;
+        public int ReferenceOrderId 
+        { 
+            get { return _referenceOrderId; } 
+            set { SetField(ref _referenceOrderId, value, nameof(ReferenceOrderId)); } 
+        }
+        private int _referenceOrderLineId;
+        public int ReferenceOrderLineId 
+        { 
+            get { return _referenceOrderLineId; } 
+            set { SetField(ref _referenceOrderLineId, value, nameof(ReferenceOrderLineId)); } 
+        }
+        private DateTime _transactionDate;
+        public DateTime TransactionDate 
+        { 
+            get { return _transactionDate; } 
+            set { SetField(ref _transactionDate, value, nameof(TransactionDate)); } 
+        }
+        private string _transactionType;
+        public string TransactionType 
+        { 
+            get { return _transactionType; } 
+            set { SetField(ref _transactionType, value, nameof(TransactionType)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -148,5 +194,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

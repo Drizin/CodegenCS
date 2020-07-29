@@ -4,21 +4,47 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("BusinessEntityAddress", Schema = "Person")]
-    public partial class BusinessEntityAddress
+    public partial class BusinessEntityAddress : INotifyPropertyChanged
     {
         #region Members
+        private int _businessEntityId;
         [Key]
-        public int BusinessEntityId { get; set; }
+        public int BusinessEntityId 
+        { 
+            get { return _businessEntityId; } 
+            set { SetField(ref _businessEntityId, value, nameof(BusinessEntityId)); } 
+        }
+        private int _addressId;
         [Key]
-        public int AddressId { get; set; }
+        public int AddressId 
+        { 
+            get { return _addressId; } 
+            set { SetField(ref _addressId, value, nameof(AddressId)); } 
+        }
+        private int _addressTypeId;
         [Key]
-        public int AddressTypeId { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public Guid Rowguid { get; set; }
+        public int AddressTypeId 
+        { 
+            get { return _addressTypeId; } 
+            set { SetField(ref _addressTypeId, value, nameof(AddressTypeId)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private Guid _rowguid;
+        public Guid Rowguid 
+        { 
+            get { return _rowguid; } 
+            set { SetField(ref _rowguid, value, nameof(Rowguid)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -121,5 +147,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

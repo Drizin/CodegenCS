@@ -4,20 +4,51 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("ProductPhoto", Schema = "Production")]
-    public partial class ProductPhoto
+    public partial class ProductPhoto : INotifyPropertyChanged
     {
         #region Members
+        private int _productPhotoId;
         [Key]
-        public int ProductPhotoId { get; set; }
-        public Byte[] LargePhoto { get; set; }
-        public string LargePhotoFileName { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public Byte[] ThumbNailPhoto { get; set; }
-        public string ThumbnailPhotoFileName { get; set; }
+        public int ProductPhotoId 
+        { 
+            get { return _productPhotoId; } 
+            set { SetField(ref _productPhotoId, value, nameof(ProductPhotoId)); } 
+        }
+        private Byte[] _largePhoto;
+        public Byte[] LargePhoto 
+        { 
+            get { return _largePhoto; } 
+            set { SetField(ref _largePhoto, value, nameof(LargePhoto)); } 
+        }
+        private string _largePhotoFileName;
+        public string LargePhotoFileName 
+        { 
+            get { return _largePhotoFileName; } 
+            set { SetField(ref _largePhotoFileName, value, nameof(LargePhotoFileName)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private Byte[] _thumbNailPhoto;
+        public Byte[] ThumbNailPhoto 
+        { 
+            get { return _thumbNailPhoto; } 
+            set { SetField(ref _thumbNailPhoto, value, nameof(ThumbNailPhoto)); } 
+        }
+        private string _thumbnailPhotoFileName;
+        public string ThumbnailPhotoFileName 
+        { 
+            get { return _thumbnailPhotoFileName; } 
+            set { SetField(ref _thumbnailPhotoFileName, value, nameof(ThumbnailPhotoFileName)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -121,5 +152,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

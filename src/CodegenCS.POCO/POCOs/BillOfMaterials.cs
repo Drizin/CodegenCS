@@ -4,23 +4,69 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("BillOfMaterials", Schema = "Production")]
-    public partial class BillOfMaterials
+    public partial class BillOfMaterials : INotifyPropertyChanged
     {
         #region Members
+        private int _billOfMaterialsId;
         [Key]
-        public int BillOfMaterialsId { get; set; }
-        public short BomLevel { get; set; }
-        public int ComponentId { get; set; }
-        public DateTime? EndDate { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public decimal PerAssemblyQty { get; set; }
-        public int? ProductAssemblyId { get; set; }
-        public DateTime StartDate { get; set; }
-        public string UnitMeasureCode { get; set; }
+        public int BillOfMaterialsId 
+        { 
+            get { return _billOfMaterialsId; } 
+            set { SetField(ref _billOfMaterialsId, value, nameof(BillOfMaterialsId)); } 
+        }
+        private short _bomLevel;
+        public short BomLevel 
+        { 
+            get { return _bomLevel; } 
+            set { SetField(ref _bomLevel, value, nameof(BomLevel)); } 
+        }
+        private int _componentId;
+        public int ComponentId 
+        { 
+            get { return _componentId; } 
+            set { SetField(ref _componentId, value, nameof(ComponentId)); } 
+        }
+        private DateTime? _endDate;
+        public DateTime? EndDate 
+        { 
+            get { return _endDate; } 
+            set { SetField(ref _endDate, value, nameof(EndDate)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private decimal _perAssemblyQty;
+        public decimal PerAssemblyQty 
+        { 
+            get { return _perAssemblyQty; } 
+            set { SetField(ref _perAssemblyQty, value, nameof(PerAssemblyQty)); } 
+        }
+        private int? _productAssemblyId;
+        public int? ProductAssemblyId 
+        { 
+            get { return _productAssemblyId; } 
+            set { SetField(ref _productAssemblyId, value, nameof(ProductAssemblyId)); } 
+        }
+        private DateTime _startDate;
+        public DateTime StartDate 
+        { 
+            get { return _startDate; } 
+            set { SetField(ref _startDate, value, nameof(StartDate)); } 
+        }
+        private string _unitMeasureCode;
+        public string UnitMeasureCode 
+        { 
+            get { return _unitMeasureCode; } 
+            set { SetField(ref _unitMeasureCode, value, nameof(UnitMeasureCode)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -142,5 +188,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

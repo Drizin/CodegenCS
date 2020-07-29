@@ -4,21 +4,62 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
-    public partial class DatabaseLog
+    public partial class DatabaseLog : INotifyPropertyChanged
     {
         #region Members
+        private int _databaseLogId;
         [Key]
-        public int DatabaseLogId { get; set; }
-        public string DatabaseUser { get; set; }
-        public string Event { get; set; }
-        public string Object { get; set; }
-        public DateTime PostTime { get; set; }
-        public string Schema { get; set; }
-        public string Tsql { get; set; }
-        public string XmlEvent { get; set; }
+        public int DatabaseLogId 
+        { 
+            get { return _databaseLogId; } 
+            set { SetField(ref _databaseLogId, value, nameof(DatabaseLogId)); } 
+        }
+        private string _databaseUser;
+        public string DatabaseUser 
+        { 
+            get { return _databaseUser; } 
+            set { SetField(ref _databaseUser, value, nameof(DatabaseUser)); } 
+        }
+        private string _event;
+        public string Event 
+        { 
+            get { return _event; } 
+            set { SetField(ref _event, value, nameof(Event)); } 
+        }
+        private string _object;
+        public string Object 
+        { 
+            get { return _object; } 
+            set { SetField(ref _object, value, nameof(Object)); } 
+        }
+        private DateTime _postTime;
+        public DateTime PostTime 
+        { 
+            get { return _postTime; } 
+            set { SetField(ref _postTime, value, nameof(PostTime)); } 
+        }
+        private string _schema;
+        public string Schema 
+        { 
+            get { return _schema; } 
+            set { SetField(ref _schema, value, nameof(Schema)); } 
+        }
+        private string _tsql;
+        public string Tsql 
+        { 
+            get { return _tsql; } 
+            set { SetField(ref _tsql, value, nameof(Tsql)); } 
+        }
+        private string _xmlEvent;
+        public string XmlEvent 
+        { 
+            get { return _xmlEvent; } 
+            set { SetField(ref _xmlEvent, value, nameof(XmlEvent)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -134,5 +175,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

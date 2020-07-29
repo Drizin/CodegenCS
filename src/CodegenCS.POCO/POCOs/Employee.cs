@@ -4,29 +4,105 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("Employee", Schema = "HumanResources")]
-    public partial class Employee
+    public partial class Employee : INotifyPropertyChanged
     {
         #region Members
+        private int _businessEntityId;
         [Key]
-        public int BusinessEntityId { get; set; }
-        public DateTime BirthDate { get; set; }
-        public bool CurrentFlag { get; set; }
-        public string Gender { get; set; }
-        public DateTime HireDate { get; set; }
-        public string JobTitle { get; set; }
-        public string LoginId { get; set; }
-        public string MaritalStatus { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public string NationalIdNumber { get; set; }
-        public short? OrganizationLevel { get; set; }
-        public Guid Rowguid { get; set; }
-        public bool SalariedFlag { get; set; }
-        public short SickLeaveHours { get; set; }
-        public short VacationHours { get; set; }
+        public int BusinessEntityId 
+        { 
+            get { return _businessEntityId; } 
+            set { SetField(ref _businessEntityId, value, nameof(BusinessEntityId)); } 
+        }
+        private DateTime _birthDate;
+        public DateTime BirthDate 
+        { 
+            get { return _birthDate; } 
+            set { SetField(ref _birthDate, value, nameof(BirthDate)); } 
+        }
+        private bool _currentFlag;
+        public bool CurrentFlag 
+        { 
+            get { return _currentFlag; } 
+            set { SetField(ref _currentFlag, value, nameof(CurrentFlag)); } 
+        }
+        private string _gender;
+        public string Gender 
+        { 
+            get { return _gender; } 
+            set { SetField(ref _gender, value, nameof(Gender)); } 
+        }
+        private DateTime _hireDate;
+        public DateTime HireDate 
+        { 
+            get { return _hireDate; } 
+            set { SetField(ref _hireDate, value, nameof(HireDate)); } 
+        }
+        private string _jobTitle;
+        public string JobTitle 
+        { 
+            get { return _jobTitle; } 
+            set { SetField(ref _jobTitle, value, nameof(JobTitle)); } 
+        }
+        private string _loginId;
+        public string LoginId 
+        { 
+            get { return _loginId; } 
+            set { SetField(ref _loginId, value, nameof(LoginId)); } 
+        }
+        private string _maritalStatus;
+        public string MaritalStatus 
+        { 
+            get { return _maritalStatus; } 
+            set { SetField(ref _maritalStatus, value, nameof(MaritalStatus)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private string _nationalIdNumber;
+        public string NationalIdNumber 
+        { 
+            get { return _nationalIdNumber; } 
+            set { SetField(ref _nationalIdNumber, value, nameof(NationalIdNumber)); } 
+        }
+        private short? _organizationLevel;
+        public short? OrganizationLevel 
+        { 
+            get { return _organizationLevel; } 
+            set { SetField(ref _organizationLevel, value, nameof(OrganizationLevel)); } 
+        }
+        private Guid _rowguid;
+        public Guid Rowguid 
+        { 
+            get { return _rowguid; } 
+            set { SetField(ref _rowguid, value, nameof(Rowguid)); } 
+        }
+        private bool _salariedFlag;
+        public bool SalariedFlag 
+        { 
+            get { return _salariedFlag; } 
+            set { SetField(ref _salariedFlag, value, nameof(SalariedFlag)); } 
+        }
+        private short _sickLeaveHours;
+        public short SickLeaveHours 
+        { 
+            get { return _sickLeaveHours; } 
+            set { SetField(ref _sickLeaveHours, value, nameof(SickLeaveHours)); } 
+        }
+        private short _vacationHours;
+        public short VacationHours 
+        { 
+            get { return _vacationHours; } 
+            set { SetField(ref _vacationHours, value, nameof(VacationHours)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -184,5 +260,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

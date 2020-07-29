@@ -16,6 +16,7 @@ public class SimplePOCOGenerator
     public bool SingleFile { get; set; } = false;
     public bool GenerateActiveRecord { get; set; } = true;
     public bool GenerateEqualsHashCode { get; set; } = true;
+    public bool TrackPropertiesChange { get; set; } = true;
 
     /// <summary>
     /// In-memory context which tracks all generated files (with indentation support), and later saves all files at once
@@ -61,6 +62,8 @@ public class SimplePOCOGenerator
                 .WriteLine(@"using System.Linq;");
             if (GenerateActiveRecord)
                 writer.WriteLine(@"using Dapper;");
+            if (TrackPropertiesChange)
+                writer.WriteLine(@"using System.ComponentModel;");
             writer
                 .WriteLine()
                 .WriteLine($"namespace {Namespace}").WriteLine("{").IncreaseIndent();
@@ -129,6 +132,8 @@ public class SimplePOCOGenerator
                 .WriteLine(@"using System.Linq;");
             if (GenerateActiveRecord)
                 writer.WriteLine(@"using Dapper;");
+            if (TrackPropertiesChange)
+                writer.WriteLine(@"using System.ComponentModel;");
             writer
                 .WriteLine()
                 .WriteLine($"namespace {Namespace}").WriteLine("{").IncreaseIndent();
@@ -142,7 +147,11 @@ public class SimplePOCOGenerator
         else if (entityClassName.ToLower() != table.TableName.ToLower())
             writer.WriteLine($"[Table(\"{table.TableName}\")]");
 
-        writer.WithCBlock($"public partial class {entityClassName}", () =>
+        List<string> baseClasses = new List<string>();
+        if (TrackPropertiesChange)
+            baseClasses.Add("INotifyPropertyChanged");
+
+        writer.WithCBlock($"public partial class {entityClassName}{(baseClasses.Any() ? " : " + string.Join(", ", baseClasses) : "")}", () =>
             {
                 writer.WriteLine("#region Members");
                 var columns = table.Columns
@@ -173,6 +182,35 @@ public class SimplePOCOGenerator
                     GenerateInequalityOperatorOverloads(writer, table);
                     writer.WriteLine("#endregion Equals/GetHashCode");
                 }
+
+                if (TrackPropertiesChange)
+                {
+                    writer.WriteLine();
+                    writer.WriteLine("#region INotifyPropertyChanged/IsDirty");
+                    writer.WriteLine(@"
+                        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        public void MarkAsClean()
+                        {
+                            ChangedProperties.Clear();
+                        }
+                        public virtual bool IsDirty => ChangedProperties.Any();
+
+                        public event PropertyChangedEventHandler PropertyChanged;
+                        protected void SetField<T>(ref T field, T value, string propertyName) {
+                            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                                field = value;
+                                ChangedProperties.Add(propertyName);
+                                OnPropertyChanged(propertyName);
+                            }
+                        }
+                        protected virtual void OnPropertyChanged(string propertyName) {
+                            if (PropertyChanged != null) {
+                                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                            }
+                        }");
+                    writer.WriteLine("#endregion INotifyPropertyChanged/IsDirty");
+                }
+
             });
 
         if (!SingleFile)
@@ -184,13 +222,23 @@ public class SimplePOCOGenerator
     void GenerateProperty(CodegenOutputFile writer, Table table, Column column)
     {
         string propertyName = GetPropertyNameForDatabaseColumn(table, column.ColumnName);
+        string privateVariable = $"_{propertyName.Substring(0, 1).ToLower()}{propertyName.Substring(1)}";
+        if (TrackPropertiesChange)
+            writer.WriteLine($"private {GetTypeDefinitionForDatabaseColumn(table, column) ?? ""} {privateVariable};");
         if (column.IsPrimaryKeyMember)
             writer.WriteLine("[Key]");
         // We'll decorate [Column("Name")] only if column name doesn't match property name
         if (propertyName.ToLower() != column.ColumnName.ToLower())
             writer.WriteLine($"[Column(\"{column.ColumnName}\")]");
-        writer.WriteLine($"public {GetTypeDefinitionForDatabaseColumn(table, column) ?? ""} {propertyName} {{ get; set; }}");
-
+        if (TrackPropertiesChange)
+            writer.WriteLine($@"
+                public {GetTypeDefinitionForDatabaseColumn(table, column) ?? ""} {propertyName} 
+                {{ 
+                    get {{ return {privateVariable}; }} 
+                    set {{ SetField(ref {privateVariable}, value, nameof({propertyName})); }} 
+                }}");
+        else
+            writer.WriteLine($"public {GetTypeDefinitionForDatabaseColumn(table, column) ?? ""} {propertyName} {{ get; set; }}");
     }
 
     void GenerateSave(CodegenOutputFile writer, Table table)

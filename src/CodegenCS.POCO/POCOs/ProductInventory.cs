@@ -4,22 +4,58 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("ProductInventory", Schema = "Production")]
-    public partial class ProductInventory
+    public partial class ProductInventory : INotifyPropertyChanged
     {
         #region Members
+        private int _productId;
         [Key]
-        public int ProductId { get; set; }
+        public int ProductId 
+        { 
+            get { return _productId; } 
+            set { SetField(ref _productId, value, nameof(ProductId)); } 
+        }
+        private short _locationId;
         [Key]
-        public short LocationId { get; set; }
-        public byte Bin { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public short Quantity { get; set; }
-        public Guid Rowguid { get; set; }
-        public string Shelf { get; set; }
+        public short LocationId 
+        { 
+            get { return _locationId; } 
+            set { SetField(ref _locationId, value, nameof(LocationId)); } 
+        }
+        private byte _bin;
+        public byte Bin 
+        { 
+            get { return _bin; } 
+            set { SetField(ref _bin, value, nameof(Bin)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private short _quantity;
+        public short Quantity 
+        { 
+            get { return _quantity; } 
+            set { SetField(ref _quantity, value, nameof(Quantity)); } 
+        }
+        private Guid _rowguid;
+        public Guid Rowguid 
+        { 
+            get { return _rowguid; } 
+            set { SetField(ref _rowguid, value, nameof(Rowguid)); } 
+        }
+        private string _shelf;
+        public string Shelf 
+        { 
+            get { return _shelf; } 
+            set { SetField(ref _shelf, value, nameof(Shelf)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -133,5 +169,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

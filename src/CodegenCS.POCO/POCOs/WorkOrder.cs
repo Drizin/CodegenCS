@@ -4,24 +4,75 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("WorkOrder", Schema = "Production")]
-    public partial class WorkOrder
+    public partial class WorkOrder : INotifyPropertyChanged
     {
         #region Members
+        private int _workOrderId;
         [Key]
-        public int WorkOrderId { get; set; }
-        public DateTime DueDate { get; set; }
-        public DateTime? EndDate { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public int OrderQty { get; set; }
-        public int ProductId { get; set; }
-        public short ScrappedQty { get; set; }
-        public short? ScrapReasonId { get; set; }
-        public DateTime StartDate { get; set; }
-        public int StockedQty { get; set; }
+        public int WorkOrderId 
+        { 
+            get { return _workOrderId; } 
+            set { SetField(ref _workOrderId, value, nameof(WorkOrderId)); } 
+        }
+        private DateTime _dueDate;
+        public DateTime DueDate 
+        { 
+            get { return _dueDate; } 
+            set { SetField(ref _dueDate, value, nameof(DueDate)); } 
+        }
+        private DateTime? _endDate;
+        public DateTime? EndDate 
+        { 
+            get { return _endDate; } 
+            set { SetField(ref _endDate, value, nameof(EndDate)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private int _orderQty;
+        public int OrderQty 
+        { 
+            get { return _orderQty; } 
+            set { SetField(ref _orderQty, value, nameof(OrderQty)); } 
+        }
+        private int _productId;
+        public int ProductId 
+        { 
+            get { return _productId; } 
+            set { SetField(ref _productId, value, nameof(ProductId)); } 
+        }
+        private short _scrappedQty;
+        public short ScrappedQty 
+        { 
+            get { return _scrappedQty; } 
+            set { SetField(ref _scrappedQty, value, nameof(ScrappedQty)); } 
+        }
+        private short? _scrapReasonId;
+        public short? ScrapReasonId 
+        { 
+            get { return _scrapReasonId; } 
+            set { SetField(ref _scrapReasonId, value, nameof(ScrapReasonId)); } 
+        }
+        private DateTime _startDate;
+        public DateTime StartDate 
+        { 
+            get { return _startDate; } 
+            set { SetField(ref _startDate, value, nameof(StartDate)); } 
+        }
+        private int _stockedQty;
+        public int StockedQty 
+        { 
+            get { return _stockedQty; } 
+            set { SetField(ref _stockedQty, value, nameof(StockedQty)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -146,5 +197,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

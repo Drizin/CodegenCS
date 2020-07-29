@@ -4,18 +4,39 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
-    public partial class AWBuildVersion
+    public partial class AWBuildVersion : INotifyPropertyChanged
     {
         #region Members
+        private byte _systemInformationId;
         [Key]
-        public byte SystemInformationId { get; set; }
+        public byte SystemInformationId 
+        { 
+            get { return _systemInformationId; } 
+            set { SetField(ref _systemInformationId, value, nameof(SystemInformationId)); } 
+        }
+        private string _databaseVersion;
         [Column("Database Version")]
-        public string DatabaseVersion { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public DateTime VersionDate { get; set; }
+        public string DatabaseVersion 
+        { 
+            get { return _databaseVersion; } 
+            set { SetField(ref _databaseVersion, value, nameof(DatabaseVersion)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private DateTime _versionDate;
+        public DateTime VersionDate 
+        { 
+            get { return _versionDate; } 
+            set { SetField(ref _versionDate, value, nameof(VersionDate)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -107,5 +128,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

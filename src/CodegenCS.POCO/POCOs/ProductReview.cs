@@ -4,22 +4,63 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("ProductReview", Schema = "Production")]
-    public partial class ProductReview
+    public partial class ProductReview : INotifyPropertyChanged
     {
         #region Members
+        private int _productReviewId;
         [Key]
-        public int ProductReviewId { get; set; }
-        public string Comments { get; set; }
-        public string EmailAddress { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public int ProductId { get; set; }
-        public int Rating { get; set; }
-        public DateTime ReviewDate { get; set; }
-        public string ReviewerName { get; set; }
+        public int ProductReviewId 
+        { 
+            get { return _productReviewId; } 
+            set { SetField(ref _productReviewId, value, nameof(ProductReviewId)); } 
+        }
+        private string _comments;
+        public string Comments 
+        { 
+            get { return _comments; } 
+            set { SetField(ref _comments, value, nameof(Comments)); } 
+        }
+        private string _emailAddress;
+        public string EmailAddress 
+        { 
+            get { return _emailAddress; } 
+            set { SetField(ref _emailAddress, value, nameof(EmailAddress)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private int _productId;
+        public int ProductId 
+        { 
+            get { return _productId; } 
+            set { SetField(ref _productId, value, nameof(ProductId)); } 
+        }
+        private int _rating;
+        public int Rating 
+        { 
+            get { return _rating; } 
+            set { SetField(ref _rating, value, nameof(Rating)); } 
+        }
+        private DateTime _reviewDate;
+        public DateTime ReviewDate 
+        { 
+            get { return _reviewDate; } 
+            set { SetField(ref _reviewDate, value, nameof(ReviewDate)); } 
+        }
+        private string _reviewerName;
+        public string ReviewerName 
+        { 
+            get { return _reviewerName; } 
+            set { SetField(ref _reviewerName, value, nameof(ReviewerName)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -135,5 +176,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

@@ -4,27 +4,93 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("Person", Schema = "Person")]
-    public partial class Person
+    public partial class Person : INotifyPropertyChanged
     {
         #region Members
+        private int _businessEntityId;
         [Key]
-        public int BusinessEntityId { get; set; }
-        public string AdditionalContactInfo { get; set; }
-        public string Demographics { get; set; }
-        public int EmailPromotion { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string MiddleName { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public bool NameStyle { get; set; }
-        public string PersonType { get; set; }
-        public Guid Rowguid { get; set; }
-        public string Suffix { get; set; }
-        public string Title { get; set; }
+        public int BusinessEntityId 
+        { 
+            get { return _businessEntityId; } 
+            set { SetField(ref _businessEntityId, value, nameof(BusinessEntityId)); } 
+        }
+        private string _additionalContactInfo;
+        public string AdditionalContactInfo 
+        { 
+            get { return _additionalContactInfo; } 
+            set { SetField(ref _additionalContactInfo, value, nameof(AdditionalContactInfo)); } 
+        }
+        private string _demographics;
+        public string Demographics 
+        { 
+            get { return _demographics; } 
+            set { SetField(ref _demographics, value, nameof(Demographics)); } 
+        }
+        private int _emailPromotion;
+        public int EmailPromotion 
+        { 
+            get { return _emailPromotion; } 
+            set { SetField(ref _emailPromotion, value, nameof(EmailPromotion)); } 
+        }
+        private string _firstName;
+        public string FirstName 
+        { 
+            get { return _firstName; } 
+            set { SetField(ref _firstName, value, nameof(FirstName)); } 
+        }
+        private string _lastName;
+        public string LastName 
+        { 
+            get { return _lastName; } 
+            set { SetField(ref _lastName, value, nameof(LastName)); } 
+        }
+        private string _middleName;
+        public string MiddleName 
+        { 
+            get { return _middleName; } 
+            set { SetField(ref _middleName, value, nameof(MiddleName)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private bool _nameStyle;
+        public bool NameStyle 
+        { 
+            get { return _nameStyle; } 
+            set { SetField(ref _nameStyle, value, nameof(NameStyle)); } 
+        }
+        private string _personType;
+        public string PersonType 
+        { 
+            get { return _personType; } 
+            set { SetField(ref _personType, value, nameof(PersonType)); } 
+        }
+        private Guid _rowguid;
+        public Guid Rowguid 
+        { 
+            get { return _rowguid; } 
+            set { SetField(ref _rowguid, value, nameof(Rowguid)); } 
+        }
+        private string _suffix;
+        public string Suffix 
+        { 
+            get { return _suffix; } 
+            set { SetField(ref _suffix, value, nameof(Suffix)); } 
+        }
+        private string _title;
+        public string Title 
+        { 
+            get { return _title; } 
+            set { SetField(ref _title, value, nameof(Title)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -173,5 +239,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

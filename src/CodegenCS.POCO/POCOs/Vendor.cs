@@ -4,22 +4,63 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("Vendor", Schema = "Purchasing")]
-    public partial class Vendor
+    public partial class Vendor : INotifyPropertyChanged
     {
         #region Members
+        private int _businessEntityId;
         [Key]
-        public int BusinessEntityId { get; set; }
-        public string AccountNumber { get; set; }
-        public bool ActiveFlag { get; set; }
-        public byte CreditRating { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public string Name { get; set; }
-        public bool PreferredVendorStatus { get; set; }
-        public string PurchasingWebServiceUrl { get; set; }
+        public int BusinessEntityId 
+        { 
+            get { return _businessEntityId; } 
+            set { SetField(ref _businessEntityId, value, nameof(BusinessEntityId)); } 
+        }
+        private string _accountNumber;
+        public string AccountNumber 
+        { 
+            get { return _accountNumber; } 
+            set { SetField(ref _accountNumber, value, nameof(AccountNumber)); } 
+        }
+        private bool _activeFlag;
+        public bool ActiveFlag 
+        { 
+            get { return _activeFlag; } 
+            set { SetField(ref _activeFlag, value, nameof(ActiveFlag)); } 
+        }
+        private byte _creditRating;
+        public byte CreditRating 
+        { 
+            get { return _creditRating; } 
+            set { SetField(ref _creditRating, value, nameof(CreditRating)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private string _name;
+        public string Name 
+        { 
+            get { return _name; } 
+            set { SetField(ref _name, value, nameof(Name)); } 
+        }
+        private bool _preferredVendorStatus;
+        public bool PreferredVendorStatus 
+        { 
+            get { return _preferredVendorStatus; } 
+            set { SetField(ref _preferredVendorStatus, value, nameof(PreferredVendorStatus)); } 
+        }
+        private string _purchasingWebServiceUrl;
+        public string PurchasingWebServiceUrl 
+        { 
+            get { return _purchasingWebServiceUrl; } 
+            set { SetField(ref _purchasingWebServiceUrl, value, nameof(PurchasingWebServiceUrl)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -141,5 +182,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

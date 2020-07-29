@@ -4,22 +4,68 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
-    public partial class ErrorLog
+    public partial class ErrorLog : INotifyPropertyChanged
     {
         #region Members
+        private int _errorLogId;
         [Key]
-        public int ErrorLogId { get; set; }
-        public int? ErrorLine { get; set; }
-        public string ErrorMessage { get; set; }
-        public int ErrorNumber { get; set; }
-        public string ErrorProcedure { get; set; }
-        public int? ErrorSeverity { get; set; }
-        public int? ErrorState { get; set; }
-        public DateTime ErrorTime { get; set; }
-        public string UserName { get; set; }
+        public int ErrorLogId 
+        { 
+            get { return _errorLogId; } 
+            set { SetField(ref _errorLogId, value, nameof(ErrorLogId)); } 
+        }
+        private int? _errorLine;
+        public int? ErrorLine 
+        { 
+            get { return _errorLine; } 
+            set { SetField(ref _errorLine, value, nameof(ErrorLine)); } 
+        }
+        private string _errorMessage;
+        public string ErrorMessage 
+        { 
+            get { return _errorMessage; } 
+            set { SetField(ref _errorMessage, value, nameof(ErrorMessage)); } 
+        }
+        private int _errorNumber;
+        public int ErrorNumber 
+        { 
+            get { return _errorNumber; } 
+            set { SetField(ref _errorNumber, value, nameof(ErrorNumber)); } 
+        }
+        private string _errorProcedure;
+        public string ErrorProcedure 
+        { 
+            get { return _errorProcedure; } 
+            set { SetField(ref _errorProcedure, value, nameof(ErrorProcedure)); } 
+        }
+        private int? _errorSeverity;
+        public int? ErrorSeverity 
+        { 
+            get { return _errorSeverity; } 
+            set { SetField(ref _errorSeverity, value, nameof(ErrorSeverity)); } 
+        }
+        private int? _errorState;
+        public int? ErrorState 
+        { 
+            get { return _errorState; } 
+            set { SetField(ref _errorState, value, nameof(ErrorState)); } 
+        }
+        private DateTime _errorTime;
+        public DateTime ErrorTime 
+        { 
+            get { return _errorTime; } 
+            set { SetField(ref _errorTime, value, nameof(ErrorTime)); } 
+        }
+        private string _userName;
+        public string UserName 
+        { 
+            get { return _userName; } 
+            set { SetField(ref _userName, value, nameof(UserName)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -141,5 +187,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

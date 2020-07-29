@@ -4,18 +4,34 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("CountryRegionCurrency", Schema = "Sales")]
-    public partial class CountryRegionCurrency
+    public partial class CountryRegionCurrency : INotifyPropertyChanged
     {
         #region Members
+        private string _countryRegionCode;
         [Key]
-        public string CountryRegionCode { get; set; }
+        public string CountryRegionCode 
+        { 
+            get { return _countryRegionCode; } 
+            set { SetField(ref _countryRegionCode, value, nameof(CountryRegionCode)); } 
+        }
+        private string _currencyCode;
         [Key]
-        public string CurrencyCode { get; set; }
-        public DateTime ModifiedDate { get; set; }
+        public string CurrencyCode 
+        { 
+            get { return _currencyCode; } 
+            set { SetField(ref _currencyCode, value, nameof(CurrencyCode)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -108,5 +124,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

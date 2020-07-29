@@ -4,28 +4,89 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("WorkOrderRouting", Schema = "Production")]
-    public partial class WorkOrderRouting
+    public partial class WorkOrderRouting : INotifyPropertyChanged
     {
         #region Members
+        private int _workOrderId;
         [Key]
-        public int WorkOrderId { get; set; }
+        public int WorkOrderId 
+        { 
+            get { return _workOrderId; } 
+            set { SetField(ref _workOrderId, value, nameof(WorkOrderId)); } 
+        }
+        private int _productId;
         [Key]
-        public int ProductId { get; set; }
+        public int ProductId 
+        { 
+            get { return _productId; } 
+            set { SetField(ref _productId, value, nameof(ProductId)); } 
+        }
+        private short _operationSequence;
         [Key]
-        public short OperationSequence { get; set; }
-        public decimal? ActualCost { get; set; }
-        public DateTime? ActualEndDate { get; set; }
-        public decimal? ActualResourceHrs { get; set; }
-        public DateTime? ActualStartDate { get; set; }
-        public short LocationId { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public decimal PlannedCost { get; set; }
-        public DateTime ScheduledEndDate { get; set; }
-        public DateTime ScheduledStartDate { get; set; }
+        public short OperationSequence 
+        { 
+            get { return _operationSequence; } 
+            set { SetField(ref _operationSequence, value, nameof(OperationSequence)); } 
+        }
+        private decimal? _actualCost;
+        public decimal? ActualCost 
+        { 
+            get { return _actualCost; } 
+            set { SetField(ref _actualCost, value, nameof(ActualCost)); } 
+        }
+        private DateTime? _actualEndDate;
+        public DateTime? ActualEndDate 
+        { 
+            get { return _actualEndDate; } 
+            set { SetField(ref _actualEndDate, value, nameof(ActualEndDate)); } 
+        }
+        private decimal? _actualResourceHrs;
+        public decimal? ActualResourceHrs 
+        { 
+            get { return _actualResourceHrs; } 
+            set { SetField(ref _actualResourceHrs, value, nameof(ActualResourceHrs)); } 
+        }
+        private DateTime? _actualStartDate;
+        public DateTime? ActualStartDate 
+        { 
+            get { return _actualStartDate; } 
+            set { SetField(ref _actualStartDate, value, nameof(ActualStartDate)); } 
+        }
+        private short _locationId;
+        public short LocationId 
+        { 
+            get { return _locationId; } 
+            set { SetField(ref _locationId, value, nameof(LocationId)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private decimal _plannedCost;
+        public decimal PlannedCost 
+        { 
+            get { return _plannedCost; } 
+            set { SetField(ref _plannedCost, value, nameof(PlannedCost)); } 
+        }
+        private DateTime _scheduledEndDate;
+        public DateTime ScheduledEndDate 
+        { 
+            get { return _scheduledEndDate; } 
+            set { SetField(ref _scheduledEndDate, value, nameof(ScheduledEndDate)); } 
+        }
+        private DateTime _scheduledStartDate;
+        public DateTime ScheduledStartDate 
+        { 
+            get { return _scheduledStartDate; } 
+            set { SetField(ref _scheduledStartDate, value, nameof(ScheduledStartDate)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -173,5 +234,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

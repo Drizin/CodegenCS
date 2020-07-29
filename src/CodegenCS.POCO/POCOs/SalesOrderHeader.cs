@@ -4,40 +4,171 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("SalesOrderHeader", Schema = "Sales")]
-    public partial class SalesOrderHeader
+    public partial class SalesOrderHeader : INotifyPropertyChanged
     {
         #region Members
+        private int _salesOrderId;
         [Key]
-        public int SalesOrderId { get; set; }
-        public string AccountNumber { get; set; }
-        public int BillToAddressId { get; set; }
-        public string Comment { get; set; }
-        public string CreditCardApprovalCode { get; set; }
-        public int? CreditCardId { get; set; }
-        public int? CurrencyRateId { get; set; }
-        public int CustomerId { get; set; }
-        public DateTime DueDate { get; set; }
-        public decimal Freight { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public bool OnlineOrderFlag { get; set; }
-        public DateTime OrderDate { get; set; }
-        public string PurchaseOrderNumber { get; set; }
-        public byte RevisionNumber { get; set; }
-        public Guid Rowguid { get; set; }
-        public string SalesOrderNumber { get; set; }
-        public int? SalesPersonId { get; set; }
-        public DateTime? ShipDate { get; set; }
-        public int ShipMethodId { get; set; }
-        public int ShipToAddressId { get; set; }
-        public byte Status { get; set; }
-        public decimal SubTotal { get; set; }
-        public decimal TaxAmt { get; set; }
-        public int? TerritoryId { get; set; }
-        public decimal TotalDue { get; set; }
+        public int SalesOrderId 
+        { 
+            get { return _salesOrderId; } 
+            set { SetField(ref _salesOrderId, value, nameof(SalesOrderId)); } 
+        }
+        private string _accountNumber;
+        public string AccountNumber 
+        { 
+            get { return _accountNumber; } 
+            set { SetField(ref _accountNumber, value, nameof(AccountNumber)); } 
+        }
+        private int _billToAddressId;
+        public int BillToAddressId 
+        { 
+            get { return _billToAddressId; } 
+            set { SetField(ref _billToAddressId, value, nameof(BillToAddressId)); } 
+        }
+        private string _comment;
+        public string Comment 
+        { 
+            get { return _comment; } 
+            set { SetField(ref _comment, value, nameof(Comment)); } 
+        }
+        private string _creditCardApprovalCode;
+        public string CreditCardApprovalCode 
+        { 
+            get { return _creditCardApprovalCode; } 
+            set { SetField(ref _creditCardApprovalCode, value, nameof(CreditCardApprovalCode)); } 
+        }
+        private int? _creditCardId;
+        public int? CreditCardId 
+        { 
+            get { return _creditCardId; } 
+            set { SetField(ref _creditCardId, value, nameof(CreditCardId)); } 
+        }
+        private int? _currencyRateId;
+        public int? CurrencyRateId 
+        { 
+            get { return _currencyRateId; } 
+            set { SetField(ref _currencyRateId, value, nameof(CurrencyRateId)); } 
+        }
+        private int _customerId;
+        public int CustomerId 
+        { 
+            get { return _customerId; } 
+            set { SetField(ref _customerId, value, nameof(CustomerId)); } 
+        }
+        private DateTime _dueDate;
+        public DateTime DueDate 
+        { 
+            get { return _dueDate; } 
+            set { SetField(ref _dueDate, value, nameof(DueDate)); } 
+        }
+        private decimal _freight;
+        public decimal Freight 
+        { 
+            get { return _freight; } 
+            set { SetField(ref _freight, value, nameof(Freight)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private bool _onlineOrderFlag;
+        public bool OnlineOrderFlag 
+        { 
+            get { return _onlineOrderFlag; } 
+            set { SetField(ref _onlineOrderFlag, value, nameof(OnlineOrderFlag)); } 
+        }
+        private DateTime _orderDate;
+        public DateTime OrderDate 
+        { 
+            get { return _orderDate; } 
+            set { SetField(ref _orderDate, value, nameof(OrderDate)); } 
+        }
+        private string _purchaseOrderNumber;
+        public string PurchaseOrderNumber 
+        { 
+            get { return _purchaseOrderNumber; } 
+            set { SetField(ref _purchaseOrderNumber, value, nameof(PurchaseOrderNumber)); } 
+        }
+        private byte _revisionNumber;
+        public byte RevisionNumber 
+        { 
+            get { return _revisionNumber; } 
+            set { SetField(ref _revisionNumber, value, nameof(RevisionNumber)); } 
+        }
+        private Guid _rowguid;
+        public Guid Rowguid 
+        { 
+            get { return _rowguid; } 
+            set { SetField(ref _rowguid, value, nameof(Rowguid)); } 
+        }
+        private string _salesOrderNumber;
+        public string SalesOrderNumber 
+        { 
+            get { return _salesOrderNumber; } 
+            set { SetField(ref _salesOrderNumber, value, nameof(SalesOrderNumber)); } 
+        }
+        private int? _salesPersonId;
+        public int? SalesPersonId 
+        { 
+            get { return _salesPersonId; } 
+            set { SetField(ref _salesPersonId, value, nameof(SalesPersonId)); } 
+        }
+        private DateTime? _shipDate;
+        public DateTime? ShipDate 
+        { 
+            get { return _shipDate; } 
+            set { SetField(ref _shipDate, value, nameof(ShipDate)); } 
+        }
+        private int _shipMethodId;
+        public int ShipMethodId 
+        { 
+            get { return _shipMethodId; } 
+            set { SetField(ref _shipMethodId, value, nameof(ShipMethodId)); } 
+        }
+        private int _shipToAddressId;
+        public int ShipToAddressId 
+        { 
+            get { return _shipToAddressId; } 
+            set { SetField(ref _shipToAddressId, value, nameof(ShipToAddressId)); } 
+        }
+        private byte _status;
+        public byte Status 
+        { 
+            get { return _status; } 
+            set { SetField(ref _status, value, nameof(Status)); } 
+        }
+        private decimal _subTotal;
+        public decimal SubTotal 
+        { 
+            get { return _subTotal; } 
+            set { SetField(ref _subTotal, value, nameof(SubTotal)); } 
+        }
+        private decimal _taxAmt;
+        public decimal TaxAmt 
+        { 
+            get { return _taxAmt; } 
+            set { SetField(ref _taxAmt, value, nameof(TaxAmt)); } 
+        }
+        private int? _territoryId;
+        public int? TerritoryId 
+        { 
+            get { return _territoryId; } 
+            set { SetField(ref _territoryId, value, nameof(TerritoryId)); } 
+        }
+        private decimal _totalDue;
+        public decimal TotalDue 
+        { 
+            get { return _totalDue; } 
+            set { SetField(ref _totalDue, value, nameof(TotalDue)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -252,5 +383,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

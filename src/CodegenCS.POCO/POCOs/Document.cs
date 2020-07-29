@@ -4,27 +4,93 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("Document", Schema = "Production")]
-    public partial class Document
+    public partial class Document : INotifyPropertyChanged
     {
         #region Members
-        public int ChangeNumber { get; set; }
+        private int _changeNumber;
+        public int ChangeNumber 
+        { 
+            get { return _changeNumber; } 
+            set { SetField(ref _changeNumber, value, nameof(ChangeNumber)); } 
+        }
+        private Byte[] _document1;
         [Column("Document")]
-        public Byte[] Document1 { get; set; }
-        public short? DocumentLevel { get; set; }
-        public string DocumentSummary { get; set; }
-        public string FileExtension { get; set; }
-        public string FileName { get; set; }
-        public bool FolderFlag { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public int Owner { get; set; }
-        public string Revision { get; set; }
-        public Guid Rowguid { get; set; }
-        public byte Status { get; set; }
-        public string Title { get; set; }
+        public Byte[] Document1 
+        { 
+            get { return _document1; } 
+            set { SetField(ref _document1, value, nameof(Document1)); } 
+        }
+        private short? _documentLevel;
+        public short? DocumentLevel 
+        { 
+            get { return _documentLevel; } 
+            set { SetField(ref _documentLevel, value, nameof(DocumentLevel)); } 
+        }
+        private string _documentSummary;
+        public string DocumentSummary 
+        { 
+            get { return _documentSummary; } 
+            set { SetField(ref _documentSummary, value, nameof(DocumentSummary)); } 
+        }
+        private string _fileExtension;
+        public string FileExtension 
+        { 
+            get { return _fileExtension; } 
+            set { SetField(ref _fileExtension, value, nameof(FileExtension)); } 
+        }
+        private string _fileName;
+        public string FileName 
+        { 
+            get { return _fileName; } 
+            set { SetField(ref _fileName, value, nameof(FileName)); } 
+        }
+        private bool _folderFlag;
+        public bool FolderFlag 
+        { 
+            get { return _folderFlag; } 
+            set { SetField(ref _folderFlag, value, nameof(FolderFlag)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private int _owner;
+        public int Owner 
+        { 
+            get { return _owner; } 
+            set { SetField(ref _owner, value, nameof(Owner)); } 
+        }
+        private string _revision;
+        public string Revision 
+        { 
+            get { return _revision; } 
+            set { SetField(ref _revision, value, nameof(Revision)); } 
+        }
+        private Guid _rowguid;
+        public Guid Rowguid 
+        { 
+            get { return _rowguid; } 
+            set { SetField(ref _rowguid, value, nameof(Rowguid)); } 
+        }
+        private byte _status;
+        public byte Status 
+        { 
+            get { return _status; } 
+            set { SetField(ref _status, value, nameof(Status)); } 
+        }
+        private string _title;
+        public string Title 
+        { 
+            get { return _title; } 
+            set { SetField(ref _title, value, nameof(Title)); } 
+        }
         #endregion Members
 
         #region Equals/GetHashCode
@@ -101,5 +167,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

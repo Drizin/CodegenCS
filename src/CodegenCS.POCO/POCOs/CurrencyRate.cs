@@ -4,21 +4,57 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("CurrencyRate", Schema = "Sales")]
-    public partial class CurrencyRate
+    public partial class CurrencyRate : INotifyPropertyChanged
     {
         #region Members
+        private int _currencyRateId;
         [Key]
-        public int CurrencyRateId { get; set; }
-        public decimal AverageRate { get; set; }
-        public DateTime CurrencyRateDate { get; set; }
-        public decimal EndOfDayRate { get; set; }
-        public string FromCurrencyCode { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public string ToCurrencyCode { get; set; }
+        public int CurrencyRateId 
+        { 
+            get { return _currencyRateId; } 
+            set { SetField(ref _currencyRateId, value, nameof(CurrencyRateId)); } 
+        }
+        private decimal _averageRate;
+        public decimal AverageRate 
+        { 
+            get { return _averageRate; } 
+            set { SetField(ref _averageRate, value, nameof(AverageRate)); } 
+        }
+        private DateTime _currencyRateDate;
+        public DateTime CurrencyRateDate 
+        { 
+            get { return _currencyRateDate; } 
+            set { SetField(ref _currencyRateDate, value, nameof(CurrencyRateDate)); } 
+        }
+        private decimal _endOfDayRate;
+        public decimal EndOfDayRate 
+        { 
+            get { return _endOfDayRate; } 
+            set { SetField(ref _endOfDayRate, value, nameof(EndOfDayRate)); } 
+        }
+        private string _fromCurrencyCode;
+        public string FromCurrencyCode 
+        { 
+            get { return _fromCurrencyCode; } 
+            set { SetField(ref _fromCurrencyCode, value, nameof(FromCurrencyCode)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private string _toCurrencyCode;
+        public string ToCurrencyCode 
+        { 
+            get { return _toCurrencyCode; } 
+            set { SetField(ref _toCurrencyCode, value, nameof(ToCurrencyCode)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -128,5 +164,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }

@@ -4,26 +4,82 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Dapper;
+using System.ComponentModel;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     [Table("ProductVendor", Schema = "Purchasing")]
-    public partial class ProductVendor
+    public partial class ProductVendor : INotifyPropertyChanged
     {
         #region Members
+        private int _productId;
         [Key]
-        public int ProductId { get; set; }
+        public int ProductId 
+        { 
+            get { return _productId; } 
+            set { SetField(ref _productId, value, nameof(ProductId)); } 
+        }
+        private int _businessEntityId;
         [Key]
-        public int BusinessEntityId { get; set; }
-        public int AverageLeadTime { get; set; }
-        public decimal? LastReceiptCost { get; set; }
-        public DateTime? LastReceiptDate { get; set; }
-        public int MaxOrderQty { get; set; }
-        public int MinOrderQty { get; set; }
-        public DateTime ModifiedDate { get; set; }
-        public int? OnOrderQty { get; set; }
-        public decimal StandardPrice { get; set; }
-        public string UnitMeasureCode { get; set; }
+        public int BusinessEntityId 
+        { 
+            get { return _businessEntityId; } 
+            set { SetField(ref _businessEntityId, value, nameof(BusinessEntityId)); } 
+        }
+        private int _averageLeadTime;
+        public int AverageLeadTime 
+        { 
+            get { return _averageLeadTime; } 
+            set { SetField(ref _averageLeadTime, value, nameof(AverageLeadTime)); } 
+        }
+        private decimal? _lastReceiptCost;
+        public decimal? LastReceiptCost 
+        { 
+            get { return _lastReceiptCost; } 
+            set { SetField(ref _lastReceiptCost, value, nameof(LastReceiptCost)); } 
+        }
+        private DateTime? _lastReceiptDate;
+        public DateTime? LastReceiptDate 
+        { 
+            get { return _lastReceiptDate; } 
+            set { SetField(ref _lastReceiptDate, value, nameof(LastReceiptDate)); } 
+        }
+        private int _maxOrderQty;
+        public int MaxOrderQty 
+        { 
+            get { return _maxOrderQty; } 
+            set { SetField(ref _maxOrderQty, value, nameof(MaxOrderQty)); } 
+        }
+        private int _minOrderQty;
+        public int MinOrderQty 
+        { 
+            get { return _minOrderQty; } 
+            set { SetField(ref _minOrderQty, value, nameof(MinOrderQty)); } 
+        }
+        private DateTime _modifiedDate;
+        public DateTime ModifiedDate 
+        { 
+            get { return _modifiedDate; } 
+            set { SetField(ref _modifiedDate, value, nameof(ModifiedDate)); } 
+        }
+        private int? _onOrderQty;
+        public int? OnOrderQty 
+        { 
+            get { return _onOrderQty; } 
+            set { SetField(ref _onOrderQty, value, nameof(OnOrderQty)); } 
+        }
+        private decimal _standardPrice;
+        public decimal StandardPrice 
+        { 
+            get { return _standardPrice; } 
+            set { SetField(ref _standardPrice, value, nameof(StandardPrice)); } 
+        }
+        private string _unitMeasureCode;
+        public string UnitMeasureCode 
+        { 
+            get { return _unitMeasureCode; } 
+            set { SetField(ref _unitMeasureCode, value, nameof(UnitMeasureCode)); } 
+        }
         #endregion Members
 
         #region ActiveRecord
@@ -164,5 +220,28 @@ namespace CodegenCS.AdventureWorksPOCOSample
         }
 
         #endregion Equals/GetHashCode
+
+        #region INotifyPropertyChanged/IsDirty
+        public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public void MarkAsClean()
+        {
+            ChangedProperties.Clear();
+        }
+        public virtual bool IsDirty => ChangedProperties.Any();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void SetField<T>(ref T field, T value, string propertyName) {
+            if (!EqualityComparer<T>.Default.Equals(field, value)) {
+                field = value;
+                ChangedProperties.Add(propertyName);
+                OnPropertyChanged(propertyName);
+            }
+        }
+        protected virtual void OnPropertyChanged(string propertyName) {
+            if (PropertyChanged != null) {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion INotifyPropertyChanged/IsDirty
     }
 }
