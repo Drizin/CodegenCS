@@ -59,7 +59,7 @@ namespace Tests
         }
 
         /// <summary>
-        /// Tests a full insert (all columns) and full update (all columns)
+        /// Tests Dapper Transactions
         /// </summary>
         [Test]
         public void TestTransaction()
