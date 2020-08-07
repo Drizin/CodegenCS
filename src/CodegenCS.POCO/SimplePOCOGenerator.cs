@@ -15,6 +15,10 @@ public class SimplePOCOGenerator
     public string Namespace { get; set; }
     public bool SingleFile { get; set; } = false;
     public bool GenerateActiveRecord { get; set; } = true;
+    public string ActiveRecordIDbConnectionFactoryFile { get; set; } = "..\\IDbConnectionFactory.cs";
+    public bool GenerateCrudExtensions { get; set; } = true;
+    public string CrudExtensionsFile { get; set; } = "..\\CRUDExtensions.cs";
+    public string CrudExtensionsClass { get; set; } = "CRUDExtensions";
     public bool GenerateEqualsHashCode { get; set; } = true;
     public bool TrackPropertiesChange { get; set; } = true;
 
@@ -22,6 +26,8 @@ public class SimplePOCOGenerator
     /// In-memory context which tracks all generated files (with indentation support), and later saves all files at once
     /// </summary>
     CodegenContext _generatorContext { get; set; }
+
+    private CodegenOutputFile _dbConnectionCrudExtensions = null;
 
     /// <summary>
     /// 
@@ -69,9 +75,26 @@ public class SimplePOCOGenerator
                 .WriteLine($"namespace {Namespace}").WriteLine("{").IncreaseIndent();
         }
 
+        if (GenerateCrudExtensions)
+        {
+            _dbConnectionCrudExtensions = _generatorContext[CrudExtensionsFile];
+            _dbConnectionCrudExtensions.Write(@"
+                using Dapper;
+                using System;
+                using System.Collections.Generic;
+                using System.Data;
+                using System.Linq;
+                using System.Runtime.CompilerServices;
+                ");
+            _dbConnectionCrudExtensions
+                .WriteLine()
+                .WriteLine($"namespace {Namespace}").WriteLine("{").IncreaseIndent()
+                .WriteLine($"public static class {CrudExtensionsClass}").WriteLine("{").IncreaseIndent();
+        }
+
         if (GenerateActiveRecord)
         {
-            using (var writerConnectionFactory = _generatorContext["..\\IDbConnectionFactory.cs"])
+            using (var writerConnectionFactory = _generatorContext[ActiveRecordIDbConnectionFactoryFile])
             {
                 writerConnectionFactory.WriteLine($@"
                     using System;
@@ -103,6 +126,11 @@ public class SimplePOCOGenerator
 
             GeneratePOCO(table);
         }
+
+        if (GenerateCrudExtensions)
+            _dbConnectionCrudExtensions
+                .DecreaseIndent().WriteLine("}") // end of class
+                .DecreaseIndent().WriteLine("}"); // end of namespace
 
         if (SingleFile)
             writer.DecreaseIndent().WriteLine("}"); // end of namespace
@@ -164,14 +192,26 @@ public class SimplePOCOGenerator
                     GenerateProperty(writer, table, column);
 
                 writer.WriteLine("#endregion Members");
-                if (GenerateActiveRecord && table.TableType == "TABLE" && columns.Any(c => c.IsPrimaryKeyMember))
+                if (table.TableType == "TABLE" && columns.Any(c => c.IsPrimaryKeyMember))
                 {
-                    writer.WriteLine();
-                    writer.WriteLine("#region ActiveRecord");
-                    GenerateSave(writer, table);
-                    GenerateInsert(writer, table);
-                    GenerateUpdate(writer, table);
-                    writer.WriteLine("#endregion ActiveRecord");
+                    if (GenerateActiveRecord)
+                    {
+                        writer.WriteLine();
+                        writer.WriteLine("#region ActiveRecord");
+                        GenerateActiveRecordSave(writer, table);
+                        GenerateActiveRecordInsert(writer, table);
+                        GenerateActiveRecordUpdate(writer, table);
+                        writer.WriteLine("#endregion ActiveRecord");
+                    }
+                    if (GenerateCrudExtensions)
+                    {
+                        _dbConnectionCrudExtensions.WriteLine();
+                        _dbConnectionCrudExtensions.WriteLine($"#region {GetClassNameForTable(table)}");
+                        GenerateCrudExtensionsSave(_dbConnectionCrudExtensions, table);
+                        GenerateCrudExtensionsInsert(_dbConnectionCrudExtensions, table);
+                        GenerateCrudExtensionsUpdate(_dbConnectionCrudExtensions, table);
+                        _dbConnectionCrudExtensions.WriteLine($"#endregion {GetClassNameForTable(table)}");
+                    }
                 }
                 if (GenerateEqualsHashCode)
                 {
@@ -241,7 +281,7 @@ public class SimplePOCOGenerator
             writer.WriteLine($"public {GetTypeDefinitionForDatabaseColumn(table, column) ?? ""} {propertyName} {{ get; set; }}");
     }
 
-    void GenerateSave(CodegenOutputFile writer, Table table)
+    void GenerateActiveRecordSave(CodegenOutputFile writer, Table table)
     {
         writer.WithCBlock("public void Save()", () =>
         {
@@ -255,8 +295,26 @@ public class SimplePOCOGenerator
                     Update();");
         });
     }
+    void GenerateCrudExtensionsSave(CodegenOutputFile writer, Table table)
+    {
+        writer.WriteLine(@"
+            /// <summary>
+            /// Saves (if new) or Updates (if existing)
+            /// </summary>");
+        writer.WithCBlock($"public static void Save(this IDbConnection conn, {GetClassNameForTable(table)} e)", () =>
+        {
+            var pkCols = table.Columns
+                .Where(c => ShouldProcessColumn(table, c))
+                .Where(c => c.IsPrimaryKeyMember).OrderBy(c => c.OrdinalPosition);
+            writer.WriteLine($@"
+                if ({string.Join(" && ", pkCols.Select(col => "e." + GetPropertyNameForDatabaseColumn(table, col.ColumnName) + $" == {GetDefaultValue(GetTypeForDatabaseColumn(table, col))}"))})
+                    conn.Insert(e);
+                else
+                    conn.Update(e);");
+        });
+    }
 
-    void GenerateInsert(CodegenOutputFile writer, Table table)
+    void GenerateActiveRecordInsert(CodegenOutputFile writer, Table table)
     {
         //TODO: IDbConnection cn, IDbTransaction transaction = null, bool buffered = true, int? commandTimeout = default(int?), CommandType? commandType = default(CommandType?), bool logChange = true, bool logError = true
         writer.WithCBlock("public void Insert()", () =>
@@ -289,7 +347,44 @@ public class SimplePOCOGenerator
             });
         });
     }
-    void GenerateUpdate(CodegenOutputFile writer, Table table)
+    void GenerateCrudExtensionsInsert(CodegenOutputFile writer, Table table)
+    {
+        writer.WriteLine(@"
+            /// <summary>
+            /// Saves new record
+            /// </summary>");
+        writer.WithCBlock($"public static void Insert(this IDbConnection conn, {GetClassNameForTable(table)} e)", () =>
+        {
+            var cols = table.Columns
+                .Where(c => ShouldProcessColumn(table, c))
+                .Where(c => !c.IsIdentity)
+                .Where(c => !c.IsRowGuid) //TODO: should be used only if they have value set (not default value)
+                .Where(c => !c.IsComputed) //TODO: should be used only if they have value set (not default value)
+                .OrderBy(c => GetPropertyNameForDatabaseColumn(table, c.ColumnName));
+            writer.WithIndent($"string cmd = @\"{Environment.NewLine}INSERT INTO {(table.TableSchema == "dbo" ? "" : $"[{table.TableSchema}].")}[{table.TableName}]{Environment.NewLine}(", ")", () =>
+            {
+                writer.WriteLine(string.Join($",{Environment.NewLine}", cols.Select(col => $"[{col.ColumnName}]")));
+            });
+            writer.WithIndent($"VALUES{Environment.NewLine}(", ")\";", () =>
+            {
+                writer.WriteLine(string.Join($",{Environment.NewLine}", cols.Select(col => $"@{GetPropertyNameForDatabaseColumn(table, col.ColumnName)}")));
+            });
+
+            writer.WriteLine();
+            var identityCol = table.Columns
+                .Where(c => ShouldProcessColumn(table, c))
+                .Where(c => c.IsPrimaryKeyMember && c.IsIdentity).FirstOrDefault();
+            if (identityCol != null && table.Columns.Where(c => c.IsPrimaryKeyMember).Count() == 1)
+                writer.WriteLine($"e.{GetPropertyNameForDatabaseColumn(table, identityCol.ColumnName)} = conn.Query<{GetTypeDefinitionForDatabaseColumn(table, identityCol)}>(cmd + \"SELECT SCOPE_IDENTITY();\", e).Single();");
+            else
+                writer.WriteLine($"conn.Execute(cmd, e);");
+
+            if (TrackPropertiesChange)
+                writer.WriteLine().WriteLine("e.MarkAsClean();");
+        });
+    }
+
+    void GenerateActiveRecordUpdate(CodegenOutputFile writer, Table table)
     {
         //TODO: IDbConnection cn, IDbTransaction transaction = null, bool buffered = true, int? commandTimeout = default(int?), CommandType? commandType = default(CommandType?), bool logChange = true, bool logError = true
         writer.WithCBlock("public void Update()", () =>
@@ -317,6 +412,38 @@ public class SimplePOCOGenerator
                 writer.WriteLine($"conn.Execute(cmd, this);");
             });
         });
+    }
+    void GenerateCrudExtensionsUpdate(CodegenOutputFile writer, Table table)
+    {
+        writer.WriteLine(@"
+            /// <summary>
+            /// Updates existing record
+            /// </summary>");
+        writer.WithCBlock($"public static void Update(this IDbConnection conn, {GetClassNameForTable(table)} e)", () =>
+        {
+            var cols = table.Columns
+                .Where(c => ShouldProcessColumn(table, c))
+                .Where(c => !c.IsIdentity)
+                .Where(c => !c.IsRowGuid) //TODO: should be used only if they have value set (not default value)
+                .Where(c => !c.IsComputed) //TODO: should be used only if they have value set (not default value)
+                .OrderBy(c => GetPropertyNameForDatabaseColumn(table, c.ColumnName));
+            writer.WithIndent($"string cmd = @\"{Environment.NewLine}UPDATE {(table.TableSchema == "dbo" ? "" : $"[{table.TableSchema}].")}[{table.TableName}] SET", "", () =>
+            {
+                writer.WriteLine(string.Join($",{Environment.NewLine}", cols.Select(col => $"[{col.ColumnName}] = @{GetPropertyNameForDatabaseColumn(table, col.ColumnName)}")));
+            });
+
+            var pkCols = table.Columns
+                .Where(c => ShouldProcessColumn(table, c))
+                .Where(c => c.IsPrimaryKeyMember)
+                .OrderBy(c => c.OrdinalPosition);
+            writer.WriteLine($@"
+                WHERE
+                    {string.Join($" AND {Environment.NewLine}", pkCols.Select(col => $"[{col.ColumnName}] = @{GetPropertyNameForDatabaseColumn(table, col.ColumnName)}"))}"";");
+            writer.WriteLine($"conn.Execute(cmd, e);");
+            if (TrackPropertiesChange)
+                writer.WriteLine().WriteLine("e.MarkAsClean();");
+        });
+
     }
 
     void GenerateEquals(CodegenOutputFile writer, Table table)
