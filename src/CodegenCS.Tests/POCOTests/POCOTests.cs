@@ -58,5 +58,58 @@ namespace Tests
             cn.Update(product);
         }
 
+        /// <summary>
+        /// Tests a full insert (all columns) and full update (all columns)
+        /// </summary>
+        [Test]
+        public void TestTransaction()
+        {
+            var product = new Product()
+            {
+                Name = "ProductName",
+                ProductNumber = "1234",
+                SellStartDate = DateTime.Now,
+                ModifiedDate = DateTime.Now,
+                SafetyStockLevel = 5,
+                ReorderPoint = 700
+            };
+
+            var review = new ProductReview()
+            {
+                ReviewerName = "Rick Drizin",
+                ReviewDate = DateTime.Now,
+                EmailAddress = "Drizin@users.noreply.github.com",
+                Rating = 5,
+                Comments = "Amazing code generator",
+                ModifiedDate = DateTime.Now
+            };
+
+            int deleted = cn.Execute($@"
+                DELETE r FROM [Production].[Product] p INNER JOIN [Production].[ProductReview] r ON p.[ProductId]=r.[ProductId] WHERE p.[ProductNumber]='1234';
+                DELETE [Production].[Product] WHERE ([ProductNumber]='1234' OR [ProductNumber]='12345');
+            ");
+
+
+            cn.Open();
+            using (var tran = cn.BeginTransaction())
+            {
+                cn.Insert(product, tran);
+                review.ProductId = product.ProductId;
+                cn.Insert(review, tran);
+                tran.Rollback();
+            }
+            
+            using (var tran = cn.BeginTransaction())
+            {
+                cn.Insert(product, tran);
+                review.ProductId = product.ProductId;
+                cn.Insert(review, tran);
+                tran.Commit();
+            }
+
+
+
+        }
+
     }
 }

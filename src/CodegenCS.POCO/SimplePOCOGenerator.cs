@@ -301,22 +301,21 @@ public class SimplePOCOGenerator
             /// <summary>
             /// Saves (if new) or Updates (if existing)
             /// </summary>");
-        writer.WithCBlock($"public static void Save(this IDbConnection conn, {GetClassNameForTable(table)} e)", () =>
+        writer.WithCBlock($"public static void Save(this IDbConnection conn, {GetClassNameForTable(table)} e, IDbTransaction transaction = null, int? commandTimeout = null)", () =>
         {
             var pkCols = table.Columns
                 .Where(c => ShouldProcessColumn(table, c))
                 .Where(c => c.IsPrimaryKeyMember).OrderBy(c => c.OrdinalPosition);
             writer.WriteLine($@"
                 if ({string.Join(" && ", pkCols.Select(col => "e." + GetPropertyNameForDatabaseColumn(table, col.ColumnName) + $" == {GetDefaultValue(GetTypeForDatabaseColumn(table, col))}"))})
-                    conn.Insert(e);
+                    conn.Insert(e, transaction, commandTimeout);
                 else
-                    conn.Update(e);");
+                    conn.Update(e, transaction, commandTimeout);");
         });
     }
 
     void GenerateActiveRecordInsert(CodegenOutputFile writer, Table table)
     {
-        //TODO: IDbConnection cn, IDbTransaction transaction = null, bool buffered = true, int? commandTimeout = default(int?), CommandType? commandType = default(CommandType?), bool logChange = true, bool logError = true
         writer.WithCBlock("public void Insert()", () =>
         {
             writer.WithCBlock("using (var conn = IDbConnectionFactory.CreateConnection())", () =>
@@ -353,7 +352,7 @@ public class SimplePOCOGenerator
             /// <summary>
             /// Saves new record
             /// </summary>");
-        writer.WithCBlock($"public static void Insert(this IDbConnection conn, {GetClassNameForTable(table)} e)", () =>
+        writer.WithCBlock($"public static void Insert(this IDbConnection conn, {GetClassNameForTable(table)} e, IDbTransaction transaction = null, int? commandTimeout = null)", () =>
         {
             var cols = table.Columns
                 .Where(c => ShouldProcessColumn(table, c))
@@ -375,9 +374,9 @@ public class SimplePOCOGenerator
                 .Where(c => ShouldProcessColumn(table, c))
                 .Where(c => c.IsPrimaryKeyMember && c.IsIdentity).FirstOrDefault();
             if (identityCol != null && table.Columns.Where(c => c.IsPrimaryKeyMember).Count() == 1)
-                writer.WriteLine($"e.{GetPropertyNameForDatabaseColumn(table, identityCol.ColumnName)} = conn.Query<{GetTypeDefinitionForDatabaseColumn(table, identityCol)}>(cmd + \"SELECT SCOPE_IDENTITY();\", e).Single();");
+                writer.WriteLine($"e.{GetPropertyNameForDatabaseColumn(table, identityCol.ColumnName)} = conn.Query<{GetTypeDefinitionForDatabaseColumn(table, identityCol)}>(cmd + \"SELECT SCOPE_IDENTITY();\", e, transaction, commandTimeout: commandTimeout).Single();");
             else
-                writer.WriteLine($"conn.Execute(cmd, e);");
+                writer.WriteLine($"conn.Execute(cmd, e, transaction, commandTimeout);");
 
             if (TrackPropertiesChange)
                 writer.WriteLine().WriteLine("e.MarkAsClean();");
@@ -386,7 +385,6 @@ public class SimplePOCOGenerator
 
     void GenerateActiveRecordUpdate(CodegenOutputFile writer, Table table)
     {
-        //TODO: IDbConnection cn, IDbTransaction transaction = null, bool buffered = true, int? commandTimeout = default(int?), CommandType? commandType = default(CommandType?), bool logChange = true, bool logError = true
         writer.WithCBlock("public void Update()", () =>
         {
             writer.WithCBlock("using (var conn = IDbConnectionFactory.CreateConnection())", () =>
@@ -419,7 +417,7 @@ public class SimplePOCOGenerator
             /// <summary>
             /// Updates existing record
             /// </summary>");
-        writer.WithCBlock($"public static void Update(this IDbConnection conn, {GetClassNameForTable(table)} e)", () =>
+        writer.WithCBlock($"public static void Update(this IDbConnection conn, {GetClassNameForTable(table)} e, IDbTransaction transaction = null, int? commandTimeout = null)", () =>
         {
             var cols = table.Columns
                 .Where(c => ShouldProcessColumn(table, c))
@@ -439,7 +437,7 @@ public class SimplePOCOGenerator
             writer.WriteLine($@"
                 WHERE
                     {string.Join($" AND {Environment.NewLine}", pkCols.Select(col => $"[{col.ColumnName}] = @{GetPropertyNameForDatabaseColumn(table, col.ColumnName)}"))}"";");
-            writer.WriteLine($"conn.Execute(cmd, e);");
+            writer.WriteLine($"conn.Execute(cmd, e, transaction, commandTimeout);");
             if (TrackPropertiesChange)
                 writer.WriteLine().WriteLine("e.MarkAsClean();");
         });

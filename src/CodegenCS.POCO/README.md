@@ -38,7 +38,72 @@ This project contains C# Scripts (CSX files, which invoke C# classes) and use Po
 
 To learn more about CSX files, check [this post](https://drizin.io/code-generation-csx-scripts-part1/).
 
-This generator uses [CodegenCS](https://github.com/Drizin/CodegenCS) library for writing text-files without going crazy about indentation.  
+This generator uses [CodegenCS](https://github.com/Drizin/CodegenCS) library for writing text-files without going crazy about indentation or about managing multiple output files.  
+
+# Sample code
+
+See [example POCO here](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/POCOs/Product.cs).  
+See [example POCO usage here](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.Tests/POCOTests/POCOTests.cs).
+
+The generated POCOs are based on [Dapper](https://github.com/StackExchange/Dapper/) but you can easily modify the templates for other ORMs.
+
+**Sample POCOs usage**:
+
+```cs
+var cn = new SqlConnection(connectionString);
+
+var product = new Product() { 
+    Name = "ProductName", 
+    ProductNumber = "1234", 
+    SellStartDate = DateTime.Now, 
+    ModifiedDate = DateTime.Now, 
+    SafetyStockLevel = 5, 
+    ReorderPoint = 700 
+};
+
+cn.Save(product);
+
+product.Name = "Name2";
+product.ProductNumber = "12345";
+
+cn.Update(product);
+```
+
+Or you can use **Dapper transactions**:
+
+```cs
+var product = new Product()
+{
+	Name = "ProductName",
+	ProductNumber = "1234",
+	SellStartDate = DateTime.Now,
+	ModifiedDate = DateTime.Now,
+	SafetyStockLevel = 5,
+	ReorderPoint = 700
+};
+
+var review = new ProductReview()
+{
+	ReviewerName = "Rick Drizin",
+	ReviewDate = DateTime.Now,
+	EmailAddress = "Drizin@users.noreply.github.com",
+	Rating = 5,
+	Comments = "Amazing code generator",
+	ModifiedDate = DateTime.Now
+};
+
+
+cn.Open();
+
+using (var tran = cn.BeginTransaction())
+{
+	cn.Insert(product, tran);
+	review.ProductId = product.ProductId;
+	cn.Insert(review, tran);
+	tran.Commit(); // or tran.Rollback();
+}
+```
+
 
 # Contributing
 
