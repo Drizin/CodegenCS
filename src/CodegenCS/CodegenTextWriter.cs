@@ -662,7 +662,7 @@ namespace CodegenCS
 
         #region InnerWriteFormattable: By using interpolated strings we can mix strings and action delegates, which will be lazy-evaluated (so will respect the order of execution)
         private static Regex _formattableArgumentRegex = new Regex(
-              "{\\d(:(?<Format>[^}]*))?}",
+              "{(?<ArgPos>\\d*)(:(?<Format>[^}]*))?}",
             RegexOptions.IgnoreCase
             | RegexOptions.Singleline
             | RegexOptions.CultureInvariant
@@ -690,14 +690,14 @@ namespace CodegenCS
             {
                 // unescape escaped curly braces
                 string literal = format.Substring(lastPos, matches[i].Index - lastPos).Replace("{{", "{").Replace("}}", "}");
+                lastPos = matches[i].Index + matches[i].Length;
                 InnerWrite(literal);
                 // arguments[i] may not work because same argument can be used multiple times
-                var arg = arguments[int.Parse(matches[i].Value.Substring(1, 1))];
+                int argPos = int.Parse(matches[i].Groups["ArgPos"].Value);
                 string argFormat = matches[i].Groups["Format"].Value;
+                object arg = arguments[argPos]; 
 
                 InnerWriteFormattableArgument(arg, argFormat);
-
-                lastPos = matches[i].Index + matches[i].Length;
             }
             string lastPart = format.Substring(lastPos).Replace("{{", "{").Replace("}}", "}");
             InnerWrite(lastPart);

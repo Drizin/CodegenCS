@@ -47,7 +47,10 @@ namespace Tests
                 ReorderPoint = 700 
             };
 
-            int deleted = cn.Execute($"DELETE [Production].[Product] WHERE ([ProductNumber]='1234' OR [ProductNumber]='12345')");
+            int deleted = cn.Execute($@"
+                DELETE r FROM [Production].[Product] p INNER JOIN [Production].[ProductReview] r ON p.[ProductId]=r.[ProductId] WHERE (p.[ProductNumber]='1234' OR p.[ProductNumber]='12345');
+                DELETE p FROM [Production].[Product] p WHERE (p.[ProductNumber]='1234' OR p.[ProductNumber]='12345');
+            ");
 
 
             cn.Save(product);
@@ -85,8 +88,8 @@ namespace Tests
             };
 
             int deleted = cn.Execute($@"
-                DELETE r FROM [Production].[Product] p INNER JOIN [Production].[ProductReview] r ON p.[ProductId]=r.[ProductId] WHERE p.[ProductNumber]='1234';
-                DELETE [Production].[Product] WHERE ([ProductNumber]='1234' OR [ProductNumber]='12345');
+                DELETE r FROM [Production].[Product] p INNER JOIN [Production].[ProductReview] r ON p.[ProductId]=r.[ProductId] WHERE (p.[ProductNumber]='1234' OR p.[ProductNumber]='12345');
+                DELETE p FROM [Production].[Product] p WHERE (p.[ProductNumber]='1234' OR p.[ProductNumber]='12345');
             ");
 
 

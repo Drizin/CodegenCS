@@ -50,6 +50,14 @@ Price: 003.6930
             Assert.AreEqual(expected, _w.GetContents());
         }
 
+        [Test]
+        public void TestFormat4()
+        {
+            int val = 1;
+            _w.Write($"11 elements: {val}{val}{val}{val}{val}{val}{val}{val}{val}{val}{val}");
+            Assert.AreEqual("11 elements: 11111111111", _w.GetContents());
+        }
+
 
 
         #endregion
