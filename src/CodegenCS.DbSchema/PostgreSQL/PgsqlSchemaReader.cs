@@ -4,6 +4,7 @@ using System;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 #if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
 namespace CodegenCS.DbSchema.PostgreSQL
@@ -17,14 +18,31 @@ namespace CodegenCS.DbSchema.PostgreSQL
         public PgsqlSchemaReader(Func<IDbConnection> createDbConnection)
         {
             CreateDbConnection = createDbConnection;
+
+            // Let Npgsql load ANY version of assemblies
+            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
         }
+        Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            var name = new AssemblyName(args.Name);
+            if (name.Name == "System.Threading.Channels")
+            {
+                return typeof(System.Threading.Channels.Channel).Assembly;
+            }
+            if (name.Name == "System.Text.Json")
+            {
+                return typeof(System.Text.Json.JsonDocument).Assembly;
+            }
+            return null;
+        }
+
 
         public void ExportSchemaToJSON(string outputJsonSchema)
         {
             Console.WriteLine("Reading Database...");
-
             using (var cn = CreateDbConnection())
             {
+                Console.WriteLine("cn.Query<Table>...");
                 var tables = cn.Query<Table>(@"
                     SELECT
                         current_database() as Database,
@@ -43,7 +61,6 @@ namespace CodegenCS.DbSchema.PostgreSQL
                            obj_description(cls.oid) as TableDescription,
                            tco.constraint_name as PrimaryKeyName,
                            1 as PrimaryKeyIsClustered
-                           --, *
                     from pg_class cls
                       join pg_roles rol on rol.oid = cls.relowner
                       join pg_namespace nsp on nsp.oid = cls.relnamespace
@@ -55,6 +72,7 @@ namespace CodegenCS.DbSchema.PostgreSQL
                     order by nsp.nspname, cls.relname;
                 ").AsList();
 
+                Console.WriteLine("cn.Query<ColumnTmp>...");
                 var allColumns = cn.Query<ColumnTmp>(@"
                     DROP TABLE IF EXISTS tmpForeignKeyColumns;
 
@@ -106,6 +124,7 @@ namespace CodegenCS.DbSchema.PostgreSQL
                     ORDER BY 1,2,3,OrdinalPosition ASC
             ").AsList();
 
+                Console.WriteLine("cn.Query<ForeignKey>...");
                 var fks = cn.Query<ForeignKey>(@"
                     SELECT DISTINCT
                         pkt.constraint_name as PrimaryKeyName,
@@ -132,6 +151,7 @@ namespace CodegenCS.DbSchema.PostgreSQL
                     WHERE tc.constraint_type = 'FOREIGN KEY';
             ").AsList();
 
+                Console.WriteLine("cn.Query<ForeignKeyMemberTmp>...");
                 var fkCols = cn.Query<ForeignKeyMemberTmp>(@"
                     SELECT 
                         pkt.constraint_name as PrimaryKeyName,
@@ -156,6 +176,7 @@ namespace CodegenCS.DbSchema.PostgreSQL
                     WHERE tc.constraint_type = 'FOREIGN KEY';
             ").AsList();
 
+                Console.WriteLine("cn.Query<IndexTmp>...");
                 var indexes = cn.Query<IndexTmp>(@"
 
                     select DISTINCT
@@ -193,6 +214,7 @@ namespace CodegenCS.DbSchema.PostgreSQL
                         1,2,3;
             ");
 
+                Console.WriteLine("cn.Query<IndexMemberTmp>...");
                 var indexesCols = cn.Query<IndexMemberTmp>(@"
                     select
                         ns.nspname as TableSchema,
@@ -368,6 +390,21 @@ namespace CodegenCS.DbSchema.PostgreSQL
 
         }
         #endregion
+
+        public void DebugError()
+        {
+            try
+            {
+                var cn2 = CreateDbConnection();
+                cn2.Open();
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.InnerException.Message);
+            }
+        }
+
 
     }
 #if DLL

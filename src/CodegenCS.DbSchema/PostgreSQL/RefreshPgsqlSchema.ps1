@@ -18,6 +18,7 @@ $requiredLibs = @(
     @{ Name = "Npgsql"; Version = "5.0.3" },
     @{ Name = "System.Threading.Channels"; Version = "4.7.1" },
     @{ Name = "Microsoft.Bcl.AsyncInterfaces"; Version = "1.0.0" }
+    @{ Name = "System.Text.Json"; Version = "5.0.0" }
 );
 
 # By default we'll only use NuGet 4 locations. But you can change to 3 if you're hosting 

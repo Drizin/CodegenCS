@@ -10,6 +10,7 @@
 // Load third-party libraries by their relative paths, relative to "$Env:userprofile\.nuget\packages\"
 #r "dapper\2.0.35\lib\netstandard2.0\Dapper.dll"
 #r "npgsql\5.0.3\lib\netstandard2.0\Npgsql.dll"
+#r "system.text.json\5.0.0\lib\netstandard2.0\System.Text.Json.dll"
 #r "system.threading.channels\4.7.1\lib\netstandard2.0\System.Threading.Channels.dll"
 #r "microsoft.bcl.asyncinterfaces\1.0.0\lib\netstandard2.0\Microsoft.Bcl.AsyncInterfaces.dll"
 #r "newtonsoft.json\12.0.3\lib\netstandard2.0\Newtonsoft.Json.dll"
