@@ -7,13 +7,14 @@ This project is comprised of a few different components (maybe you're looking fo
 
 Project | Description
 ------------ | -------------
-[**CodegenCS (Core)**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS) | Class library for code generation. Basically it provides a custom TextWriter tweaked to solve common code generation difficulties
- [**CodegenCS.DbSchema**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) | C#/CSX/Powershell Scripts to reverse engineer a SQL Server database into JSON schema
-[**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) | C# Templates / CSX/Powershell Scripts to read a JSON database schema (created with [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) above) and generate POCO classes
+[**CodegenCS (Core)**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS) | Class library for code generation. Basically it provides a custom TextWriter tweaked to solve common code generation difficulties (preserving indent level, auto closing blocks, tracking and saving multiple output files)
+[CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) | Represents the schema of a relational database.
+[**CodegenCS.DbSchema.Extractor**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) | Tools to extract (reverse engineer) the schema of relational databases into a JSON schema. Currently supports MSSQL (Microsoft SQL Server) and PostgreSQL. 
+[**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) | C# Templates that read a JSON schema ([CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema)) and generate POCO classes
 [EF 6 POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator) | This is a port of [Simon Hughes T4 templates for EF6](https://github.com/sjh37/EntityFramework-Reverse-POCO-Code-First-Generator) converted from T4 templates to C#/CodegenCS. <br/>  It's a Console application that reads a SQL Server Database and generates a DbContext and POCOS for Entity Framework 6. <br/> It's provided here only as a sample template. In his repository you may find up-to-date code, which now supports EFCore.
 
 
-# CodegenCS (Core Library)
+# CodegenCS ([Core Library](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS))
 
 CodegenCS is a class library for code generation (for writing code or any text-based output) using pure C#.  
 Basically it provides a custom TextWriter tweaked to solve common issues in code generation:
@@ -44,6 +45,36 @@ w.SaveToFile("File1.cs");
 ```
 
 See full documentation with more examples and list of features [here](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS).
+
+# DbSchema Extractor
+
+[**CodegenCS.DbSchema.Extractor**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) is a tool that can extract the schema of a MSSQL or PostgreSQL database and save it in a JSON file.  
+
+**Sample usage**:
+
+```
+DbSchemaExtractor.exe /postgresql /cn="Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" /output=AdventureWorks.json
+```
+
+```
+DbSchemaExtractor.exe /mssql /cn="Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" /output=AdventureWorks.json
+```
+
+```
+DbSchemaExtractor.exe /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json
+```
+
+# Simple POCO Generator
+
+[**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) is a CodegenCS Template that reads a JSON schema (created with [DbSchema Extractor](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor)) and generate POCO classes
+
+**Sample usage**:
+
+```
+CodegenCSPOCO.exe /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs
+```
+
+
 
 # Why write templates in C# instead of T4, Mustache, Razor Engine, etc?
 

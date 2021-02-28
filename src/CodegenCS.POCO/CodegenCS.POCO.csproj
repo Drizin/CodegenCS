@@ -1,7 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>CodegenCSPOCO</AssemblyName>
+    <RootNamespace>CodegenCS.POCO</RootNamespace>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO</PackageProjectUrl>
@@ -10,6 +13,7 @@
     <Company>Rick Drizin</Company>
     <Version>1.0.0</Version>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <RepositoryUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

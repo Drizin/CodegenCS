@@ -8,10 +8,10 @@ C# Library for Code Generation
 # Description
 
 CodegenCS is a class library for code generation:
-- Input can be a database (SQL Server or any other type), a NoSQL database, JSON, YAML, XML, or any kind of structured data that you can read using C#.  
+- Input can be the JSON schema of a relational database (check [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) which currently has [extractors](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) for MSSQL and PostgreSQL), or can be any other structured source data source that you can read using C#: JSON, YAML, XML, etc, including the schema of NoSQL databases.  
 - Output can be C# code, CSHTML, HTML, XML, Javascript, Java, Python, or any other text-based output.  
 
-Basically it provides a custom TextWriter tweaked to solve common code generation difficulties:
+Basically CodegenCS provides a custom TextWriter tweaked to solve common code generation difficulties:
 - Keeps track of current Indent level.  
   When you write new lines it will automatically indent the line according to current level.  
   This was inspired by [Scripty](https://github.com/daveaglick/Scripty).

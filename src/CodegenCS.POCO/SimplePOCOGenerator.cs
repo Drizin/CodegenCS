@@ -10,7 +10,15 @@ using Newtonsoft.Json;
 
 public class SimplePOCOGenerator
 {
-    string _inputJsonSchema { get; set; }
+    /// <summary>
+    /// Absolute path of JSON schema
+    /// </summary>
+    public string InputJsonSchema { get; set; }
+
+    /// <summary>
+    /// Absolute path of the target folder where files will be written
+    /// </summary>
+    public string TargetFolder { get; set; }
 
     public string Namespace { get; set; }
     public bool SingleFile { get; set; } = false;
@@ -29,14 +37,9 @@ public class SimplePOCOGenerator
 
     private CodegenOutputFile _dbConnectionCrudExtensions = null;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="inputJsonSchema">Absolute path of JSON schema</param>
-    public SimplePOCOGenerator(string inputJsonSchema)
+    public SimplePOCOGenerator()
     {
-        _inputJsonSchema = inputJsonSchema;
-        Console.WriteLine($"Input Json Schema: {_inputJsonSchema}");
+        Console.WriteLine($"Input Json Schema: {InputJsonSchema}");
     }
 
     string singleFileName = "POCOs.Generated.cs";
@@ -44,16 +47,39 @@ public class SimplePOCOGenerator
     /// <summary>
     /// Generates POCOS
     /// </summary>
-    /// <param name="targetFolder">Absolute path of the target folder where files will be written</param>
-    public void Generate(string targetFolder)
+    public void Generate()
     {
-        Console.WriteLine($"TargetFolder: {targetFolder}");
+
+        while (string.IsNullOrEmpty(InputJsonSchema))
+        {
+
+            Console.WriteLine($"[Choose an Input JSON Schema File]");
+            Console.Write($"Input file: ");
+            InputJsonSchema = Console.ReadLine();
+        }
+
+        while (string.IsNullOrEmpty(TargetFolder))
+        {
+
+            Console.WriteLine($"[Choose a Target Folder]");
+            Console.Write($"Target Folder: ");
+            TargetFolder = Console.ReadLine();
+        }
+
+        while (string.IsNullOrEmpty(Namespace))
+        {
+
+            Console.WriteLine($"[Choose a Namespace]");
+            Console.Write($"Namespace: ");
+            Namespace = Console.ReadLine();
+        }
+
 
         _generatorContext = new CodegenContext();
 
         Console.WriteLine("Reading Schema...");
 
-        LogicalSchema schema = Newtonsoft.Json.JsonConvert.DeserializeObject<LogicalSchema>(File.ReadAllText(_inputJsonSchema));
+        LogicalSchema schema = Newtonsoft.Json.JsonConvert.DeserializeObject<LogicalSchema>(File.ReadAllText(InputJsonSchema));
         //schema.Tables = schema.Tables.Select(t => Map<LogicalTable, Table>(t)).ToList<Table>(); 
 
         CodegenOutputFile writer = null;
@@ -121,7 +147,7 @@ public class SimplePOCOGenerator
 
         foreach (var table in schema.Tables.OrderBy(t => GetClassNameForTable(t)))
         {
-            if (table.TableType == "VIEW")
+            if (!ShouldProcessTable(table))
                 continue;
 
             GeneratePOCO(table);
@@ -136,7 +162,7 @@ public class SimplePOCOGenerator
             writer.DecreaseIndent().WriteLine("}"); // end of namespace
 
         // since no errors happened, let's save all files
-        _generatorContext.SaveFiles(outputFolder: targetFolder);
+        _generatorContext.SaveFiles(outputFolder: TargetFolder);
 
         Console.WriteLine("Success!");
     }
@@ -180,54 +206,54 @@ public class SimplePOCOGenerator
             baseClasses.Add("INotifyPropertyChanged");
 
         writer.WithCBlock($"public partial class {entityClassName}{(baseClasses.Any() ? " : " + string.Join(", ", baseClasses) : "")}", () =>
+        {
+            writer.WriteLine("#region Members");
+            var columns = table.Columns
+                .Where(c => ShouldProcessColumn(table, c))
+                .OrderBy(c => c.IsPrimaryKeyMember ? 0 : 1)
+                .ThenBy(c => c.IsPrimaryKeyMember ? c.OrdinalPosition : 0) // respect PK order... 
+                .ThenBy(c => GetPropertyNameForDatabaseColumn(table, c.ColumnName)); // but for other columns do alphabetically;
+
+            foreach (var column in columns)
+                GenerateProperty(writer, table, column);
+
+            writer.WriteLine("#endregion Members");
+            if (table.TableType == "TABLE" && columns.Any(c => c.IsPrimaryKeyMember))
             {
-                writer.WriteLine("#region Members");
-                var columns = table.Columns
-                    .Where(c => ShouldProcessColumn(table, c))
-                    .OrderBy(c => c.IsPrimaryKeyMember ? 0 : 1)
-                    .ThenBy(c => c.IsPrimaryKeyMember ? c.OrdinalPosition : 0) // respect PK order... 
-                    .ThenBy(c => GetPropertyNameForDatabaseColumn(table, c.ColumnName)); // but for other columns do alphabetically;
-
-                foreach (var column in columns)
-                    GenerateProperty(writer, table, column);
-
-                writer.WriteLine("#endregion Members");
-                if (table.TableType == "TABLE" && columns.Any(c => c.IsPrimaryKeyMember))
-                {
-                    if (GenerateActiveRecord)
-                    {
-                        writer.WriteLine();
-                        writer.WriteLine("#region ActiveRecord");
-                        GenerateActiveRecordSave(writer, table);
-                        GenerateActiveRecordInsert(writer, table);
-                        GenerateActiveRecordUpdate(writer, table);
-                        writer.WriteLine("#endregion ActiveRecord");
-                    }
-                    if (GenerateCrudExtensions)
-                    {
-                        _dbConnectionCrudExtensions.WriteLine();
-                        _dbConnectionCrudExtensions.WriteLine($"#region {GetClassNameForTable(table)}");
-                        GenerateCrudExtensionsSave(_dbConnectionCrudExtensions, table);
-                        GenerateCrudExtensionsInsert(_dbConnectionCrudExtensions, table);
-                        GenerateCrudExtensionsUpdate(_dbConnectionCrudExtensions, table);
-                        _dbConnectionCrudExtensions.WriteLine($"#endregion {GetClassNameForTable(table)}");
-                    }
-                }
-                if (GenerateEqualsHashCode)
+                if (GenerateActiveRecord)
                 {
                     writer.WriteLine();
-                    writer.WriteLine("#region Equals/GetHashCode");
-                    GenerateEquals(writer, table);
-                    GenerateGetHashCode(writer, table);
-                    GenerateInequalityOperatorOverloads(writer, table);
-                    writer.WriteLine("#endregion Equals/GetHashCode");
+                    writer.WriteLine("#region ActiveRecord");
+                    GenerateActiveRecordSave(writer, table);
+                    GenerateActiveRecordInsert(writer, table);
+                    GenerateActiveRecordUpdate(writer, table);
+                    writer.WriteLine("#endregion ActiveRecord");
                 }
-
-                if (TrackPropertiesChange)
+                if (GenerateCrudExtensions)
                 {
-                    writer.WriteLine();
-                    writer.WriteLine("#region INotifyPropertyChanged/IsDirty");
-                    writer.WriteLine(@"
+                    _dbConnectionCrudExtensions.WriteLine();
+                    _dbConnectionCrudExtensions.WriteLine($"#region {GetClassNameForTable(table)}");
+                    GenerateCrudExtensionsSave(_dbConnectionCrudExtensions, table);
+                    GenerateCrudExtensionsInsert(_dbConnectionCrudExtensions, table);
+                    GenerateCrudExtensionsUpdate(_dbConnectionCrudExtensions, table);
+                    _dbConnectionCrudExtensions.WriteLine($"#endregion {GetClassNameForTable(table)}");
+                }
+            }
+            if (GenerateEqualsHashCode)
+            {
+                writer.WriteLine();
+                writer.WriteLine("#region Equals/GetHashCode");
+                GenerateEquals(writer, table);
+                GenerateGetHashCode(writer, table);
+                GenerateInequalityOperatorOverloads(writer, table);
+                writer.WriteLine("#endregion Equals/GetHashCode");
+            }
+
+            if (TrackPropertiesChange)
+            {
+                writer.WriteLine();
+                writer.WriteLine("#region INotifyPropertyChanged/IsDirty");
+                writer.WriteLine(@"
                         public HashSet<string> ChangedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                         public void MarkAsClean()
                         {
@@ -248,10 +274,10 @@ public class SimplePOCOGenerator
                                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
                             }
                         }");
-                    writer.WriteLine("#endregion INotifyPropertyChanged/IsDirty");
-                }
+                writer.WriteLine("#endregion INotifyPropertyChanged/IsDirty");
+            }
 
-            });
+        });
 
         if (!SingleFile)
         {
@@ -516,7 +542,7 @@ public class SimplePOCOGenerator
 
     string GetFileNameForTable(Table table)
     {
-        return $"{table.TableName}.cs";
+        return $"{table.TableName}.generated.cs";
         if (table.TableSchema == "dbo")
             return $"{table.TableName}.cs";
         else
@@ -529,6 +555,12 @@ public class SimplePOCOGenerator
             return $"{table.TableName}";
         else
             return $"{table.TableSchema}_{table.TableName}";
+    }
+    bool ShouldProcessTable(Table table)
+    {
+        if (table.TableType == "VIEW")
+            return false;
+        return true;
     }
     bool ShouldProcessColumn(Table table, Column column)
     {
@@ -617,7 +649,7 @@ public class SimplePOCOGenerator
     public static string GetDefaultValue(Type type)
     {
         // all reference-types default to null
-        if (!type.IsValueType)
+        if (type == null || !type.IsValueType)
             return "null";
 
         // all nullables default to null
