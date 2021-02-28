@@ -1,13 +1,12 @@
 ﻿using System;
-using System.IO;
 
-namespace CodegenCS.DbSchema.Extractor
+namespace CodegenCS.EntityFrameworkCore
 {
     class Program
     {
         // Helpers to get the location of the current CS file
         public static string GetScriptPath([System.Runtime.CompilerServices.CallerFilePath] string path = null) => path;
-        public static string GetScriptFolder([System.Runtime.CompilerServices.CallerFilePath] string path = null) => Path.GetDirectoryName(path);
+        public static string GetScriptFolder([System.Runtime.CompilerServices.CallerFilePath] string path = null) => System.IO.Path.GetDirectoryName(path);
 
         static void Main(string[] args)
         {
@@ -21,10 +20,11 @@ namespace CodegenCS.DbSchema.Extractor
             #endregion
 
             //string outputJsonSchema = Path.GetFullPath(Path.Combine(GetScriptFolder(), @".\AdventureWorksSchema.json"));
-            var generator = new SimplePOCOGenerator();
+            var generator = new EFCoreGenerator();
             generator.InputJsonSchema = argsParser["input"];
             generator.TargetFolder = argsParser["targetFolder"];
             generator.Namespace = argsParser["namespace"];
+            generator.ContextName = argsParser["dbcontextname"];
 
 
             generator.Generate();
@@ -32,7 +32,7 @@ namespace CodegenCS.DbSchema.Extractor
 
         static void ShowUsage()
         {
-            Console.WriteLine(string.Format("Usage: {0} [/input=jsonschema] [/targetfolder=folder] [/namespace=namespace]", System.AppDomain.CurrentDomain.FriendlyName));
+            Console.WriteLine(string.Format("Usage: {0} [/input=jsonschema] [/targetfolder=folder] [/namespace=namespace] [/dbcontextname=contextname]", System.AppDomain.CurrentDomain.FriendlyName));
         }
 
     }

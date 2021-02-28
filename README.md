@@ -11,6 +11,7 @@ Project | Description
 [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) | Represents the schema of a relational database.
 [**CodegenCS.DbSchema.Extractor**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) | Tools to extract (reverse engineer) the schema of relational databases into a JSON schema. Currently supports MSSQL (Microsoft SQL Server) and PostgreSQL. 
 [**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) | C# Templates that read a JSON schema ([CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema)) and generate POCO classes
+[**CodegenCS.EntityFrameworkCore**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) | C# Templates that read a JSON schema ([CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.EntityFrameworkCore)) and generate EntityFrameworkCore Entities and DbContext
 [EF 6 POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator) | This is a port of [Simon Hughes T4 templates for EF6](https://github.com/sjh37/EntityFramework-Reverse-POCO-Code-First-Generator) converted from T4 templates to C#/CodegenCS. <br/>  It's a Console application that reads a SQL Server Database and generates a DbContext and POCOS for Entity Framework 6. <br/> It's provided here only as a sample template. In his repository you may find up-to-date code, which now supports EFCore.
 
 
@@ -66,12 +67,22 @@ DbSchemaExtractor.exe /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Inte
 
 # Simple POCO Generator
 
-[**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) is a CodegenCS Template that reads a JSON schema (created with [DbSchema Extractor](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor)) and generate POCO classes
+[**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) is a CodegenCS Template that reads a JSON schema (created with [DbSchema Extractor](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor)) and generates POCO classes
 
 **Sample usage**:
 
 ```
 CodegenCSPOCO.exe /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs
+```
+
+# Entity Framework Core Generator
+
+[**CodegenCS.EntityFrameworkCore**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.EntityFrameworkCore) is a CodegenCS Template that reads a JSON schema (created with [DbSchema Extractor](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor)) and generates EntityFrameworkCore Entities and DbContext
+
+**Sample usage**:
+
+```
+CodegenCSEFCore.exe /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs /dbcontextname=AdventureWorksDbContext
 ```
 
 
