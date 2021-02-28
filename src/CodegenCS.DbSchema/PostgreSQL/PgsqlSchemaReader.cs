@@ -19,9 +19,13 @@ namespace CodegenCS.DbSchema.PostgreSQL
         {
             CreateDbConnection = createDbConnection;
 
+            #if !DLL // if this is included in a CSX file we'll have to tricky some assembly resolutions to ignore versions
             // Let Npgsql load ANY version of assemblies
             AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
+            #endif
         }
+
+#if !DLL // if this is included in a CSX file we'll have to tricky some assembly resolutions to ignore versions
         Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var name = new AssemblyName(args.Name);
@@ -35,6 +39,7 @@ namespace CodegenCS.DbSchema.PostgreSQL
             }
             return null;
         }
+#endif
 
 
         public void ExportSchemaToJSON(string outputJsonSchema)
@@ -303,18 +308,22 @@ namespace CodegenCS.DbSchema.PostgreSQL
                 case "smallint":
                     return typeof(short).FullName;
                 case "int":
+                case "integer":
                     return typeof(int).FullName;
                 case "uniqueidentifier":
+                case "uuid":
                     return typeof(Guid).FullName;
                 case "smalldatetime":
                 case "datetime":
                 case "datetime2":
                 case "date":
                 case "time":
+                case "timestamp without time zone":
                     return typeof(DateTime).FullName;
                 case "datetimeoffset":
                     return typeof(DateTimeOffset).FullName;
                 case "float":
+                case "double precision":
                     return typeof(double).FullName;
                 case "real":
                     return typeof(float).FullName;
@@ -326,11 +335,13 @@ namespace CodegenCS.DbSchema.PostgreSQL
                 case "tinyint":
                     return typeof(byte).FullName;
                 case "bit":
+                case "boolean":
                     return typeof(bool).FullName;
                 case "image":
                 case "binary":
                 case "varbinary":
                 case "timestamp":
+                case "bytea":
                     return typeof(byte[]).FullName;
                 case "nvarchar":
                 case "varchar":
@@ -339,7 +350,11 @@ namespace CodegenCS.DbSchema.PostgreSQL
                 case "text":
                 case "ntext":
                 case "xml":
+                case "character varying":
+                case "character":
                     return typeof(string).FullName;
+                case "time without time zone":
+                    return typeof(TimeSpan).FullName;
                 default:
                     Console.WriteLine($"Unknown sqlDataType for {table.TableName}.{column.ColumnName}: {sqlDataType}");
                     return null;
@@ -359,7 +374,7 @@ namespace CodegenCS.DbSchema.PostgreSQL
             return JsonConvert.DeserializeObject<T>(serialized);
         }
 
-        #region Temporary Classes used just for Bulk Loads
+#region Temporary Classes used just for Bulk Loads
         class ColumnTmp : Column
         {
             public string Database { get; set; }
@@ -389,7 +404,7 @@ namespace CodegenCS.DbSchema.PostgreSQL
             public int IndexId { get; set; }
 
         }
-        #endregion
+#endregion
 
         public void DebugError()
         {
