@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.DbSchema", "Codeg
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.POCO", "CodegenCS.POCO\CodegenCS.POCO.csproj", "{9C699A0F-EA09-4831-A082-5CE6618B7DFF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.DbSchema.Extractor", "CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj", "{280C1697-59E5-4A63-9D82-AB01EAD3297C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{9C699A0F-EA09-4831-A082-5CE6618B7DFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C699A0F-EA09-4831-A082-5CE6618B7DFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C699A0F-EA09-4831-A082-5CE6618B7DFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{280C1697-59E5-4A63-9D82-AB01EAD3297C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{280C1697-59E5-4A63-9D82-AB01EAD3297C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{280C1697-59E5-4A63-9D82-AB01EAD3297C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{280C1697-59E5-4A63-9D82-AB01EAD3297C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
