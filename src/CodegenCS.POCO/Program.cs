@@ -1,13 +1,13 @@
 ﻿using System;
 using System.IO;
 
-namespace CodegenCS.DbSchema.Extractor
+namespace CodegenCS.POCO
 {
     class Program
     {
         // Helpers to get the location of the current CS file
         public static string GetScriptPath([System.Runtime.CompilerServices.CallerFilePath] string path = null) => path;
-        public static string GetScriptFolder([System.Runtime.CompilerServices.CallerFilePath] string path = null) => Path.GetDirectoryName(path);
+        public static string GetScriptFolder([System.Runtime.CompilerServices.CallerFilePath] string path = null) => System.Diagnostics.Debugger.IsAttached ? Path.GetDirectoryName(path) : System.IO.Directory.GetCurrentDirectory();
 
         static void Main(string[] args)
         {

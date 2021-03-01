@@ -9,7 +9,11 @@ namespace CodegenCS.DbSchema.Extractor
     {
         public DbTypeEnum? DbType { get; set; } = null;
         public string ConnectionString { get; set; } = null;
-        public string OutputJsonSchema { get; set; } = null;
+        public string OutputJsonSchema { 
+            get { return _outputJsonSchema; }
+            set { if (value != null && !System.IO.Path.IsPathRooted(value)) value = System.IO.Path.Combine(Program.GetScriptFolder(), value); _outputJsonSchema = value; } 
+        }
+        private string _outputJsonSchema = null;
 
 
         public enum DbTypeEnum
@@ -45,12 +49,12 @@ namespace CodegenCS.DbSchema.Extractor
                 switch (DbType.Value)
                 {
                     case DbTypeEnum.MSSQL:
-                        Console.Write($"Example: Server=MYSERVER; Database=AdventureWorks; Integrated Security=True;");
-                        Console.Write($"Example: Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=myPassword");
-                        Console.Write($"Example: Server=MYWORKSTATION\\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True;");
+                        Console.WriteLine($"Example: Server=MYSERVER; Database=AdventureWorks; Integrated Security=True;");
+                        Console.WriteLine($"Example: Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=myPassword");
+                        Console.WriteLine($"Example: Server=MYWORKSTATION\\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True;");
                         break;
                     case DbTypeEnum.PostgreSQL:
-                        Console.Write($"Example: Host=localhost; Database=Adventureworks; Username=postgres; Password=myPassword");
+                        Console.WriteLine($"Example: Host=localhost; Database=Adventureworks; Username=postgres; Password=myPassword");
                         break;
                 }
 

@@ -16,9 +16,13 @@
     <RepositoryUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.EntityFrameworkCore</RepositoryUrl>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <DefineConstants>DLL</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="CodegenCS" Version="1.0.5" />
-    <PackageReference Include="CodegenCS.DbSchema" Version="1.0.0" />
+    <ProjectReference Include="..\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
+    <ProjectReference Include="..\CodegenCS\CodegenCS.csproj" />
   </ItemGroup>
 
 </Project>

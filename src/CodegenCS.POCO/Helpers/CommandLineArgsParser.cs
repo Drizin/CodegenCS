@@ -4,7 +4,7 @@ using System.Collections.Specialized;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace CodegenCS.DbSchema.Extractor.Helpers
+namespace CodegenCS.POCO.Helpers
 {
     /// <summary>
     /// Parse command-line arguments. Based on https://www.codeproject.com/Articles/3111/C-NET-Command-Line-Arguments-Parser
