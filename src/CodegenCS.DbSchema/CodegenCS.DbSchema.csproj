@@ -18,10 +18,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="dbschema.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="README.txt" pack="true" PackagePath="." />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodegenCS\CodegenCS.csproj" />
+  </ItemGroup>
+
 </Project>

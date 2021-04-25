@@ -14,4 +14,10 @@
     <DocumentationFile>CodegenCS.xml</DocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14">
+      <Aliases>NewtonsoftJsonSchema</Aliases>
+    </PackageReference>
+  </ItemGroup>
+
 </Project>

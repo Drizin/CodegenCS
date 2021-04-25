@@ -75,7 +75,7 @@ namespace CodegenCS.DbSchema.Extractor
                 case DbTypeEnum.MSSQL:
                     {
                         Func<IDbConnection> connectionFactory = () => new System.Data.SqlClient.SqlConnection(ConnectionString);
-                        var reader = new PostgreSQL.PgsqlSchemaReader(connectionFactory);
+                        var reader = new SqlServer.SqlServerSchemaReader(connectionFactory);
                         reader.ExportSchemaToJSON(OutputJsonSchema);
                     }
                     break;

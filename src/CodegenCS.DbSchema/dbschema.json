@@ -1,0 +1,364 @@
+{
+  "$schema": "http://json-schema.org/draft/2019-09/schema#",
+  "$id": "http://codegencs.com/schemas/dbschema.json",
+  "type": "object",
+  "required": [
+    "$schema",
+    "Tables"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "LastRefreshed": {
+      "type": "string"
+    },
+    "$schema": {
+      "type": "string"
+    },
+    "Tables": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "required": [
+            "Database",
+            "TableSchema",
+            "TableName",
+            "TableType",
+            "TableDescription",
+            "Columns",
+            "ForeignKeys",
+            "ChildForeignKeys",
+            "PrimaryKeyName",
+            "PrimaryKeyIsClustered",
+            "Indexes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Database": {
+              "type": "string"
+            },
+            "TableSchema": {
+              "type": "string"
+            },
+            "TableName": {
+              "type": "string"
+            },
+            "TableType": {
+              "type": "string"
+            },
+            "TableDescription": {
+              "type": "string"
+            },
+            "Columns": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "object",
+                  "required": [
+                    "ColumnName",
+                    "OrdinalPosition",
+                    "DefaultSetting",
+                    "IsNullable",
+                    "SqlDataType",
+                    "ClrType",
+                    "IsIdentity",
+                    "IsComputed",
+                    "IsRowGuid",
+                    "IsPrimaryKeyMember",
+                    "IsForeignKeyMember",
+                    "ColumnDescription"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "ColumnName": {
+                      "type": "string"
+                    },
+                    "OrdinalPosition": {
+                      "type": "integer"
+                    },
+                    "DefaultSetting": {
+                      "type": "null"
+                    },
+                    "IsNullable": {
+                      "type": "boolean"
+                    },
+                    "SqlDataType": {
+                      "type": "string"
+                    },
+                    "ClrType": {
+                      "type": "string"
+                    },
+                    "MaxLength": {
+                      "type": "integer"
+                    },
+                    "NumericScale": {
+                      "type": "integer"
+                    },
+                    "NumericPrecision": {
+                      "type": "integer"
+                    },
+                    "DateTimePrecision": {
+                      "type": "integer"
+                    },
+                    "IsIdentity": {
+                      "type": "boolean"
+                    },
+                    "IsComputed": {
+                      "type": "boolean"
+                    },
+                    "IsRowGuid": {
+                      "type": "boolean"
+                    },
+                    "IsPrimaryKeyMember": {
+                      "type": "boolean"
+                    },
+                    "PrimaryKeyOrdinalPosition": {
+                      "type": "integer"
+                    },
+                    "IsForeignKeyMember": {
+                      "type": "boolean"
+                    },
+                    "ColumnDescription": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "ForeignKeys": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "object",
+                  "required": [
+                    "PrimaryKeyName",
+                    "PKTableSchema",
+                    "PKTableName",
+                    "ForeignKeyConstraintName",
+                    "ForeignKeyDescription",
+                    "OnDeleteCascade",
+                    "OnUpdateCascade",
+                    "IsSystemNamed",
+                    "IsNotEnforced",
+                    "Columns"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "PrimaryKeyName": {
+                      "type": "string"
+                    },
+                    "PKTableSchema": {
+                      "type": "string"
+                    },
+                    "PKTableName": {
+                      "type": "string"
+                    },
+                    "ForeignKeyConstraintName": {
+                      "type": "string"
+                    },
+                    "ForeignKeyDescription": {
+                      "type": "string"
+                    },
+                    "OnDeleteCascade": {
+                      "type": "string"
+                    },
+                    "OnUpdateCascade": {
+                      "type": "string"
+                    },
+                    "IsSystemNamed": {
+                      "type": "boolean"
+                    },
+                    "IsNotEnforced": {
+                      "type": "boolean"
+                    },
+                    "Columns": {
+                      "type": "array",
+                      "items": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "PKColumnOrdinalPosition",
+                            "PKColumnName",
+                            "FKColumnName"
+                          ],
+                          "additionalProperties": false,
+                          "properties": {
+                            "PKColumnOrdinalPosition": {
+                              "type": "integer"
+                            },
+                            "PKColumnName": {
+                              "type": "string"
+                            },
+                            "FKColumnName": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "ChildForeignKeys": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "object",
+                  "required": [
+                    "PrimaryKeyName",
+                    "ForeignKeyConstraintName",
+                    "ForeignKeyDescription",
+                    "FKTableSchema",
+                    "FKTableName",
+                    "OnDeleteCascade",
+                    "OnUpdateCascade",
+                    "IsSystemNamed",
+                    "IsNotEnforced",
+                    "Columns"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "PrimaryKeyName": {
+                      "type": "string"
+                    },
+                    "ForeignKeyConstraintName": {
+                      "type": "string"
+                    },
+                    "ForeignKeyDescription": {
+                      "type": "string"
+                    },
+                    "FKTableSchema": {
+                      "type": "string"
+                    },
+                    "FKTableName": {
+                      "type": "string"
+                    },
+                    "OnDeleteCascade": {
+                      "type": "string"
+                    },
+                    "OnUpdateCascade": {
+                      "type": "string"
+                    },
+                    "IsSystemNamed": {
+                      "type": "boolean"
+                    },
+                    "IsNotEnforced": {
+                      "type": "boolean"
+                    },
+                    "Columns": {
+                      "type": "array",
+                      "items": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "PKColumnOrdinalPosition",
+                            "PKColumnName",
+                            "FKColumnName"
+                          ],
+                          "additionalProperties": false,
+                          "properties": {
+                            "PKColumnOrdinalPosition": {
+                              "type": "integer"
+                            },
+                            "PKColumnName": {
+                              "type": "string"
+                            },
+                            "FKColumnName": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "PrimaryKeyName": {
+              "type": "string"
+            },
+            "PrimaryKeyIsClustered": {
+              "type": "boolean"
+            },
+            "Indexes": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "object",
+                  "required": [
+                    "IndexName",
+                    "IndexId",
+                    "PhysicalType",
+                    "LogicalType",
+                    "IsPrimaryKey",
+                    "IsUnique",
+                    "IsUniqueConstraint",
+                    "IndexDescription",
+                    "Columns"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "IndexName": {
+                      "type": "string"
+                    },
+                    "IndexId": {
+                      "type": "integer"
+                    },
+                    "PhysicalType": {
+                      "type": "string"
+                    },
+                    "LogicalType": {
+                      "type": "string"
+                    },
+                    "IsPrimaryKey": {
+                      "type": "boolean"
+                    },
+                    "IsUnique": {
+                      "type": "boolean"
+                    },
+                    "IsUniqueConstraint": {
+                      "type": "boolean"
+                    },
+                    "IndexDescription": {
+                      "type": "string"
+                    },
+                    "Columns": {
+                      "type": "array",
+                      "items": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "ColumnName",
+                            "IndexOrdinalPosition",
+                            "IsDescendingKey",
+                            "IsIncludedColumn"
+                          ],
+                          "additionalProperties": false,
+                          "properties": {
+                            "ColumnName": {
+                              "type": "string"
+                            },
+                            "IndexOrdinalPosition": {
+                              "type": "integer"
+                            },
+                            "IsDescendingKey": {
+                              "type": "boolean"
+                            },
+                            "IsIncludedColumn": {
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

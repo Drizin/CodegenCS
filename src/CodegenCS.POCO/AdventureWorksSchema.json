@@ -1,4 +1,5 @@
 {
+  "$schema": "dbschema.json",
   "LastRefreshed": "2020-07-19T21:34:55.6930822-04:00",
   "Tables": [
     {
