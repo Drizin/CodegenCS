@@ -27,6 +27,8 @@ namespace CodegenCS.POCO
             generator.Namespace = argsParser["namespace"];
 
 
+            generator.ValidateInputsConsole();
+
             generator.Generate();
         }
 

@@ -32,6 +32,8 @@ string inputJsonSchema = Path.GetFullPath(Path.Combine(GetScriptFolder(), "Adven
 string targetFolder = Path.GetFullPath(Path.Combine(GetScriptFolder(), @".\POCOs\"));
 
 
-var generator = new SimplePOCOGenerator(inputJsonSchema);
+var generator = new SimplePOCOGenerator();
+generator.InputJsonSchema = inputJsonSchema;
+generator.TargetFolder = targetFolder;
 generator.Namespace = "CodegenCS.AdventureWorksPOCOSample";
-generator.Generate(targetFolder);
+generator.Generate();

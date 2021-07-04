@@ -28,10 +28,10 @@ public static string GetScriptFolder([CallerFilePath] string path = null) => Pat
 
 // location relative to the CSX script
 string outputJsonSchema = Path.GetFullPath(Path.Combine(GetScriptFolder(), @".\AdventureWorksSchema.json")); 
-string connectionString = @"Data Source=LENOVOFLEX5\SQLEXPRESS;
-                            Initial Catalog=AdventureWorks;
+string connectionString = @"Data Source=WIN10VM2021\SQLEXPRESS;
+                            Initial Catalog=AdventureWorks2019;
                             Integrated Security=True;";
 
 Func<IDbConnection> connectionFactory = () => new SqlConnection(connectionString);
-var reader = new SqlServerSchemaReader(connectionFactory);
+var reader = new SqlServerSchemaReader(connectionFactory); // CodegenCS.DbSchema.dll
 reader.ExportSchemaToJSON(outputJsonSchema);

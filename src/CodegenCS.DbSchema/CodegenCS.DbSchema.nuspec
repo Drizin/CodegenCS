@@ -14,6 +14,7 @@
     <tags>code generation;code generator;templating;codegencs</tags>
     <repository type="git" url="https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema" commit="da2d0b953623b22f6f345646b8344ecad12be2f9" />
     <dependencies>
+		<dependency id="CodegenCS" version="[1.0.5" include="All" />
     </dependencies>
   </metadata>
   <files>

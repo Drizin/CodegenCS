@@ -10,22 +10,16 @@
 // Load third-party libraries by their relative paths, relative to "$Env:userprofile\.nuget\packages\"
 #r "dapper\2.0.35\lib\netstandard2.0\Dapper.dll"
 #r "newtonsoft.json\12.0.3\lib\netstandard2.0\Newtonsoft.Json.dll"
+#r "codegencs.dbschema\1.0.0\lib\netstandard2.0\CodegenCS.DbSchema.dll"
 
 // CS files are better than CSX because Intellisense and Compile-time checks works better. 
-#load "..\DbSchema\Table.cs"
-#load "..\DbSchema\Column.cs"
-#load "..\DbSchema\ForeignKey.cs"
-#load "..\DbSchema\ForeignKeyMember.cs"
-#load "..\DbSchema\DatabaseSchema.cs"
-#load "..\DbSchema\Index.cs"
-#load "..\DbSchema\IndexMember.cs"
-#load "SqlServerSchemaReader.cs"
 
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Data;
 using System.Data.SqlClient;
+using CodegenCS.DbSchema.SqlServer;
 
 // Helpers to get the location of the current CSX script
 public static string GetScriptPath([CallerFilePath] string path = null) => path;
@@ -33,11 +27,11 @@ public static string GetScriptFolder([CallerFilePath] string path = null) => Pat
 
 
 // location relative to the CSX script
-string outputJsonSchema = Path.GetFullPath(Path.Combine(GetScriptFolder(), @".\AdventureWorksSchema.json")); 
-string connectionString = @"Data Source=LENOVOFLEX5\SQLEXPRESS;
-                            Initial Catalog=AdventureWorks;
+string outputJsonSchema = Path.GetFullPath(Path.Combine(GetScriptFolder(), @".\AdventureWorksSchema.json"));
+string connectionString = @"Data Source=WIN10VM2021\SQLEXPRESS;
+                            Initial Catalog=AdventureWorks2019;
                             Integrated Security=True;";
 
 Func<IDbConnection> connectionFactory = () => new SqlConnection(connectionString);
-var reader = new SqlServerSchemaReader(connectionFactory);
+var reader = new SqlServerSchemaReader(connectionFactory); // CodegenCS.DbSchema.dll
 reader.ExportSchemaToJSON(outputJsonSchema);
