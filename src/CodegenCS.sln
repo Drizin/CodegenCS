@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.POCO", "CodegenCS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.DbSchema.Extractor", "CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj", "{280C1697-59E5-4A63-9D82-AB01EAD3297C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenCS.EntityFrameworkCore", "CodegenCS.EntityFrameworkCore\CodegenCS.EntityFrameworkCore.csproj", "{732CA142-7A80-4DED-9F41-1B61F250EE25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.EntityFrameworkCore", "CodegenCS.EntityFrameworkCore\CodegenCS.EntityFrameworkCore.csproj", "{732CA142-7A80-4DED-9F41-1B61F250EE25}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet-codegencs", "dotnet-codegencs\dotnet-codegencs.csproj", "{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{732CA142-7A80-4DED-9F41-1B61F250EE25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{732CA142-7A80-4DED-9F41-1B61F250EE25}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{732CA142-7A80-4DED-9F41-1B61F250EE25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

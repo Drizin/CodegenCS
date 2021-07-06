@@ -3,23 +3,14 @@ C# Library for Code Generation
 
 ... or Yet Another Code Generator. Maybe a little better than T4 templates.
 
-This project is comprised of a few different components (maybe you're looking for a specific template, and not the core library):
+This repo contains the [**CodegenCS core library**](#CodegenCS-Core), the dotnet command-line tool [**dotnet-codegencs**](#dotnet-codegencs), and some out-of-the-box [templates and utilities](#dotnet-codegencs-templates) which are available through dotnet-codegencs.
+ 
 
-Project | Description
------------- | -------------
-[**CodegenCS (Core)**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS) | Class library for code generation. Basically it provides a custom TextWriter tweaked to solve common code generation difficulties (preserving indent level, auto closing blocks, tracking and saving multiple output files)
-[CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) | Represents the schema of a relational database.
-[**CodegenCS.DbSchema.Extractor**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) | Tools to extract (reverse engineer) the schema of relational databases into a JSON schema. Currently supports MSSQL (Microsoft SQL Server) and PostgreSQL. 
-[**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) | C# Templates that read a JSON schema ([CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema)) and generate POCO classes
-[**CodegenCS.EntityFrameworkCore**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) | C# Templates that read a JSON schema ([CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.EntityFrameworkCore)) and generate EntityFrameworkCore Entities and DbContext
-[EF 6 POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator) | This is a port of [Simon Hughes T4 templates for EF6](https://github.com/sjh37/EntityFramework-Reverse-POCO-Code-First-Generator) converted from T4 templates to C#/CodegenCS. <br/>  It's a Console application that reads a SQL Server Database and generates a DbContext and POCOS for Entity Framework 6. <br/> It's provided here only as a sample template. In his repository you may find up-to-date code, which now supports EFCore.
-
-
-# CodegenCS ([Core Library](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS))
+# <a name="CodegenCS-Core"></a> CodegenCS ([Core Library](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS))
 
 CodegenCS is a class library for code generation (for writing code or any text-based output) using pure C#.  
 Basically it provides a custom TextWriter tweaked to solve common issues in code generation:
-- Keeps track of current Indent level.  
+- Preserves indent (keeps track of current Indent level).  
   When you write new lines it will automatically indent the line according to current level. 
 - Helpers to concisely write indented blocks (C-style, Java-style or Python-style) using a Fluent API
   (IDisposable context will automatically close blocks)
@@ -45,45 +36,47 @@ w.WithCBlock("public class MyClass", () =>
 w.SaveToFile("File1.cs"); 
 ```
 
-See full documentation with more examples and list of features [here](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS).
+Want to learn more? Check out the [full documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS) and the [unit tests](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Tests/CoreTests).
 
-# DbSchema Extractor
+# <a name="dotnet-codegencs"></a> dotnet-codegencs (.NET global tool)
 
-[**CodegenCS.DbSchema.Extractor**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) is a tool that can extract the schema of a MSSQL or PostgreSQL database and save it in a JSON file.  
+**This is a .NET 5 global tool with some out-of-the-box templates and utilities.**
 
-**Sample usage**:
+If you want to use the out-of-the-box templates and utilities (without making changes to the templates), this is all you need.
 
-```
-DbSchemaExtractor.exe /postgresql /cn="Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" /output=AdventureWorks.json
-```
+**How to Install**
 
-```
-DbSchemaExtractor.exe /mssql /cn="Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" /output=AdventureWorks.json
-```
+```dotnet tool install -g dotnet-codegencs```
 
-```
-DbSchemaExtractor.exe /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json
-```
+## <a name="dotnet-codegencs-templates"></a> Templates and Utilities
 
-# Simple POCO Generator
+### <a name="dotnet-codegencs-dbschema-extractor"> DbSchema Extractor
 
-[**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) is a CodegenCS Template that reads a JSON schema (created with [DbSchema Extractor](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor)) and generates POCO classes
+This is a command-line tool (part of dotnet command-line tool [**dotnet-codegencs**](#dotnet-codegencs)) which extracts the schema of a MSSQL or PostgreSQL database and save it in a JSON file.  
 
-**Sample usage**:
+Sample usage:
 
-```
-CodegenCSPOCO.exe /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs
-```
+```codegencs dbschema-extractor /postgresql /cn="Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" /output=AdventureWorks.json```
 
-# Entity Framework Core Generator
+```codegencs dbschema-extractor /mssql /cn="Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" /output=AdventureWorks.json```
 
-[**CodegenCS.EntityFrameworkCore**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.EntityFrameworkCore) is a CodegenCS Template that reads a JSON schema (created with [DbSchema Extractor](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor)) and generates EntityFrameworkCore Entities and DbContext
+```codegencs dbschema-extractor /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
 
-**Sample usage**:
+### <a name="dotnet-codegencs-poco"> Simple POCO Generator
 
-```
-CodegenCSEFCore.exe /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs /dbcontextname=AdventureWorksDbContext
-```
+This is a template (part of [dotnet command-line tool **dotnet-codegencs**](#dotnet-codegencs)) that generates POCO classes from a JSON schema extracted with [dbschema-extractor](#dotnet-codegencs-dbschema-extractor).
+
+Sample usage:
+
+```codegencs poco /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs```
+
+### Entity Framework Core Generator
+
+This is a template (part of [dotnet command-line tool **dotnet-codegencs**](#dotnet-codegencs)) that generates EntityFrameworkCore Entities and DbContext from a JSON schema extracted with [dbschema-extractor](#dotnet-codegencs-dbschema-extractor).
+
+Sample usage:
+
+```CodegenCSEFCore.exe /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs /dbcontextname=AdventureWorksDbContext```
 
 
 
@@ -104,11 +97,11 @@ This is a brand new project, and your contribution can help a lot.
 
 **Would you like to collaborate or share your own template?**  
 
-Please submit a pull-request or if you prefer you can [contact me](http://drizin.io/pages/Contact/) to discuss your idea.
+Please submit a pull-request or if you prefer you can [contact me](https://rdrizin.com/pages/Contact/) to discuss your idea.
 
 
 Some ideas for templates:
-- Generate Dapper/Petapoco classes from database schema files - check [**CodegenCS.POCO**](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO)
+- Generate Dapper/Petapoco classes from database schema files - check [**Simple POCO Generator**](#dotnet-codegencs-poco)
 - Generate EF Core Entities/DBContext
 - Generate REST Web API endpoints from OpenAPI YAML
 - Generate Nancy endpoints for retrieving/updating business entities

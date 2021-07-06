@@ -43,7 +43,7 @@ public class PgsqlSchemaReader
 #endif
 
 
-    public void ExportSchemaToJSON(string outputJsonSchema)
+    public DatabaseSchema ExportSchemaToJSON()
     {
         Console.WriteLine("Reading Database...");
         using (var cn = CreateDbConnection())
@@ -291,12 +291,9 @@ public class PgsqlSchemaReader
                 LastRefreshed = DateTimeOffset.Now,
                 Tables = tables,
             };
-
-            Console.WriteLine($"Saving into {outputJsonSchema}...");
-            File.WriteAllText(outputJsonSchema, JsonConvert.SerializeObject(schema, Newtonsoft.Json.Formatting.Indented));
+            return schema;
         }
-
-        Console.WriteLine("Success!");
+       
     }
 
     string GetClrType(Table table, Column column)

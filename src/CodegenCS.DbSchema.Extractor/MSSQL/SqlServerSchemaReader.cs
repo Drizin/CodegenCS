@@ -20,7 +20,7 @@ public class SqlServerSchemaReader
         CreateDbConnection = createDbConnection;
     }
 
-    public void ExportSchemaToJSON(string outputJsonSchema)
+    public DatabaseSchema ExportSchemaToJSON()
     {
         Console.WriteLine("Reading Database...");
 
@@ -236,12 +236,8 @@ public class SqlServerSchemaReader
                 LastRefreshed = DateTimeOffset.Now,
                 Tables = tables,
             };
-
-            Console.WriteLine($"Saving into {outputJsonSchema}...");
-            File.WriteAllText(outputJsonSchema, JsonConvert.SerializeObject(schema, Newtonsoft.Json.Formatting.Indented));
+            return schema;
         }
-
-        Console.WriteLine("Success!");
     }
 
     string GetClrType(Table table, Column column)

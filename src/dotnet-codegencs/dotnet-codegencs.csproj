@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net5.0</TargetFramework>
+		<AssemblyName>dotnet-codegencs</AssemblyName>
+		<RootNamespace>CodegenCS.DotNetTool</RootNamespace>
+		<Authors>Rick Drizin</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/Drizin/CodegenCS</PackageProjectUrl>
+		<Description>Command line tool to extract schema from MSSQL/PostgreSQL database into json files, and templates to generate POCO classes.</Description>
+		<Copyright>Rick Drizin</Copyright>
+		<Company>Rick Drizin</Company>
+		<Version>1.0.0</Version>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<RepositoryUrl>https://github.com/Drizin/CodegenCS</RepositoryUrl>
+
+		<PackAsTool>true</PackAsTool>
+		<ToolCommandName>codegencs</ToolCommandName>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<PackageOutputPath>..\nupkg\</PackageOutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj" />
+	  <ProjectReference Include="..\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
+	  <ProjectReference Include="..\CodegenCS.POCO\CodegenCS.POCO.csproj" />
+	  <ProjectReference Include="..\CodegenCS\CodegenCS.csproj" />
+	</ItemGroup>
+
+</Project>

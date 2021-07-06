@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Text;
 
 namespace CodegenCS.DbSchema.Extractor
@@ -11,7 +13,7 @@ namespace CodegenCS.DbSchema.Extractor
         public string ConnectionString { get; set; } = null;
         public string OutputJsonSchema { 
             get { return _outputJsonSchema; }
-            set { if (value != null && !System.IO.Path.IsPathRooted(value)) value = System.IO.Path.Combine(Program.GetScriptFolder(), value); _outputJsonSchema = value; } 
+            set { /*if (value != null && !System.IO.Path.IsPathRooted(value)) value = System.IO.Path.Combine(Program.GetScriptFolder(), value);*/ _outputJsonSchema = value; } 
         }
         private string _outputJsonSchema = null;
 
@@ -45,7 +47,7 @@ namespace CodegenCS.DbSchema.Extractor
             while(string.IsNullOrEmpty(ConnectionString))
             {
 
-                Console.WriteLine($"[Choose a Connection String]");
+                Console.WriteLine($"[Enter the Connection String]");
                 switch (DbType.Value)
                 {
                     case DbTypeEnum.MSSQL:
@@ -64,34 +66,40 @@ namespace CodegenCS.DbSchema.Extractor
 
             while (string.IsNullOrEmpty(OutputJsonSchema))
             {
-
-                Console.WriteLine($"[Choose an Output File]");
-                Console.Write($"Output file: ");
+                Console.WriteLine($"[Enter the Output File]");
+                Console.Write($"Output file: [Schema.json]");
                 OutputJsonSchema = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(OutputJsonSchema))
+                    OutputJsonSchema = "Schema.json";
             }
 
+            DatabaseSchema schema = null;
             switch (DbType.Value)
             {
                 case DbTypeEnum.MSSQL:
                     {
                         Func<IDbConnection> connectionFactory = () => new System.Data.SqlClient.SqlConnection(ConnectionString);
                         var reader = new SqlServer.SqlServerSchemaReader(connectionFactory);
-                        reader.ExportSchemaToJSON(OutputJsonSchema);
+                        schema = reader.ExportSchemaToJSON();
                     }
                     break;
                 case DbTypeEnum.PostgreSQL:
                     {
                         Func<IDbConnection> connectionFactory = () => new Npgsql.NpgsqlConnection(ConnectionString);
                         var reader = new PostgreSQL.PgsqlSchemaReader(connectionFactory);
-                        reader.ExportSchemaToJSON(OutputJsonSchema);
+                        schema = reader.ExportSchemaToJSON();
                     }
                     break;
             }
 
+            Console.WriteLine($"Saving into {OutputJsonSchema}...");
+            File.WriteAllText(OutputJsonSchema, JsonConvert.SerializeObject(schema, Newtonsoft.Json.Formatting.Indented));
+            Console.WriteLine("Success!");
 
 
-            Console.Write($"Press any key to exit...");
-            Console.ReadLine();
+            //Console.Write($"Press any key to exit...");
+            //Console.ReadKey(true);
+            //Console.WriteLine();
         }
     }
 }
