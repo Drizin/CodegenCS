@@ -3,12 +3,12 @@ C# Library for Code Generation
 
 ... or Yet Another Code Generator. Maybe a little better than T4 templates.
 
-This repo contains the [**CodegenCS core library**](#CodegenCS-Core), the dotnet command-line tool [**dotnet-codegencs**](#dotnet-codegencs), and some out-of-the-box [templates and utilities](#dotnet-codegencs-templates) which are available through dotnet-codegencs.
+This repository contains the [**CodegenCS core library**](#CodegenCS-Core), and the dotnet command-line tool [**dotnet-codegencs**](#dotnet-codegencs) which contains some [utilities](#dotnet-codegencs-utilities) (like extracting MSSQL/PostgreSQL schemas) and some out-of-the-box [templates](#dotnet-codegencs-templates) (like POCO generator).
  
 
 # <a name="CodegenCS-Core"></a> CodegenCS ([Core Library](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS))
 
-CodegenCS is a class library for code generation (for writing code or any text-based output) using pure C#.  
+CodegenCS is a class library for code generation using pure C#.  
 Basically it provides a custom TextWriter tweaked to solve common issues in code generation:
 - Preserves indent (keeps track of current Indent level).  
   When you write new lines it will automatically indent the line according to current level. 
@@ -23,16 +23,16 @@ Basically it provides a custom TextWriter tweaked to solve common issues in code
 var w = new CodegenTextWriter();
 w.WithCBlock("public class MyClass", () =>
 {
-    w
-        .WriteLine("// Testing FluentAPI")
-        .WithCBlock("void MyMethod()", () =>
-        {
-            w.WriteLine("OtherMethod();");
-        });
-    foreach (var column in columns)
-        w.WriteLine($"public {GetTypeDefinitionForDatabaseColumn(column)} {propertyName} {{ get; set; }}");
+  w
+    .WriteLine("// Testing FluentAPI")
+    .WithCBlock("void MyMethod()", () =>
+    {
+      w.WriteLine("OtherMethod();");
+    });
+  foreach (var column in columns)
+    w.WriteLine($"public {GetTypeDefinitionForDatabaseColumn(column)} {propertyName} {{ get; set; }}");
 });
-    
+
 w.SaveToFile("File1.cs"); 
 ```
 
@@ -42,19 +42,15 @@ Want to learn more? Check out the [full documentation](https://github.com/Drizin
 
 **This is a .NET 5 global tool with some out-of-the-box templates and utilities.**
 
-If you want to use the out-of-the-box templates and utilities (without making changes to the templates), this is all you need.
+**How to Install**: ```dotnet tool install -g dotnet-codegencs```
 
-**How to Install**
-
-```dotnet tool install -g dotnet-codegencs```
-
-## <a name="dotnet-codegencs-templates"></a> Templates and Utilities
+## <a name="dotnet-codegencs-utilities"></a> Utilities
 
 ### <a name="dotnet-codegencs-dbschema-extractor"> DbSchema Extractor
 
 This is a command-line tool (part of dotnet command-line tool [**dotnet-codegencs**](#dotnet-codegencs)) which extracts the schema of a MSSQL or PostgreSQL database and save it in a JSON file.  
 
-Sample usage:
+**Sample usage**:
 
 ```codegencs dbschema-extractor /postgresql /cn="Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" /output=AdventureWorks.json```
 
@@ -62,17 +58,21 @@ Sample usage:
 
 ```codegencs dbschema-extractor /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
 
-### <a name="dotnet-codegencs-poco"> Simple POCO Generator
+If you need to modify this utility (or port it to another database provider), check the [DbSchema.Extractor source code](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor).
 
-This is a template (part of [dotnet command-line tool **dotnet-codegencs**](#dotnet-codegencs)) that generates POCO classes from a JSON schema extracted with [dbschema-extractor](#dotnet-codegencs-dbschema-extractor).
+## <a name="dotnet-codegencs-templates"></a> Templates
 
-Sample usage:
+### <a name="dotnet-codegencs-poco"> Template: Simple POCO
+
+This is a template (part of dotnet command-line tool [**dotnet-codegencs**](#dotnet-codegencs)) that generates POCO classes from a JSON schema extracted with [dbschema-extractor](#dotnet-codegencs-dbschema-extractor).
+
+**Sample usage**:
 
 ```codegencs poco /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs```
 
-### Entity Framework Core Generator
+### Template: Entity Framework Core
 
-This is a template (part of [dotnet command-line tool **dotnet-codegencs**](#dotnet-codegencs)) that generates EntityFrameworkCore Entities and DbContext from a JSON schema extracted with [dbschema-extractor](#dotnet-codegencs-dbschema-extractor).
+This is a template (not yet part of dotnet-codegencs) that generates EntityFrameworkCore Entities and DbContext from a JSON schema extracted with [dbschema-extractor](#dotnet-codegencs-dbschema-extractor).
 
 Sample usage:
 
@@ -80,18 +80,8 @@ Sample usage:
 
 
 
-# Why write templates in C# instead of T4, Mustache, Razor Engine, etc?
 
-Templating Engines are usually good for end-users to write their templates (like Email templates), due to their sandboxed model, but what's better for a developer than a full-featured language?
-
-By using a full-featured language (C#) and a full featured IDE (Visual Studio or Visual Studio Code) we can write complex and reusable scripts, with strong-typing, intellisense, debugging support, etc.  
-We can use Dapper, Newtonsoft, and other amazing libraries.  
-Generating code with C# is much easier (and less ugly) than using T4 templates - easier to read, easier to write, easier to debug, easier to reuse.  
-
-In this [blog post](http://drizin.io/yet-another-code-generator/) I've explained why I've created this library, why T4 templates are difficult to use, and how I tried many other tools before deciding to write my own.
-
-
-# Collaborate
+## Contributing
 
 This is a brand new project, and your contribution can help a lot.  
 
@@ -111,6 +101,14 @@ Some ideas for templates:
 - Object caching
 - Application-level database journaling
 
+
+## History
+- 2020-07-19: New project/scripts [CodegenCS.POCO](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) to create POCOs (Dapper or other ORM) based on a Database Schema in JSON file
+- 2020-07-12: Fluent API and other major changes
+- 2020-07-05: New projects/utilities [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) and [CodegenCS.DbSchema.Extractor](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) to reverse engineer MSSQL/PostgreSQL databases into JSON schema
+- 2020-07-05: [Blog post](https://rdrizin.com/code-generation-in-c-csx-extracting-sql-server-schema/) (and [this](https://rdrizin.com/code-generation-csx-scripts-part1/)) about extracting the schema using Powershell -> CSX (Roslyn) -> CodegenCS
+- 2019-10-30: Published Sample Template [EF 6 POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator)
+- 2019-09-22: Initial public version. See [blog post here](http://rdrizin.com/yet-another-code-generator/)
 
 
 

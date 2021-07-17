@@ -1,68 +1,55 @@
+This page is only about this specific utility - if you're looking for main library, utilities (e.g. database extractors) or templates (e.g. POCOs), please check the [Main Page](https://github.com/Drizin/CodegenCS/).
+
 # CodegenCS.DbSchema.Extractor (DbSchemaExtractor)
 
-**CodegenCS.DbSchema.Extractor** extracts (reverse engineer) the schema of relational databases into a JSON schema. Currently supports MSSQL (Microsoft SQL Server) and PostgreSQL. 
+**CodegenCS.DbSchema.Extractor** extracts (reverse engineer) the schema of relational databases into a JSON schema.  
+Currently it supports MSSQL (Microsoft SQL Server) and PostgreSQL. 
 
-# Usage (EXE)
+Basically it contains classes to represent the Database Schema (tables, columns, indexes, primary keys, foreign keys), Schema Reader classes (SqlServerSchemaReader or PgsqlSchemaReader) to read the Schema from a MS SQL Server or PostgreSQL database.
 
-```
-DbSchemaExtractor.exe /postgresql /cn="Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" /output=AdventureWorks.json
-```
+# Usage (easy method)
 
-```
-DbSchemaExtractor.exe /mssql /cn="Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" /output=AdventureWorks.json
-```
+## 1. Ensure you have dotnet-codegencs tool installed
 
-```
-DbSchemaExtractor.exe /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json
-```
+```dotnet tool install -g dotnet-codegencs```
 
+## 2. Extract the Database Schema
 
-[CodegenCS code generator](https://github.com/Drizin/CodegenCS/) templates may use this JSON schema to generate code based on your Database Schema.  
-So in other words, CodegenCS.DbSchema is a Datasource Provider to be used by CodegenCS templates that generate code based on a relational database.
+This utility can be invoked using [codegencs command-line tool](https://github.com/Drizin/CodegenCS#dotnet-codegencs-dbschema-extractor).
 
-Basically it contains classes to represent the Database Schema, a Schema Reader class to read the Schema from a MS SQL Server database, 
-and PowerShell/CSX scripts to invoke it directly (so that you don't need to have a dedicated .NET project for each).
+**Sample usage**:
 
+```codegencs dbschema-extractor /postgresql /cn="Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" /output=AdventureWorks.json```
 
-# Usage (Powershell)
+```codegencs dbschema-extractor /mssql /cn="Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" /output=AdventureWorks.json```
 
-Some developers may prefer to run this script directly from Powershell (invoking CSX scripts which compiles and run the CS code).  
-This is helpful if you just want to embed the scripts inside an existing project (no need to create a new project for that).
+```codegencs dbschema-extractor /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
 
-## 1. Copy project files into any folder
+If you need to modify this utility (or port it to another database provider), you can modify the [DbSchema.Extractor source code](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) 
+and instead of running ```codegencs dbschema-extractor``` you should just run ```DbSchemaExtractor.exe```, like this:
 
-Get the files from **MSSQL** or **PostgreSQL** subfolders - copy those files to any folder.  
-You don't need to create a project or compile these files inside an existing project. The idea of using PowerShell scripts (instead of a csproj and an .exe command-line utility) is that you can embed this script into your development/build process wherever you like.  
+```DbSchemaExtractor.exe /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
 
-## 2. Extract the JSON Schema for your database
+## 3. Generate the POCOs (or any other Template)
 
+There are many [CodegenCS templates](https://github.com/Drizin/CodegenCS#dotnet-codegencs-templates) available - they will read this JSON schema and will generate code based on your Database Schema.  
+
+A very basic template (to generate [simple POCOs](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO)) can be invoked using [codegencs command-line tool](https://github.com/Drizin/CodegenCS#dotnet-codegencs-poco).
+
+**Sample usage**:
+
+```codegencs poco /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs```
+
+# Extracting the Schema - alternative method using Powershell
+
+Some developers may prefer to embed this script into their development/build process (without using the precompiled tool and without creating a new project just for that).  
+There are some helper Powershell (PS1) files which download/install the required NuGet packages, locate the CSI (C# REPL), and invoke CSX scripts which invoke the CS files.
+
+Basically you'll have to:
+
+- Copy the files from **MSSQL** or **PostgreSQL** subfolders into any folder in your project (set the CS files to NOT be part of your build)
 - Edit the connection string and paths in **RefreshSqlServerSchema.csx** or **RefreshPgsqlSchema.csx**
 - Execute the PowerShell script **RefreshSqlServerSchema.ps1** or **RefreshPgsqlSchema.ps1**
-  This script will automatically install required NuGet packages (Dapper and Newtonsoft), and will invoke SqlServerSchemaReader to read all your tables, columns, indexes, primary keys, foreign keys.  
+- Those scripts will automatically install required NuGet packages (Dapper and Newtonsoft), invoke SqlServerSchemaReader/PgsqlSchemaReader to read all your tables, columns, indexes, primary keys, foreign keys.  
 
-The CSX script is very simple (see below) and yet it's all you need to configure:
-
-```cs
-string outputJsonSchema = "AdventureWorksSchema.json");
-string connectionString = @"Data Source=MYDESKTOP\SQLEXPRESS;
-				Initial Catalog=AdventureWorks;
-				Integrated Security=True;";
-
-Func<IDbConnection> connectionFactory = () => new SqlConnection(connectionString);
-var reader = new SqlServerSchemaReader(connectionFactory);
-reader.ExportSchemaToJSON(outputJsonSchema);
-```
-
-## 3. Use the extracted JSON Schema in a CodegenCS template like [**Simple POCOs** (CodegenCS.POCO)](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO).
-
-```
-CodegenCSPOCO.exe /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs
-```
-
-
-## How PS1/CSX works?
-
-PowerShell scripts are used to install the required dependencies (NuGet packages), locate the CSI (C# REPL), and invoke the CSX scripts. The CSX scripts will include and invoke the CS files.
-
-To learn more about CSX files, check [this post](https://drizin.io/code-generation-csx-scripts-part1/).
-
+You can read more about PS1 invoking CSX scripts [here](https://rdrizin.com/code-generation-csx-scripts-part1/).

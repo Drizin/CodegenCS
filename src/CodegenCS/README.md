@@ -1,3 +1,5 @@
+This page is only about the Core Library - if you're looking for utilities (e.g. database extractors) and templates (e.g. POCOs), please check the [Main Page](https://github.com/Drizin/CodegenCS/).
+
 # CodegenCS (Core Library)
 
 C# Library for Code Generation
@@ -25,15 +27,8 @@ Besides the TextWriter, there are some helpers for common code generation tasks:
 - Adding generated files to old csproj (non-SDK style), with the option to nest the generated files under a single file
 - Adding generated files to new csproj (SDK style) nested under a single file
 
-Besides CodegenCS Core Library, there are some other related projects [here](https://github.com/Drizin/CodegenCS), including Scripts to reverse engineer a SQL Server database into JSON schema, and templates to build C# POCOs or EF Entities from that JSON schema.
-
 This class library targets both netstandard2.0 and net472 and therefore it can be used both in .NET Framework or .NET Core.
 
-
-This project contains C# code and a CSX (C# Script file) which executes the C# code. There's also a PowerShell Script which helps to launch the CSX script.  
-This is cross-platform code and can be embedded into any project (even a class library, there's no need to build an exe since CSX is just invoked by a scripting runtime).  
-
-Actually the scripts are executed using CSI (C# REPL), which is a scripting engine - the CSPROJ just helps us to test/compile, use NuGet packages, etc.  
 
 ## Installation
 Just install nuget package **[CodegenCS](https://www.nuget.org/packages/CodegenCS/)**, add `using CodegenCS`, and start using.  
@@ -82,12 +77,12 @@ ctx.AddToProject(csProj, outputFolder);
 ```cs
 var w = new CodegenTextWriter();
 w
-    .WriteLine("// Testing FluentAPI")
-    .WithCBlock("void MyMethod()", () =>
-    {
-        w.WriteLine("OtherMethod();");
-    });
-    
+  .WriteLine("// Testing FluentAPI")
+  .WithCBlock("void MyMethod()", () =>
+  {
+    w.WriteLine("OtherMethod();");
+  });
+
 w.SaveToFile("File1.cs"); 
 ```
 ... will output this:
@@ -96,14 +91,14 @@ w.SaveToFile("File1.cs");
 // Testing FluentAPI
 void MyMethod()
 {
-    OtherMethod();
+  OtherMethod();
 }
 ```
 ... while `WithJavaBlock()` would output this:
 ```java
 // Testing FluentAPI
 void MyMethod() {
-    OtherMethod();
+  OtherMethod();
 }
 ```
 **Writing Python-like block using FluentAPI and `WithPythonBlock()`**
@@ -111,11 +106,11 @@ void MyMethod() {
 ```cs
 var w = new CodegenTextWriter();
 w
-    .WriteLine("# Testing FluentAPI")
-    .WithPythonBlock("if a == b", () =>
-    {
-        w.WriteLine("print b");
-    });
+  .WriteLine("# Testing FluentAPI")
+  .WithPythonBlock("if a == b", () =>
+  {
+    w.WriteLine("print b");
+  });
 ```
 ... will output this:
 
@@ -148,13 +143,13 @@ w.WithCurlyBraces($"namespace {ns}", () =>
 ```cs
 namespace myNamespace
 {
-    public class myClass
+  public class myClass
+  {
+    public vod MyMethod()
     {
-        public vod MyMethod()
-	{
-	    test
-	}
+      test
     }
+  }
 }
 ```
 
@@ -163,15 +158,15 @@ namespace myNamespace
 ```cs
 w.WithCurlyBraces($"public void MyMethod()", () =>
 {
-    w
-      .WriteLine("// I can add one-line text")
-      .WriteLine(@"
-        // And I can write multi-line texts
-	// which can be indented wherever it fits best (according to the outer control logic)
-	// ... and in the end, it will be "realigned to the left" (left padding trimmed, docking the longest line to the margin)
-	// so that the extra spaces are all ignored
-        ")
-      .WriteLine("// No more worrying about mixed-indentations between literals and control logic");
+  w
+    .WriteLine("// I can add one-line text")
+    .WriteLine(@"
+    // And I can write multi-line texts
+    // which can be indented wherever it fits best (according to the outer control logic)
+    // ... and in the end, it will be "realigned to the left" (left padding trimmed, docking the longest line to the margin)
+    // so that the extra spaces are all ignored
+    ")
+    .WriteLine("// No more worrying about mixed-indentations between literals and control logic");
 });
 ```
 
@@ -242,8 +237,8 @@ Func<FormattableString> RenderProperties(List<Property> props)
 
 List<Property> props = new List<Property>() 
 { 
-	new Property() { Name = "Name", Type = "string" }, 
-	new Property() { Name = "Age", Type = "int" } 
+  new Property() { Name = "Name", Type = "string" }, 
+  new Property() { Name = "Age", Type = "int" } 
 };
 
 public void GenerateMyClass()
@@ -286,25 +281,15 @@ For my inner template I used a `Func<FormattableString>` but it could be other t
 See more examples in [unit tests](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Tests/CoreTests).
 
 
-## Contributing
+## Why write templates in C# instead of T4, Mustache, Razor Engine, etc?
 
-This is a brand new project, and your contribution can help a lot.  
+Templating Engines are usually good for end-users to write their templates (like Email templates), due to their sandboxed model, but what's better for a developer than a full-featured language?
 
-**Would you like to collaborate or share your own template?**  
+By using a full-featured language (C#) and a full featured IDE (Visual Studio or Visual Studio Code) we can write complex and reusable scripts, with strong-typing, intellisense, debugging support, etc.  
+We can use Dapper, Newtonsoft, and other amazing libraries.  
+Generating code with C# is much easier (and less ugly) than using T4 templates - easier to read, easier to write, easier to debug, easier to reuse.  
 
-Please submit a pull-request or if you prefer you can [contact me](http://drizin.io/pages/Contact/) to discuss your idea.
-
-
-
-## History
-- 2019-09-22: Initial public version. See [blog post here](http://drizin.io/yet-another-code-generator/)
-- 2019-10-30: Published Sample Template [EF 6 POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator)
-- 2019-11-03: Published [nuget package 1.0.0](https://www.nuget.org/packages/CodegenCS/)
-- 2019-11-04: Published [nuget package 1.0.1](https://www.nuget.org/packages/CodegenCS/) 
-- 2020-07-05: New project/scripts [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) to reverse engineer a SQL Server database into JSON schema
-- 2020-07-12: Published [nuget package 1.0.2](https://www.nuget.org/packages/CodegenCS/) with Fluent API and other major changes
-- 2020-07-13: Published [nuget package 1.0.3](https://www.nuget.org/packages/CodegenCS/) with minor fixes
-- 2020-07-19: New project/scripts [CodegenCS.POCO](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO) to create POCOs (Dapper or other ORM) based on a Database Schema in JSON file
+In this [blog post](http://drizin.io/yet-another-code-generator/) I've explained why I've created this library, why T4 templates are difficult to use, and how I tried many other tools before deciding to write my own.
 
 
 ## License
