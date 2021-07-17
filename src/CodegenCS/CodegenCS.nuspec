@@ -2,7 +2,6 @@
 <package >
   <metadata>
     <id>CodegenCS</id>
-    <version>1.0.5</version>
     <title>CodegenCS</title>
     <authors>Rick Drizin</authors>
     <owners>Rick Drizin</owners>
@@ -14,6 +13,7 @@
     <tags>code generation;code generator;templating;codegencs</tags>
     <repository type="git" url="https://github.com/Drizin/CodegenCS" commit="503233196dfbf6391dcbd807cf7e04403bb91a28" />
     <dependencies>
+		<dependency id="Newtonsoft.Json.Schema" version="[3.0.1" include="All" />
     </dependencies>
   </metadata>
   <files>

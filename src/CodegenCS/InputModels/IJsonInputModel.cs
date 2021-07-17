@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,8 +11,12 @@ namespace CodegenCS.InputModels
     public interface IJsonInputModel : IInputModel
     {
         /// <summary>
-        /// Json Schema following https://json-schema.org/ specs
+        /// Json Schema which uniquely identifies this model.
+        /// Should follow https://json-schema.org/ specs.
+        /// Can be a url, can have a version in the url.
+        /// E.g. "http://codegencs.com/schemas/dbschema/2021-07/dbschema.json"
         /// </summary>
+        [JsonProperty("$schema")]
         string Schema { get; }
     }
 }

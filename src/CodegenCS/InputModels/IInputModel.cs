@@ -9,9 +9,5 @@ namespace CodegenCS.InputModels
     /// </summary>
     public interface IInputModel
     {
-        /// <summary>
-        /// Unique identifier
-        /// </summary>
-        string Id { get; }
     }
 }
