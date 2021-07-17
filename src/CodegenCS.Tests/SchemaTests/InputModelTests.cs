@@ -2,6 +2,7 @@ using CodegenCS;
 using CodegenCS.DbSchema;
 using CodegenCS.DotNet;
 using CodegenCS.InputModels;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -22,8 +23,9 @@ namespace Tests
             string jsonPath = Path.Combine(folder, @"..\..\CodegenCS.POCO\AdventureWorksSchema.json");
             string jsonModel = File.ReadAllText(jsonPath);
             var dbSchema = DatabaseSchema.TryParse(jsonModel);
+            //File.WriteAllText(jsonPath, JsonConvert.SerializeObject(dbSchema, Formatting.Indented));
             Assert.NotNull(dbSchema);
-            Assert.AreEqual("http://codegencs.com/schemas/dbschema.json", dbSchema.Id);
+            Assert.AreEqual("http://codegencs.com/schemas/dbschema/2021-07/dbschema.json", dbSchema.Schema);
         }
 
     }

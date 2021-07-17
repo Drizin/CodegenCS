@@ -1,7 +1,9 @@
 ﻿using CodegenCS.InputModels;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -13,9 +15,9 @@ namespace CodegenCS.DbSchema
     {
         #region IJsonInputModel
         /// <inheritdoc/>
-        public string Id => "http://codegencs.com/schemas/dbschema.json";
+        public string Schema => _schema;
+        private static string _schema => "http://codegencs.com/schemas/dbschema/2021-07/dbschema.json";
 
-        public string Schema => _jsonSchema.Value;
         static Lazy<string> _jsonSchema = new Lazy<string>(() =>
         {
             var _assembly = Assembly.GetExecutingAssembly();
@@ -26,9 +28,21 @@ namespace CodegenCS.DbSchema
 
         public static DatabaseSchema TryParse(string input)
         {
-            if (new JsonInputModelParser().IsValid(_jsonSchema.Value, input))
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<DatabaseSchema>(input);
-            return null;
+            var validationErrors = new JsonInputModelParser().ValidateSchema(_jsonSchema.Value, input);
+            
+            // ignore these irrelevant errors from previous versions
+            validationErrors.RemoveAll(v => v.Message.StartsWith("Property 'Id' has not been defined and the schema does not allow additional properties."));
+            validationErrors.RemoveAll(v => v.Message.StartsWith("Required properties are missing from object: $schema."));
+
+            if (validationErrors.Any())
+                return null;
+
+            var parsed = JsonConvert.DeserializeObject<DatabaseSchema>(input);
+
+            if (!string.IsNullOrEmpty(parsed.Schema) && parsed.Schema != _schema && parsed.Schema != "http://codegencs.com/schemas/dbschema.json")
+                throw new Exception($"Invalid schema \"({parsed.Schema})\" - should be \"{_schema}\"");
+
+            return parsed;
         }
 
         public DateTimeOffset LastRefreshed { get; set; }

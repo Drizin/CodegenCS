@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft/2019-09/schema#",
-  "$id": "http://codegencs.com/schemas/dbschema.json",
+  "$id": "https://codegencs.com/schemas/dbschema/2021-07/dbschema.json",
   "type": "object",
   "required": [
     "$schema",
