@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.DbSchema.Extracto
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.EntityFrameworkCore", "CodegenCS.EntityFrameworkCore\CodegenCS.EntityFrameworkCore.csproj", "{732CA142-7A80-4DED-9F41-1B61F250EE25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet-codegencs", "dotnet-codegencs\dotnet-codegencs.csproj", "{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-codegencs", "dotnet-codegencs\dotnet-codegencs.csproj", "{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodegenCS.DbSchema.Templates", "CodegenCS.DbSchema.Templates", "{6BC13CE6-E2E7-4697-A195-84E8AC621AE3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,6 +56,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9C699A0F-EA09-4831-A082-5CE6618B7DFF} = {6BC13CE6-E2E7-4697-A195-84E8AC621AE3}
+		{732CA142-7A80-4DED-9F41-1B61F250EE25} = {6BC13CE6-E2E7-4697-A195-84E8AC621AE3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AB589EF0-8B1A-4791-A8B5-F3ED178AF34F}

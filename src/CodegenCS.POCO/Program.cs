@@ -31,13 +31,13 @@ namespace CodegenCS.POCO
             #endregion
 
             //string outputJsonSchema = Path.GetFullPath(Path.Combine(GetScriptFolder(), @".\AdventureWorksSchema.json"));
-            var generator = new SimplePOCOGenerator();
-            generator.InputJsonSchema = argsParser["input"];
-            generator.TargetFolder = argsParser["targetFolder"];
-            generator.Namespace = argsParser["namespace"];
-
-
-            generator.ValidateInputsConsole();
+            var options = new SimplePOCOGeneratorOptions(
+                inputJsonSchema: argsParser["input"],
+                targetFolder: argsParser["targetFolder"],
+                pocosNamespace: argsParser["namespace"]
+                );
+            SimplePOCOGeneratorConsoleHelper.GetOptions(options); // if args were not provided, ask in Console
+            var generator = new SimplePOCOGenerator(options);
 
             generator.Generate();
         }

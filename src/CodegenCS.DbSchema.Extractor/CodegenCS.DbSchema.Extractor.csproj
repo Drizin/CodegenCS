@@ -21,13 +21,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CodegenCS.DbSchema" Version="1.0.1" />
     <PackageReference Include="Dapper" Version="2.0.78" />
     <PackageReference Include="Npgsql" Version="5.0.3" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
   </ItemGroup>
 
   <ItemGroup>
