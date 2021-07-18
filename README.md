@@ -56,7 +56,7 @@ This is a command-line tool (part of dotnet command-line tool [**dotnet-codegenc
 
 ```codegencs dbschema-extractor /mssql /cn="Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" /output=AdventureWorks.json```
 
-```codegencs dbschema-extractor /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
+```codegencs dbschema-extractor /mssql /cn="Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
 
 If you need to modify this utility (or port it to another database provider), check the [DbSchema.Extractor source code](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor).
 

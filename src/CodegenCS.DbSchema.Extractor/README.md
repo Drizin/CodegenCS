@@ -40,7 +40,7 @@ A very basic template (to generate [simple POCOs](https://github.com/Drizin/Code
 
 ```codegencs poco /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs```
 
-# Extracting the Schema - alternative method using Powershell
+# Usage (alternative method using Powershell)
 
 Some developers may prefer to embed this script into their development/build process (without using the precompiled tool and without creating a new project just for that).  
 There are some helper Powershell (PS1) files which download/install the required NuGet packages, locate the CSI (C# REPL), and invoke CSX scripts which invoke the CS files.
@@ -50,6 +50,6 @@ Basically you'll have to:
 - Copy the files from **MSSQL** or **PostgreSQL** subfolders into any folder in your project (set the CS files to NOT be part of your build)
 - Edit the connection string and paths in **RefreshSqlServerSchema.csx** or **RefreshPgsqlSchema.csx**
 - Execute the PowerShell script **RefreshSqlServerSchema.ps1** or **RefreshPgsqlSchema.ps1**
-- Those scripts will automatically install required NuGet packages (Dapper and Newtonsoft), invoke SqlServerSchemaReader/PgsqlSchemaReader to read all your tables, columns, indexes, primary keys, foreign keys.  
+- The script will automatically install required NuGet packages (Dapper and Newtonsoft), invoke SqlServerSchemaReader/PgsqlSchemaReader to read all your tables, columns, indexes, primary keys, foreign keys.  
 
 You can read more about PS1 invoking CSX scripts [here](https://rdrizin.com/code-generation-csx-scripts-part1/).

@@ -289,7 +289,7 @@ By using a full-featured language (C#) and a full featured IDE (Visual Studio or
 We can use Dapper, Newtonsoft, and other amazing libraries.  
 Generating code with C# is much easier (and less ugly) than using T4 templates - easier to read, easier to write, easier to debug, easier to reuse.  
 
-In this [blog post](http://drizin.io/yet-another-code-generator/) I've explained why I've created this library, why T4 templates are difficult to use, and how I tried many other tools before deciding to write my own.
+In this [blog post](https://rdrizin.com/yet-another-code-generator/) I've explained why I've created this library, why T4 templates are difficult to use, and how I tried many other tools before deciding to write my own.
 
 
 ## License
