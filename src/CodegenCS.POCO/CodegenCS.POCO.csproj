@@ -21,15 +21,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CodegenCS" Version="1.0.6" />
+    <PackageReference Include="CodegenCS.DbSchema" Version="1.0.1" />
     <PackageReference Include="Dapper" Version="2.0.78" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
-    <ProjectReference Include="..\CodegenCS\CodegenCS.csproj" />
   </ItemGroup>
 
 </Project>

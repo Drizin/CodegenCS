@@ -32,6 +32,7 @@ namespace CodegenCS.DbSchema
             
             // ignore these irrelevant errors from previous versions
             validationErrors.RemoveAll(v => v.Message.StartsWith("Property 'Id' has not been defined and the schema does not allow additional properties."));
+            validationErrors.RemoveAll(v => v.Message.StartsWith("Property 'Schema' has not been defined and the schema does not allow additional properties."));
             validationErrors.RemoveAll(v => v.Message.StartsWith("Required properties are missing from object: $schema."));
 
             if (validationErrors.Any())

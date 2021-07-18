@@ -21,8 +21,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
-    <ProjectReference Include="..\CodegenCS\CodegenCS.csproj" />
+    <PackageReference Include="CodegenCS" Version="1.0.6" />
+    <PackageReference Include="CodegenCS.DbSchema" Version="1.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
 </Project>

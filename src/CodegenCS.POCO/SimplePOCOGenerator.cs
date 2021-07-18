@@ -20,7 +20,7 @@ namespace CodegenCS.POCO
         public string InputJsonSchema
         {
             get { return _inputJsonSchema; }
-            set { if (value != null && !System.IO.Path.IsPathRooted(value)) value = System.IO.Path.Combine(Program.GetScriptFolder(), value); _inputJsonSchema = value; }
+            set { /*if (value != null && !System.IO.Path.IsPathRooted(value)) value = System.IO.Path.Combine(Program.GetScriptFolder(), value);*/ _inputJsonSchema = value; }
         }
         private string _inputJsonSchema = null;
 
@@ -30,9 +30,12 @@ namespace CodegenCS.POCO
         public string TargetFolder
         {
             get { return _targetFolder; }
-            set { if (value != null && !System.IO.Path.IsPathRooted(value)) value = System.IO.Path.Combine(Program.GetScriptFolder(), value); _targetFolder = value; }
+            set { /*if (value != null && !System.IO.Path.IsPathRooted(value)) value = System.IO.Path.Combine(Program.GetScriptFolder(), value);*/ _targetFolder = value; }
         }
         private string _targetFolder = null;
+
+        private LogicalSchema schema { get; set; }
+        public string LogicalSchema { set { schema = Newtonsoft.Json.JsonConvert.DeserializeObject<LogicalSchema>(value); } }
 
         public string Namespace { get; set; }
         public bool SingleFile { get; set; } = false;
@@ -53,23 +56,21 @@ namespace CodegenCS.POCO
 
         public SimplePOCOGenerator()
         {
-            Console.WriteLine($"Input Json Schema: {InputJsonSchema}");
         }
 
         string singleFileName = "POCOs.Generated.cs";
 
-        /// <summary>
-        /// Generates POCOS
-        /// </summary>
-        public void Generate()
+        public void ValidateInputsConsole()
         {
-
             while (string.IsNullOrEmpty(InputJsonSchema))
             {
 
                 Console.WriteLine($"[Choose an Input JSON Schema File]");
                 Console.Write($"Input file: ");
                 InputJsonSchema = Console.ReadLine();
+                Console.WriteLine("Reading Schema...");
+                schema = Newtonsoft.Json.JsonConvert.DeserializeObject<LogicalSchema>(File.ReadAllText(InputJsonSchema));
+                //schema.Tables = schema.Tables.Select(t => Map<LogicalTable, Table>(t)).ToList<Table>(); 
             }
 
             while (string.IsNullOrEmpty(TargetFolder))
@@ -87,14 +88,17 @@ namespace CodegenCS.POCO
                 Console.Write($"Namespace: ");
                 Namespace = Console.ReadLine();
             }
+        }
 
+        /// <summary>
+        /// Generates POCOS
+        /// </summary>
+        public void Generate()
+        {
+
+            schema = schema ?? Newtonsoft.Json.JsonConvert.DeserializeObject<LogicalSchema>(File.ReadAllText(InputJsonSchema));
 
             _generatorContext = new CodegenContext();
-
-            Console.WriteLine("Reading Schema...");
-
-            LogicalSchema schema = Newtonsoft.Json.JsonConvert.DeserializeObject<LogicalSchema>(File.ReadAllText(InputJsonSchema));
-            //schema.Tables = schema.Tables.Select(t => Map<LogicalTable, Table>(t)).ToList<Table>(); 
 
             CodegenOutputFile writer = null;
             if (SingleFile)
@@ -176,10 +180,17 @@ namespace CodegenCS.POCO
                 writer.DecreaseIndent().WriteLine("}"); // end of namespace
 
             // since no errors happened, let's save all files
-            _generatorContext.SaveFiles(outputFolder: TargetFolder);
+            if (TargetFolder != null)
+                _generatorContext.SaveFiles(outputFolder: TargetFolder);
 
             Console.WriteLine("Success!");
         }
+
+        //public void SaveToZip(string zipFileName, string zipFolder)
+        //{
+        //    _generatorContext.SaveToZip(zipFileName, zipFolder);
+        //}
+
         void GeneratePOCO(Table table)
         {
             Console.WriteLine($"Generating {table.TableName}...");

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -11,21 +11,24 @@
 		<Description>Command line tool to extract schema from MSSQL/PostgreSQL database into json files, and templates to generate POCO classes.</Description>
 		<Copyright>Rick Drizin</Copyright>
 		<Company>Rick Drizin</Company>
-		<Version>1.0.0</Version>
+		<Version>1.0.1</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<RepositoryUrl>https://github.com/Drizin/CodegenCS</RepositoryUrl>
 
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>codegencs</ToolCommandName>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<PackageOutputPath>..\nupkg\</PackageOutputPath>
+		<PackageOutputPath>..\packages-local\</PackageOutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="CodegenCS" Version="1.0.6" />
+	  <PackageReference Include="CodegenCS.DbSchema" Version="1.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj" />
-	  <ProjectReference Include="..\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
 	  <ProjectReference Include="..\CodegenCS.POCO\CodegenCS.POCO.csproj" />
-	  <ProjectReference Include="..\CodegenCS\CodegenCS.csproj" />
 	</ItemGroup>
 
 </Project>
