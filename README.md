@@ -70,6 +70,11 @@ This is a template (part of dotnet command-line tool [**dotnet-codegencs**](#dot
 
 ```codegencs poco /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs```
 
+```codegencs poco /input=AdventureWorks.json /targetFolder=. /namespace=MyProject.POCOs /SingleFile=POCOs.generated.cs /CrudExtensions /CrudClassMethods```
+
+For more options use ```codegencs poco /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO)
+
+
 ### Template: Entity Framework Core
 
 This is a template (not yet part of dotnet-codegencs) that generates EntityFrameworkCore Entities and DbContext from a JSON schema extracted with [dbschema-extractor](#dotnet-codegencs-dbschema-extractor).

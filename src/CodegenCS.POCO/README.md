@@ -6,7 +6,12 @@ This page is only about this specific template - if you're looking for main libr
 
 These POCOs can be used by Dapper, PetaPoco or any other micro-ORMs or full ORMs.
 
-The generator will optionally create code for `override bool Equals()`, `override int GetHashCode()`, and can also create **ActiveRecord** CRUD queries (Insert/Update).
+The template has multiple optional features including: 
+
+* `override bool Equals()`, `override int GetHashCode()`, override `==` and `!=`
+* Can create CRUD statements as extension methods extending IDbConnection (like Dapper) and invoking Dapper
+* Can create CRUD statements as class methods invoking Dapper (or you can easily change to other micro ORM)
+* Can create CRUD statements with **ActiveRecord** pattern (Insert/Update directly from inside the POCO).
 
 # Usage (easy method)
 
@@ -27,6 +32,12 @@ To use this template you first need to run [codegencs dbschema-extractor](https:
 **Sample usage**:
 
 ```codegencs poco /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs```
+
+```codegencs poco /input=AdventureWorks.json /targetFolder=. /namespace=MyProject.POCOs /SingleFile=POCOs.generated.cs /CrudExtensions```
+
+```codegencs poco /input=AdventureWorks.json /targetFolder=. /namespace=MyProject.POCOs /CrudClassMethods```
+
+For more options use ```codegencs poco /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO)
 
 # Usage (alternative method using Powershell)
 

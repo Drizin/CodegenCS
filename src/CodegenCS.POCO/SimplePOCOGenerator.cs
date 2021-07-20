@@ -134,7 +134,7 @@ namespace CodegenCS.POCO
             /// <summary>
             /// Class Name
             /// </summary>
-            public string CrudClassName { get; set; } = "CRUDExtensions";
+            public string CrudClassName { get; set; } = "CRUDMethods";
         }
         #endregion
 
@@ -220,6 +220,9 @@ namespace CodegenCS.POCO
                 _dbConnectionCrudExtensions //TODO: IDisposable Scope 
                     .WriteLine()
                     .WriteLine($"namespace {_options.CRUDExtensionSettings.CrudExtensionsNamespace ?? _options.POCOsNamespace}").WriteLine("{").IncreaseIndent()
+                    .WriteLine($"/// <summary>")
+                    .WriteLine($"/// CRUD static extensions using Dapper (using static SQL statements)")
+                    .WriteLine($"/// </summary>")
                     .WriteLine($"public static class {_options.CRUDExtensionSettings.CrudExtensionsClassName}").WriteLine("{").IncreaseIndent();
             }
             if (_options.CRUDClassMethodsSettings != null)
@@ -237,14 +240,43 @@ namespace CodegenCS.POCO
                 using System;
                 using System.Collections.Generic;
                 using System.Data;
+                using System.Data.SqlClient;
                 using System.Linq;
-                using System.Runtime.CompilerServices;
-                using {Namespace};");
+                using System.Runtime.CompilerServices;");
+                if (_options.CRUDClassMethodsSettings.CrudClassNamespace != null && _options.CRUDClassMethodsSettings.CrudClassNamespace != _options.POCOsNamespace)
+                    _dbConnectionCrudExtensions.WriteLine($@"using {_options.POCOsNamespace};");
                 _dbConnectionCrudClassMethods
                     .WriteLine()
-                    .WriteLine($"namespace {_options.CRUDClassMethodsSettings.CrudClassNamespace}").WriteLine("{").IncreaseIndent()
-                    .WriteLine($"// in case you don't want to use Repositories (which generate CRUD using Dapper FastCRUD)")
+                    .WriteLine($"namespace {_options.CRUDClassMethodsSettings.CrudClassNamespace ?? _options.POCOsNamespace}").WriteLine("{").IncreaseIndent()
+                    .WriteLine($"/// <summary>")
+                    .WriteLine($"/// CRUD Methods using Dapper (using static SQL statements)")
+                    .WriteLine($"/// </summary>")
                     .WriteLine($"partial class {_options.CRUDClassMethodsSettings.CrudClassName}").WriteLine("{").IncreaseIndent();
+                _dbConnectionCrudClassMethods.WriteLine(@"
+                    #region SQL/Dapper
+                    IDbConnection CreateConnection()
+                    {
+                        string connectionString = @""Data Source=MYWORKSTATION\\SQLEXPRESS;
+                                        Initial Catalog=AdventureWorks;
+                                        Integrated Security=True;"";
+
+                        return new SqlConnection(connectionString);
+                    }
+                    IEnumerable<T> Query<T>(string sql, object param = null, IDbTransaction transaction = null, bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
+                    {
+                        using (var cn = CreateConnection())
+                        {
+                            return cn.Query<T>(sql, param, transaction, buffered, commandTimeout, commandType);
+                        }
+                    }
+                    int Execute(string sql, object param = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+                    {
+                        using (var cn = CreateConnection())
+                        {
+                            return cn.Execute(sql, param, transaction, commandTimeout, commandType);
+                        }
+                    }
+                    #endregion End of SQL/Dapper").WriteLine();
             }
 
 
@@ -498,7 +530,7 @@ namespace CodegenCS.POCO
             /// <summary>
             /// Saves (if new) or Updates (if existing)
             /// </summary>");
-            writer.WithCBlock($"{modifier}void Save({(extendedType == null ? "" : extendedType + " " + extendedTypeIdentifier + ",")}{GetClassNameForTable(table)} e, IDbTransaction transaction = null, int? commandTimeout = null)", () =>
+            writer.WithCBlock($"{modifier}void Save({(extendedType == null ? "" : "this " + extendedType + " " + extendedTypeIdentifier + ", ")}{GetClassNameForTable(table)} e, IDbTransaction transaction = null, int? commandTimeout = null)", () =>
             {
                 var pkCols = table.Columns
                     .Where(c => ShouldProcessColumn(table, c))
@@ -557,7 +589,7 @@ namespace CodegenCS.POCO
             /// <summary>
             /// Saves new record
             /// </summary>");
-            writer.WithCBlock($"{modifier}void Insert({(extendedType == null ? "" : extendedType + " " + extendedTypeIdentifier + ",")}{GetClassNameForTable(table)} e, IDbTransaction transaction = null, int? commandTimeout = null)", () =>
+            writer.WithCBlock($"{modifier}void Insert({(extendedType == null ? "" : "this " + extendedType + " " + extendedTypeIdentifier + ", ")}{GetClassNameForTable(table)} e, IDbTransaction transaction = null, int? commandTimeout = null)", () =>
             {
                 var cols = table.Columns
                     .Where(c => ShouldProcessColumn(table, c))
@@ -630,7 +662,7 @@ namespace CodegenCS.POCO
             /// <summary>
             /// Updates existing record
             /// </summary>");
-            writer.WithCBlock($"{modifier}void Update({(extendedType == null ? "" : extendedType + " " + extendedTypeIdentifier + ",")}{GetClassNameForTable(table)} e, IDbTransaction transaction = null, int? commandTimeout = null)", () =>
+            writer.WithCBlock($"{modifier}void Update({(extendedType == null ? "" : "this " + extendedType + " " + extendedTypeIdentifier + ", ")}{GetClassNameForTable(table)} e, IDbTransaction transaction = null, int? commandTimeout = null)", () =>
             {
                 var cols = table.Columns
                     .Where(c => ShouldProcessColumn(table, c))
