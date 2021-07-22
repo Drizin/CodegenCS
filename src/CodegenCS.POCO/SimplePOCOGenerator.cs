@@ -8,23 +8,17 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
-#if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
 namespace CodegenCS.POCO
 {
-#endif
     public class SimplePOCOGeneratorOptions
     {
         /// <summary>
         /// 
         /// </summary>
         /// <param name="inputJsonSchema">Absolute path of Database JSON schema</param>
-        /// <param name="targetFolder">Absolute path of the target folder where files will be written. Trailing slash not required.</param>
-        /// <param name="pocosNamespace">Namespace of generated POCOs</param>
-        public SimplePOCOGeneratorOptions(string inputJsonSchema, string targetFolder, string pocosNamespace)
+        public SimplePOCOGeneratorOptions(string inputJsonSchema)
         {
             InputJsonSchema = inputJsonSchema;
-            TargetFolder = targetFolder;
-            POCOsNamespace = pocosNamespace;
         }
 
         #region Basic/Mandatory settings
@@ -37,7 +31,7 @@ namespace CodegenCS.POCO
         /// Absolute path of the target folder where files will be written.
         /// Trailing slash not required.
         /// </summary>
-        public string TargetFolder { get; set; }
+        public string TargetFolder { get; set; } = "."; // by default generate in current dir.
 
         /// <summary>
         /// Namespace of generated POCOs.
@@ -81,9 +75,9 @@ namespace CodegenCS.POCO
             /// <summary>
             /// Active Record CRUD need a IDbConnection factory (since POCOs don't hold references to connections).
             /// This is the filepath where the template generates a sample factory. 
-            /// By default it's one level above the POCOs folder, named IDbConnectionFactory.cs
+            /// By default it's named IDbConnectionFactory.cs
             /// </summary>
-            public string ActiveRecordIDbConnectionFactoryFile { get; set; } = "..\\IDbConnectionFactory.cs";
+            public string ActiveRecordIDbConnectionFactoryFile { get; set; } = "IDbConnectionFactory.cs";
 
         }
         #endregion
@@ -102,9 +96,9 @@ namespace CodegenCS.POCO
 
             /// <summary>
             /// This is the filepath where the template generates CRUD extensions.
-            /// By default it's one level above the POCOs folder, named CRUDExtensions.cs
+            /// By default it's named CRUDExtensions.cs
             /// </summary>
-            public string CrudExtensionsFile { get; set; } = "..\\CRUDExtensions.cs";
+            public string CrudExtensionsFile { get; set; } = "CRUDExtensions.cs";
             
             /// <summary>
             /// Class Name
@@ -127,9 +121,9 @@ namespace CodegenCS.POCO
 
             /// <summary>
             /// This is the filepath where the template generates class with CRUD methods.
-            /// By default it's one level above the POCOs folder, named CRUDMethods.cs
+            /// By default it's named CRUDMethods.cs
             /// </summary>
-            public string CrudClassFile { get; set; } = "..\\CRUDMethods.cs";
+            public string CrudClassFile { get; set; } = "CRUDMethods.cs";
 
             /// <summary>
             /// Class Name
@@ -158,7 +152,9 @@ namespace CodegenCS.POCO
         /// <summary>
         /// In-memory context which tracks all generated files (with indentation support), and later saves all files at once
         /// </summary>
-        private CodegenContext _generatorContext { get; set; }
+        private CodegenContext _generatorContext { get; set; } = new CodegenContext();
+
+        public CodegenContext GeneratorContext { get { return _generatorContext; } }
 
         private CodegenOutputFile _dbConnectionCrudExtensions = null;
         private CodegenOutputFile _dbConnectionCrudClassMethods = null;
@@ -169,8 +165,6 @@ namespace CodegenCS.POCO
         public void Generate()
         {
             schema = schema ?? JsonConvert.DeserializeObject<LogicalSchema>(File.ReadAllText(_options.InputJsonSchema));
-
-            _generatorContext = new CodegenContext();
 
             CodegenOutputFile writer = null;
             if (_options.SingleFileName != null)
@@ -327,12 +321,20 @@ namespace CodegenCS.POCO
 
             if (_options.SingleFileName != null)
                 writer.DecreaseIndent().WriteLine("}"); // end of namespace
+        }
 
+        /// <summary>
+        /// Saves output
+        /// </summary>
+        public void Save()
+        {
             // since no errors happened, let's save all files
             if (_options.TargetFolder != null)
                 _generatorContext.SaveFiles(outputFolder: _options.TargetFolder);
 
+            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.White;
             WriteLog("Success!");
+            Console.ForegroundColor = previousColor;
         }
 
         //public void SaveToZip(string zipFileName, string zipFolder)
@@ -971,14 +973,13 @@ namespace CodegenCS.POCO
             return JsonConvert.DeserializeObject<T>(serialized);
         }
 
-
     }
 
     public class SimplePOCOGeneratorConsoleHelper
     {
         public static SimplePOCOGeneratorOptions GetOptions(SimplePOCOGeneratorOptions options = null)
         {
-            options = options ?? new SimplePOCOGeneratorOptions(null, null, null);
+            options = options ?? new SimplePOCOGeneratorOptions(null);
             while (string.IsNullOrEmpty(options.InputJsonSchema))
             {
                 Console.WriteLine($"[Choose an Input JSON Schema File]");
@@ -1010,6 +1011,39 @@ namespace CodegenCS.POCO
         }
     }
 
-#if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
+    #region LogicalSchema
+    /*************************************************************************************************************************
+     The serialized JSON schema (http://codegencs.com/schemas/dbschema/2021-07/dbschema.json) has only Physical Properties.
+     Here we extend the Physical definitions with some new Logical definitions.
+     For example: ForeignKeys in a logical model have the "Navigation Property Name".
+     And POCOs (mapped 1-to-1 by Entities) track the list of Property Names used by Columns, used by Navigation Properties, etc., 
+     to avoid naming conflicts.
+    **************************************************************************************************************************/
+
+    public class LogicalSchema : CodegenCS.DbSchema.DatabaseSchema
+    {
+        public new List<Table> Tables { get; set; }
+    }
+    public class Table : CodegenCS.DbSchema.Table
+    {
+        public Dictionary<string, string> ColumnPropertyNames { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, string> FKPropertyNames { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, string> ReverseFKPropertyNames { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public new List<Column> Columns { get; set; } = new List<Column>();
+        public new List<ForeignKey> ForeignKeys { get; set; } = new List<ForeignKey>();
+        public new List<ForeignKey> ChildForeignKeys { get; set; } = new List<ForeignKey>();
+    }
+
+    public class ForeignKey : CodegenCS.DbSchema.ForeignKey
+    {
+        public string NavigationPropertyName { get; set; }
+    }
+    public class Column : CodegenCS.DbSchema.Column
+    {
+
+    }
+
+
+    #endregion
+
 }
-#endif

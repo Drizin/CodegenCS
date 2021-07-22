@@ -21,6 +21,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="SimplePOCOGenerator.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CodegenCS" Version="1.0.*" />
     <PackageReference Include="CodegenCS.DbSchema" Version="1.0.*" />
     <PackageReference Include="Dapper" Version="2.0.78" />

@@ -40,7 +40,7 @@ Want to learn more? Check out the [full documentation](https://github.com/Drizin
 
 # <a name="dotnet-codegencs"></a> dotnet-codegencs (.NET global tool)
 
-**This is a .NET 5 global tool with some out-of-the-box templates and utilities.**
+**This is a [.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0) global tool with some out-of-the-box templates and utilities.**
 
 **How to Install**: ```dotnet tool install -g dotnet-codegencs```
 
@@ -68,9 +68,9 @@ This is a template (part of dotnet command-line tool [**dotnet-codegencs**](#dot
 
 **Sample usage**:
 
-```codegencs poco /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs```
+```codegencs poco /input=AdventureWorks.json /namespace=MyProject.POCOs```
 
-```codegencs poco /input=AdventureWorks.json /targetFolder=. /namespace=MyProject.POCOs /SingleFile=POCOs.generated.cs /CrudExtensions /CrudClassMethods```
+```codegencs poco /input=AdventureWorks.json /namespace=MyProject.POCOs /targetFolder=OutputFolder /SingleFile=POCOs.generated.cs /CrudExtensions /CrudClassMethods```
 
 For more options use ```codegencs poco /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO)
 

@@ -32,12 +32,13 @@ namespace CodegenCS.POCO
             #endregion
 
             //string outputJsonSchema = Path.GetFullPath(Path.Combine(GetScriptFolder(), @".\AdventureWorksSchema.json"));
-            var options = new SimplePOCOGeneratorOptions(
-                inputJsonSchema: argsParser["input"],
-                targetFolder: argsParser["targetFolder"],
-                pocosNamespace: argsParser["namespace"]
-                );
-            
+            var options = new SimplePOCOGeneratorOptions(inputJsonSchema: argsParser["input"]); // this is required, but if not provided SimplePOCOGeneratorConsoleHelper.GetOptions will ask for it
+
+            if (argsParser.ContainsKey("targetFolder"))
+                options.TargetFolder = argsParser["targetFolder"];
+            if (argsParser.ContainsKey("namespace"))
+                options.POCOsNamespace = argsParser["namespace"];
+
             if (argsParser["EqualsHashCode"] == "false")
                 options.GenerateEqualsHashCode = false;
             if (argsParser["INotifyPropertyChanged"] == "true")
@@ -79,10 +80,62 @@ namespace CodegenCS.POCO
                     options.CRUDClassMethodsSettings.CrudClassName = argsParser["CrudClassMethodsClassName"];
             }
 
-            SimplePOCOGeneratorConsoleHelper.GetOptions(options); // if args were not provided, ask in Console
+            SimplePOCOGeneratorConsoleHelper.GetOptions(options); // if mandatory args were not provided, ask in Console
             var generator = new SimplePOCOGenerator(options);
 
+            var mainProgram = new CodegenTextWriter();
+            mainProgram.WriteLine($@"
+                class Program
+                {{
+                    static void Main()
+                    {{
+                        //var options = new CodegenCS.POCO.SimplePOCOGeneratorOptions(inputJsonSchema: @""{options.InputJsonSchema}"");
+                        var options = Newtonsoft.Json.JsonConvert.DeserializeObject<CodegenCS.POCO.SimplePOCOGeneratorOptions>(@""
+                            {Newtonsoft.Json.JsonConvert.SerializeObject(options, Newtonsoft.Json.Formatting.Indented).Replace("\"","\"\"")}
+                        "");
+                        var generator = new CodegenCS.POCO.SimplePOCOGenerator(options);
+                        generator.Generate();
+                        generator.Save();
+                    }}
+                }}
+            ");
+            // Export CS template (for customization)
+            // Save with CSX extension so that it doesn't interfere with other existing CSPROJs (which by default include *.cs)
+            generator.GeneratorContext["Template.csx"].WriteLine(
+                "//This file is supposed to be launched using: dotnet run Template.csproj" + Environment.NewLine
+                + new StreamReader(typeof(SimplePOCOGenerator).Assembly.GetManifestResourceStream("CodegenCS.POCO.SimplePOCOGenerator.cs")).ReadToEnd() + Environment.NewLine
+                + mainProgram.ToString()
+            );
+            generator.GeneratorContext["Template.csproj"].WriteLine(
+                $@"
+<Project Sdk=""Microsoft.NET.Sdk"">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+	<EnableDefaultItems>false</EnableDefaultItems>
+    <NoWarn>CS0162,CS0168</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include=""Template.csx"" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include=""CodegenCS"" Version=""1.*"" />
+    <PackageReference Include=""CodegenCS.DbSchema"" Version=""1.*"" />
+    <PackageReference Include=""Newtonsoft.Json"" Version=""12.*"" />
+  </ItemGroup>
+
+</Project>".TrimStart()
+            );
+
+
             generator.Generate();
+            generator.Save();
+            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("To regenerate the outputs use \"dotnet run Template.csproj\". Use Template.csx to customize the output.");
+            Console.ForegroundColor = previousColor;
         }
 
         void ShowUsage()

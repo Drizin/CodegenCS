@@ -38,7 +38,7 @@ A very basic template (to generate [simple POCOs](https://github.com/Drizin/Code
 
 **Sample usage**:
 
-```codegencs poco /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs```
+```codegencs poco /input=AdventureWorks.json /namespace=MyProject.POCOs```
 
 For more options use ```codegencs poco /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO)
 

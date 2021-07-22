@@ -15,7 +15,7 @@ The template has multiple optional features including:
 
 # Usage (easy method)
 
-## 1. Ensure you have dotnet-codegencs tool installed
+## 1. Ensure you have [.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0) installed, and install **dotnet-codegencs tool**:
 
 ```dotnet tool install -g dotnet-codegencs```
 
