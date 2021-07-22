@@ -764,7 +764,7 @@ namespace CodegenCS.POCO
 
         private string GetFileNameForTable(Table table)
         {
-            return $"{table.TableName}.generated.cs";
+            return $"{table.TableName}.cs";
             if (table.TableSchema == "dbo")
                 return $"{table.TableName}.generated.cs";
             else
