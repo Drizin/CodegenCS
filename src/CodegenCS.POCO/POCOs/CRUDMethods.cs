@@ -9,32 +9,58 @@ using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace CodegenCS.AdventureWorksPOCOSample
 {
     /// <summary>
-    /// CRUD static extensions using Dapper (using static SQL statements)
+    /// CRUD Methods using Dapper (using static SQL statements)
     /// </summary>
-    public static class CRUDExtensions
+    partial class CRUDMethods
     {
+        #region SQL/Dapper
+        IDbConnection CreateConnection()
+        {
+            string connectionString = @"Data Source=MYWORKSTATION\\SQLEXPRESS;
+                            Initial Catalog=AdventureWorks;
+                            Integrated Security=True;";
+
+            return new SqlConnection(connectionString);
+        }
+        IEnumerable<T> Query<T>(string sql, object param = null, IDbTransaction transaction = null, bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            using (var cn = CreateConnection())
+            {
+                return cn.Query<T>(sql, param, transaction, buffered, commandTimeout, commandType);
+            }
+        }
+        int Execute(string sql, object param = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            using (var cn = CreateConnection())
+            {
+                return cn.Execute(sql, param, transaction, commandTimeout, commandType);
+            }
+        }
+        #endregion End of SQL/Dapper
+
 
         #region Address
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Address e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Address e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.AddressId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Address e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Address e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[Address]
@@ -56,14 +82,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @StateProvinceId
             )";
 
-            e.AddressId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.AddressId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Address e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Address e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[Address] SET
@@ -75,7 +101,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [StateProvinceID] = @StateProvinceId
             WHERE
                 [AddressID] = @AddressId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -85,17 +111,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, AddressType e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(AddressType e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.AddressTypeId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, AddressType e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(AddressType e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[AddressType]
@@ -109,14 +135,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            e.AddressTypeId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.AddressTypeId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, AddressType e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(AddressType e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[AddressType] SET
@@ -124,7 +150,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [AddressTypeID] = @AddressTypeId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -134,17 +160,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, AWBuildVersion e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(AWBuildVersion e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.SystemInformationId == default(byte))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, AWBuildVersion e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(AWBuildVersion e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [AWBuildVersion]
@@ -160,14 +186,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @VersionDate
             )";
 
-            e.SystemInformationId = conn.Query<byte>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.SystemInformationId = this.Query<byte>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, AWBuildVersion e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(AWBuildVersion e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [AWBuildVersion] SET
@@ -176,7 +202,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [VersionDate] = @VersionDate
             WHERE
                 [SystemInformationID] = @SystemInformationId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -186,17 +212,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, BillOfMaterials e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(BillOfMaterials e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BillOfMaterialsId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, BillOfMaterials e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(BillOfMaterials e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[BillOfMaterials]
@@ -222,14 +248,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @UnitMeasureCode
             )";
 
-            e.BillOfMaterialsId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.BillOfMaterialsId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, BillOfMaterials e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(BillOfMaterials e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[BillOfMaterials] SET
@@ -243,7 +269,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [UnitMeasureCode] = @UnitMeasureCode
             WHERE
                 [BillOfMaterialsID] = @BillOfMaterialsId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -253,17 +279,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, BusinessEntity e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(BusinessEntity e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, BusinessEntity e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(BusinessEntity e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[BusinessEntity]
@@ -275,21 +301,21 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ModifiedDate
             )";
 
-            e.BusinessEntityId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.BusinessEntityId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, BusinessEntity e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(BusinessEntity e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[BusinessEntity] SET
                 [ModifiedDate] = @ModifiedDate
             WHERE
                 [BusinessEntityID] = @BusinessEntityId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -299,17 +325,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, BusinessEntityAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(BusinessEntityAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int) && e.AddressId == default(int) && e.AddressTypeId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, BusinessEntityAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(BusinessEntityAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[BusinessEntityAddress]
@@ -327,14 +353,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ModifiedDate
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, BusinessEntityAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(BusinessEntityAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[BusinessEntityAddress] SET
@@ -346,7 +372,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [BusinessEntityID] = @BusinessEntityId AND 
                 [AddressID] = @AddressId AND 
                 [AddressTypeID] = @AddressTypeId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -356,17 +382,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, BusinessEntityContact e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(BusinessEntityContact e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int) && e.PersonId == default(int) && e.ContactTypeId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, BusinessEntityContact e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(BusinessEntityContact e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[BusinessEntityContact]
@@ -384,14 +410,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @PersonId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, BusinessEntityContact e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(BusinessEntityContact e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[BusinessEntityContact] SET
@@ -403,7 +429,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [BusinessEntityID] = @BusinessEntityId AND 
                 [PersonID] = @PersonId AND 
                 [ContactTypeID] = @ContactTypeId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -413,17 +439,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ContactType e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ContactType e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ContactTypeId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ContactType e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ContactType e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[ContactType]
@@ -437,14 +463,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            e.ContactTypeId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ContactTypeId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ContactType e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ContactType e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[ContactType] SET
@@ -452,7 +478,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [ContactTypeID] = @ContactTypeId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -462,17 +488,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, CountryRegion e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(CountryRegion e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.CountryRegionCode == null)
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, CountryRegion e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(CountryRegion e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[CountryRegion]
@@ -488,14 +514,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, CountryRegion e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(CountryRegion e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[CountryRegion] SET
@@ -504,7 +530,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [CountryRegionCode] = @CountryRegionCode";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -514,17 +540,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, CountryRegionCurrency e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(CountryRegionCurrency e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.CountryRegionCode == null && e.CurrencyCode == null)
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, CountryRegionCurrency e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(CountryRegionCurrency e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[CountryRegionCurrency]
@@ -540,14 +566,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ModifiedDate
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, CountryRegionCurrency e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(CountryRegionCurrency e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[CountryRegionCurrency] SET
@@ -557,7 +583,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [CountryRegionCode] = @CountryRegionCode AND 
                 [CurrencyCode] = @CurrencyCode";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -567,17 +593,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, CreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(CreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.CreditCardId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, CreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(CreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[CreditCard]
@@ -597,14 +623,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ModifiedDate
             )";
 
-            e.CreditCardId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.CreditCardId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, CreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(CreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[CreditCard] SET
@@ -615,7 +641,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ModifiedDate] = @ModifiedDate
             WHERE
                 [CreditCardID] = @CreditCardId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -625,17 +651,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Culture e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Culture e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.CultureId == null)
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Culture e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Culture e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[Culture]
@@ -651,14 +677,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Culture e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Culture e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[Culture] SET
@@ -667,7 +693,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [CultureID] = @CultureId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -677,17 +703,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Currency e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Currency e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.CurrencyCode == null)
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Currency e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Currency e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[Currency]
@@ -703,14 +729,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Currency e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Currency e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[Currency] SET
@@ -719,7 +745,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [CurrencyCode] = @CurrencyCode";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -729,17 +755,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, CurrencyRate e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(CurrencyRate e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.CurrencyRateId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, CurrencyRate e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(CurrencyRate e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[CurrencyRate]
@@ -761,14 +787,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ToCurrencyCode
             )";
 
-            e.CurrencyRateId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.CurrencyRateId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, CurrencyRate e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(CurrencyRate e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[CurrencyRate] SET
@@ -780,7 +806,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ToCurrencyCode] = @ToCurrencyCode
             WHERE
                 [CurrencyRateID] = @CurrencyRateId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -790,17 +816,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Customer e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Customer e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.CustomerId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Customer e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Customer e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[Customer]
@@ -818,14 +844,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @TerritoryId
             )";
 
-            e.CustomerId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.CustomerId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Customer e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Customer e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[Customer] SET
@@ -835,7 +861,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [TerritoryID] = @TerritoryId
             WHERE
                 [CustomerID] = @CustomerId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -845,17 +871,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, DatabaseLog e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(DatabaseLog e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.DatabaseLogId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, DatabaseLog e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(DatabaseLog e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [DatabaseLog]
@@ -879,14 +905,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @XmlEvent
             )";
 
-            e.DatabaseLogId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.DatabaseLogId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, DatabaseLog e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(DatabaseLog e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [DatabaseLog] SET
@@ -899,7 +925,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [XmlEvent] = @XmlEvent
             WHERE
                 [DatabaseLogID] = @DatabaseLogId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -909,17 +935,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Department e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Department e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.DepartmentId == default(short))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Department e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Department e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [HumanResources].[Department]
@@ -935,14 +961,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            e.DepartmentId = conn.Query<short>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.DepartmentId = this.Query<short>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Department e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Department e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [HumanResources].[Department] SET
@@ -951,7 +977,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [DepartmentID] = @DepartmentId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -961,17 +987,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, EmailAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(EmailAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int) && e.EmailAddressId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, EmailAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(EmailAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[EmailAddress]
@@ -987,14 +1013,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ModifiedDate
             )";
 
-            e.EmailAddressId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.EmailAddressId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, EmailAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(EmailAddress e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[EmailAddress] SET
@@ -1004,7 +1030,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [BusinessEntityID] = @BusinessEntityId AND 
                 [EmailAddressID] = @EmailAddressId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1014,17 +1040,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Employee e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Employee e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Employee e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Employee e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [HumanResources].[Employee]
@@ -1060,14 +1086,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @VacationHours
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Employee e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Employee e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [HumanResources].[Employee] SET
@@ -1086,7 +1112,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [VacationHours] = @VacationHours
             WHERE
                 [BusinessEntityID] = @BusinessEntityId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1096,17 +1122,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, EmployeeDepartmentHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(EmployeeDepartmentHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int) && e.DepartmentId == default(short) && e.ShiftId == default(byte) && e.StartDate == default(DateTime))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, EmployeeDepartmentHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(EmployeeDepartmentHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [HumanResources].[EmployeeDepartmentHistory]
@@ -1128,14 +1154,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @StartDate
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, EmployeeDepartmentHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(EmployeeDepartmentHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [HumanResources].[EmployeeDepartmentHistory] SET
@@ -1150,7 +1176,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [DepartmentID] = @DepartmentId AND 
                 [ShiftID] = @ShiftId AND 
                 [StartDate] = @StartDate";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1160,17 +1186,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, EmployeePayHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(EmployeePayHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int) && e.RateChangeDate == default(DateTime))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, EmployeePayHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(EmployeePayHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [HumanResources].[EmployeePayHistory]
@@ -1190,14 +1216,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @RateChangeDate
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, EmployeePayHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(EmployeePayHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [HumanResources].[EmployeePayHistory] SET
@@ -1209,7 +1235,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [BusinessEntityID] = @BusinessEntityId AND 
                 [RateChangeDate] = @RateChangeDate";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1219,17 +1245,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ErrorLog e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ErrorLog e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ErrorLogId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ErrorLog e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ErrorLog e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [ErrorLog]
@@ -1255,14 +1281,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @UserName
             )";
 
-            e.ErrorLogId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ErrorLogId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ErrorLog e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ErrorLog e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [ErrorLog] SET
@@ -1276,7 +1302,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [UserName] = @UserName
             WHERE
                 [ErrorLogID] = @ErrorLogId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1286,17 +1312,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Illustration e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Illustration e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.IllustrationId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Illustration e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Illustration e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[Illustration]
@@ -1310,14 +1336,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ModifiedDate
             )";
 
-            e.IllustrationId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.IllustrationId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Illustration e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Illustration e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[Illustration] SET
@@ -1325,7 +1351,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ModifiedDate] = @ModifiedDate
             WHERE
                 [IllustrationID] = @IllustrationId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1335,17 +1361,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, JobCandidate e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(JobCandidate e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.JobCandidateId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, JobCandidate e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(JobCandidate e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [HumanResources].[JobCandidate]
@@ -1361,14 +1387,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Resume
             )";
 
-            e.JobCandidateId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.JobCandidateId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, JobCandidate e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(JobCandidate e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [HumanResources].[JobCandidate] SET
@@ -1377,7 +1403,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Resume] = @Resume
             WHERE
                 [JobCandidateID] = @JobCandidateId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1387,17 +1413,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Location e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Location e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.LocationId == default(short))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Location e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Location e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[Location]
@@ -1415,14 +1441,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            e.LocationId = conn.Query<short>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.LocationId = this.Query<short>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Location e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Location e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[Location] SET
@@ -1432,7 +1458,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [LocationID] = @LocationId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1442,17 +1468,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Password e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Password e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Password e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Password e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[Password]
@@ -1470,14 +1496,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @PasswordSalt
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Password e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Password e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[Password] SET
@@ -1487,7 +1513,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [PasswordSalt] = @PasswordSalt
             WHERE
                 [BusinessEntityID] = @BusinessEntityId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1497,17 +1523,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Person e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Person e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Person e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Person e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[Person]
@@ -1541,14 +1567,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Title
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Person e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Person e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[Person] SET
@@ -1566,7 +1592,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Title] = @Title
             WHERE
                 [BusinessEntityID] = @BusinessEntityId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1576,17 +1602,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, PersonCreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(PersonCreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int) && e.CreditCardId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, PersonCreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(PersonCreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[PersonCreditCard]
@@ -1602,14 +1628,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ModifiedDate
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, PersonCreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(PersonCreditCard e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[PersonCreditCard] SET
@@ -1619,7 +1645,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [BusinessEntityID] = @BusinessEntityId AND 
                 [CreditCardID] = @CreditCardId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1629,17 +1655,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, PersonPhone e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(PersonPhone e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int) && e.PhoneNumber == null && e.PhoneNumberTypeId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, PersonPhone e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(PersonPhone e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[PersonPhone]
@@ -1657,14 +1683,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @PhoneNumberTypeId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, PersonPhone e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(PersonPhone e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[PersonPhone] SET
@@ -1676,7 +1702,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [BusinessEntityID] = @BusinessEntityId AND 
                 [PhoneNumber] = @PhoneNumber AND 
                 [PhoneNumberTypeID] = @PhoneNumberTypeId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1686,17 +1712,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, PhoneNumberType e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(PhoneNumberType e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.PhoneNumberTypeId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, PhoneNumberType e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(PhoneNumberType e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[PhoneNumberType]
@@ -1710,14 +1736,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            e.PhoneNumberTypeId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.PhoneNumberTypeId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, PhoneNumberType e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(PhoneNumberType e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[PhoneNumberType] SET
@@ -1725,7 +1751,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [PhoneNumberTypeID] = @PhoneNumberTypeId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1735,17 +1761,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Product e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Product e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Product e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Product e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[Product]
@@ -1801,14 +1827,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @WeightUnitMeasureCode
             )";
 
-            e.ProductId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ProductId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Product e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Product e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[Product] SET
@@ -1837,7 +1863,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [WeightUnitMeasureCode] = @WeightUnitMeasureCode
             WHERE
                 [ProductID] = @ProductId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1847,17 +1873,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductCategory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductCategory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductCategoryId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductCategory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductCategory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductCategory]
@@ -1871,14 +1897,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            e.ProductCategoryId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ProductCategoryId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductCategory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductCategory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductCategory] SET
@@ -1886,7 +1912,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [ProductCategoryID] = @ProductCategoryId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1896,17 +1922,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductCostHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductCostHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductId == default(int) && e.StartDate == default(DateTime))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductCostHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductCostHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductCostHistory]
@@ -1926,14 +1952,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @StartDate
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductCostHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductCostHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductCostHistory] SET
@@ -1945,7 +1971,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [ProductID] = @ProductId AND 
                 [StartDate] = @StartDate";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -1955,17 +1981,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductDescription e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductDescription e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductDescriptionId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductDescription e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductDescription e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductDescription]
@@ -1979,14 +2005,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ModifiedDate
             )";
 
-            e.ProductDescriptionId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ProductDescriptionId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductDescription e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductDescription e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductDescription] SET
@@ -1994,7 +2020,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ModifiedDate] = @ModifiedDate
             WHERE
                 [ProductDescriptionID] = @ProductDescriptionId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2004,17 +2030,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductDocument e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductDocument e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductDocument e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductDocument e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductDocument]
@@ -2028,14 +2054,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ProductId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductDocument e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductDocument e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductDocument] SET
@@ -2043,7 +2069,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ProductID] = @ProductId
             WHERE
                 [ProductID] = @ProductId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2053,17 +2079,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductInventory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductInventory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductId == default(int) && e.LocationId == default(short))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductInventory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductInventory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductInventory]
@@ -2085,14 +2111,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Shelf
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductInventory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductInventory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductInventory] SET
@@ -2105,7 +2131,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [ProductID] = @ProductId AND 
                 [LocationID] = @LocationId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2115,17 +2141,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductListPriceHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductListPriceHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductId == default(int) && e.StartDate == default(DateTime))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductListPriceHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductListPriceHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductListPriceHistory]
@@ -2145,14 +2171,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @StartDate
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductListPriceHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductListPriceHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductListPriceHistory] SET
@@ -2164,7 +2190,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [ProductID] = @ProductId AND 
                 [StartDate] = @StartDate";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2174,17 +2200,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductModel e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductModel e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductModelId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductModel e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductModel e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductModel]
@@ -2202,14 +2228,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            e.ProductModelId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ProductModelId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductModel e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductModel e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductModel] SET
@@ -2219,7 +2245,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [ProductModelID] = @ProductModelId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2229,17 +2255,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductModelIllustration e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductModelIllustration e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductModelId == default(int) && e.IllustrationId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductModelIllustration e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductModelIllustration e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductModelIllustration]
@@ -2255,14 +2281,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ProductModelId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductModelIllustration e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductModelIllustration e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductModelIllustration] SET
@@ -2272,7 +2298,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [ProductModelID] = @ProductModelId AND 
                 [IllustrationID] = @IllustrationId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2282,17 +2308,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductModelProductDescriptionCulture e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductModelProductDescriptionCulture e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductModelId == default(int) && e.ProductDescriptionId == default(int) && e.CultureId == null)
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductModelProductDescriptionCulture e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductModelProductDescriptionCulture e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductModelProductDescriptionCulture]
@@ -2310,14 +2336,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ProductModelId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductModelProductDescriptionCulture e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductModelProductDescriptionCulture e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductModelProductDescriptionCulture] SET
@@ -2329,7 +2355,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ProductModelID] = @ProductModelId AND 
                 [ProductDescriptionID] = @ProductDescriptionId AND 
                 [CultureID] = @CultureId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2339,17 +2365,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductPhotoId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductPhoto]
@@ -2369,14 +2395,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ThumbnailPhotoFileName
             )";
 
-            e.ProductPhotoId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ProductPhotoId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductPhoto] SET
@@ -2387,7 +2413,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ThumbnailPhotoFileName] = @ThumbnailPhotoFileName
             WHERE
                 [ProductPhotoID] = @ProductPhotoId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2397,17 +2423,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductId == default(int) && e.ProductPhotoId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductProductPhoto]
@@ -2425,14 +2451,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ProductPhotoId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductProductPhoto e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductProductPhoto] SET
@@ -2443,7 +2469,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [ProductID] = @ProductId AND 
                 [ProductPhotoID] = @ProductPhotoId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2453,17 +2479,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductReview e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductReview e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductReviewId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductReview e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductReview e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductReview]
@@ -2487,14 +2513,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ReviewerName
             )";
 
-            e.ProductReviewId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ProductReviewId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductReview e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductReview e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductReview] SET
@@ -2507,7 +2533,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ReviewerName] = @ReviewerName
             WHERE
                 [ProductReviewID] = @ProductReviewId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2517,17 +2543,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductSubcategory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductSubcategory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductSubcategoryId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductSubcategory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductSubcategory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ProductSubcategory]
@@ -2543,14 +2569,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ProductCategoryId
             )";
 
-            e.ProductSubcategoryId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ProductSubcategoryId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductSubcategory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductSubcategory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ProductSubcategory] SET
@@ -2559,7 +2585,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ProductCategoryID] = @ProductCategoryId
             WHERE
                 [ProductSubcategoryID] = @ProductSubcategoryId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2569,17 +2595,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ProductVendor e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ProductVendor e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ProductId == default(int) && e.BusinessEntityId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ProductVendor e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ProductVendor e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Purchasing].[ProductVendor]
@@ -2611,14 +2637,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @UnitMeasureCode
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ProductVendor e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ProductVendor e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Purchasing].[ProductVendor] SET
@@ -2636,7 +2662,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [ProductID] = @ProductId AND 
                 [BusinessEntityID] = @BusinessEntityId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2646,17 +2672,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, PurchaseOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(PurchaseOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.PurchaseOrderId == default(int) && e.PurchaseOrderDetailId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, PurchaseOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(PurchaseOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Purchasing].[PurchaseOrderDetail]
@@ -2682,14 +2708,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @UnitPrice
             )";
 
-            e.PurchaseOrderDetailId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.PurchaseOrderDetailId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, PurchaseOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(PurchaseOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Purchasing].[PurchaseOrderDetail] SET
@@ -2704,7 +2730,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [PurchaseOrderID] = @PurchaseOrderId AND 
                 [PurchaseOrderDetailID] = @PurchaseOrderDetailId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2714,17 +2740,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, PurchaseOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(PurchaseOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.PurchaseOrderId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, PurchaseOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(PurchaseOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Purchasing].[PurchaseOrderHeader]
@@ -2756,14 +2782,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @VendorId
             )";
 
-            e.PurchaseOrderId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.PurchaseOrderId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, PurchaseOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(PurchaseOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Purchasing].[PurchaseOrderHeader] SET
@@ -2780,7 +2806,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [VendorID] = @VendorId
             WHERE
                 [PurchaseOrderID] = @PurchaseOrderId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2790,17 +2816,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SalesOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SalesOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.SalesOrderId == default(int) && e.SalesOrderDetailId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SalesOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SalesOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SalesOrderDetail]
@@ -2826,14 +2852,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @UnitPriceDiscount
             )";
 
-            e.SalesOrderDetailId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.SalesOrderDetailId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SalesOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SalesOrderDetail e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SalesOrderDetail] SET
@@ -2848,7 +2874,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [SalesOrderID] = @SalesOrderId AND 
                 [SalesOrderDetailID] = @SalesOrderDetailId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2858,17 +2884,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SalesOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SalesOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.SalesOrderId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SalesOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SalesOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SalesOrderHeader]
@@ -2922,14 +2948,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @TerritoryId
             )";
 
-            e.SalesOrderId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.SalesOrderId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SalesOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SalesOrderHeader e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SalesOrderHeader] SET
@@ -2957,7 +2983,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [TerritoryID] = @TerritoryId
             WHERE
                 [SalesOrderID] = @SalesOrderId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -2967,17 +2993,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SalesOrderHeaderSalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SalesOrderHeaderSalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.SalesOrderId == default(int) && e.SalesReasonId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SalesOrderHeaderSalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SalesOrderHeaderSalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SalesOrderHeaderSalesReason]
@@ -2993,14 +3019,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @SalesReasonId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SalesOrderHeaderSalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SalesOrderHeaderSalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SalesOrderHeaderSalesReason] SET
@@ -3010,7 +3036,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [SalesOrderID] = @SalesOrderId AND 
                 [SalesReasonID] = @SalesReasonId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3020,17 +3046,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SalesPerson e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SalesPerson e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SalesPerson e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SalesPerson e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SalesPerson]
@@ -3056,14 +3082,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @TerritoryId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SalesPerson e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SalesPerson e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SalesPerson] SET
@@ -3077,7 +3103,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [TerritoryID] = @TerritoryId
             WHERE
                 [BusinessEntityID] = @BusinessEntityId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3087,17 +3113,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SalesPersonQuotaHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SalesPersonQuotaHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int) && e.QuotaDate == default(DateTime))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SalesPersonQuotaHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SalesPersonQuotaHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SalesPersonQuotaHistory]
@@ -3115,14 +3141,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @SalesQuota
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SalesPersonQuotaHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SalesPersonQuotaHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SalesPersonQuotaHistory] SET
@@ -3133,7 +3159,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [BusinessEntityID] = @BusinessEntityId AND 
                 [QuotaDate] = @QuotaDate";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3143,17 +3169,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.SalesReasonId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SalesReason]
@@ -3169,14 +3195,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ReasonType
             )";
 
-            e.SalesReasonId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.SalesReasonId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SalesReason e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SalesReason] SET
@@ -3185,7 +3211,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ReasonType] = @ReasonType
             WHERE
                 [SalesReasonID] = @SalesReasonId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3195,17 +3221,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SalesTaxRate e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SalesTaxRate e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.SalesTaxRateId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SalesTaxRate e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SalesTaxRate e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SalesTaxRate]
@@ -3225,14 +3251,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @TaxType
             )";
 
-            e.SalesTaxRateId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.SalesTaxRateId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SalesTaxRate e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SalesTaxRate e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SalesTaxRate] SET
@@ -3243,7 +3269,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [TaxType] = @TaxType
             WHERE
                 [SalesTaxRateID] = @SalesTaxRateId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3253,17 +3279,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SalesTerritory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SalesTerritory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.TerritoryId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SalesTerritory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SalesTerritory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SalesTerritory]
@@ -3289,14 +3315,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @SalesYtd
             )";
 
-            e.TerritoryId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.TerritoryId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SalesTerritory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SalesTerritory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SalesTerritory] SET
@@ -3310,7 +3336,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [SalesYTD] = @SalesYtd
             WHERE
                 [TerritoryID] = @TerritoryId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3320,17 +3346,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SalesTerritoryHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SalesTerritoryHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int) && e.TerritoryId == default(int) && e.StartDate == default(DateTime))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SalesTerritoryHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SalesTerritoryHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SalesTerritoryHistory]
@@ -3350,14 +3376,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @TerritoryId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SalesTerritoryHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SalesTerritoryHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SalesTerritoryHistory] SET
@@ -3370,7 +3396,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [BusinessEntityID] = @BusinessEntityId AND 
                 [TerritoryID] = @TerritoryId AND 
                 [StartDate] = @StartDate";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3380,17 +3406,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ScrapReason e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ScrapReason e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ScrapReasonId == default(short))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ScrapReason e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ScrapReason e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[ScrapReason]
@@ -3404,14 +3430,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Name
             )";
 
-            e.ScrapReasonId = conn.Query<short>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ScrapReasonId = this.Query<short>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ScrapReason e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ScrapReason e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[ScrapReason] SET
@@ -3419,7 +3445,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Name] = @Name
             WHERE
                 [ScrapReasonID] = @ScrapReasonId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3429,17 +3455,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Shift e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Shift e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ShiftId == default(byte))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Shift e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Shift e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [HumanResources].[Shift]
@@ -3457,14 +3483,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @StartTime
             )";
 
-            e.ShiftId = conn.Query<byte>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ShiftId = this.Query<byte>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Shift e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Shift e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [HumanResources].[Shift] SET
@@ -3474,7 +3500,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [StartTime] = @StartTime
             WHERE
                 [ShiftID] = @ShiftId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3484,17 +3510,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ShipMethod e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ShipMethod e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ShipMethodId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ShipMethod e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ShipMethod e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Purchasing].[ShipMethod]
@@ -3512,14 +3538,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ShipRate
             )";
 
-            e.ShipMethodId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ShipMethodId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ShipMethod e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ShipMethod e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Purchasing].[ShipMethod] SET
@@ -3529,7 +3555,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ShipRate] = @ShipRate
             WHERE
                 [ShipMethodID] = @ShipMethodId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3539,17 +3565,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, ShoppingCartItem e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(ShoppingCartItem e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.ShoppingCartItemId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, ShoppingCartItem e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(ShoppingCartItem e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[ShoppingCartItem]
@@ -3569,14 +3595,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @ShoppingCartId
             )";
 
-            e.ShoppingCartItemId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.ShoppingCartItemId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, ShoppingCartItem e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(ShoppingCartItem e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[ShoppingCartItem] SET
@@ -3587,7 +3613,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [ShoppingCartID] = @ShoppingCartId
             WHERE
                 [ShoppingCartItemID] = @ShoppingCartItemId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3597,17 +3623,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SpecialOffer e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SpecialOffer e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.SpecialOfferId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SpecialOffer e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SpecialOffer e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SpecialOffer]
@@ -3635,14 +3661,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @Type
             )";
 
-            e.SpecialOfferId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.SpecialOfferId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SpecialOffer e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SpecialOffer e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SpecialOffer] SET
@@ -3657,7 +3683,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [Type] = @Type
             WHERE
                 [SpecialOfferID] = @SpecialOfferId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3667,17 +3693,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, SpecialOfferProduct e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(SpecialOfferProduct e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.SpecialOfferId == default(int) && e.ProductId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, SpecialOfferProduct e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(SpecialOfferProduct e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[SpecialOfferProduct]
@@ -3693,14 +3719,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @SpecialOfferId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, SpecialOfferProduct e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(SpecialOfferProduct e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[SpecialOfferProduct] SET
@@ -3710,7 +3736,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
             WHERE
                 [SpecialOfferID] = @SpecialOfferId AND 
                 [ProductID] = @ProductId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3720,17 +3746,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, StateProvince e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(StateProvince e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.StateProvinceId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, StateProvince e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(StateProvince e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Person].[StateProvince]
@@ -3752,14 +3778,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @TerritoryId
             )";
 
-            e.StateProvinceId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.StateProvinceId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, StateProvince e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(StateProvince e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Person].[StateProvince] SET
@@ -3771,7 +3797,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [TerritoryID] = @TerritoryId
             WHERE
                 [StateProvinceID] = @StateProvinceId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3781,17 +3807,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Store e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Store e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Store e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Store e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Sales].[Store]
@@ -3811,14 +3837,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @SalesPersonId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Store e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Store e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Sales].[Store] SET
@@ -3829,7 +3855,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [SalesPersonID] = @SalesPersonId
             WHERE
                 [BusinessEntityID] = @BusinessEntityId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3839,17 +3865,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, TransactionHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(TransactionHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.TransactionId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, TransactionHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(TransactionHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[TransactionHistory]
@@ -3875,14 +3901,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @TransactionType
             )";
 
-            e.TransactionId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.TransactionId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, TransactionHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(TransactionHistory e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[TransactionHistory] SET
@@ -3896,7 +3922,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [TransactionType] = @TransactionType
             WHERE
                 [TransactionID] = @TransactionId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3906,17 +3932,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, TransactionHistoryArchive e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(TransactionHistoryArchive e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.TransactionId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, TransactionHistoryArchive e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(TransactionHistoryArchive e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[TransactionHistoryArchive]
@@ -3944,14 +3970,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @TransactionType
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, TransactionHistoryArchive e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(TransactionHistoryArchive e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[TransactionHistoryArchive] SET
@@ -3966,7 +3992,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [TransactionType] = @TransactionType
             WHERE
                 [TransactionID] = @TransactionId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -3976,17 +4002,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, UnitMeasure e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(UnitMeasure e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.UnitMeasureCode == null)
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, UnitMeasure e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(UnitMeasure e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[UnitMeasure]
@@ -4002,14 +4028,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @UnitMeasureCode
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, UnitMeasure e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(UnitMeasure e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[UnitMeasure] SET
@@ -4018,7 +4044,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [UnitMeasureCode] = @UnitMeasureCode
             WHERE
                 [UnitMeasureCode] = @UnitMeasureCode";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -4028,17 +4054,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, Vendor e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(Vendor e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.BusinessEntityId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, Vendor e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(Vendor e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Purchasing].[Vendor]
@@ -4064,14 +4090,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @PurchasingWebServiceUrl
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, Vendor e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(Vendor e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Purchasing].[Vendor] SET
@@ -4085,7 +4111,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [PurchasingWebServiceURL] = @PurchasingWebServiceUrl
             WHERE
                 [BusinessEntityID] = @BusinessEntityId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -4095,17 +4121,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, WorkOrder e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(WorkOrder e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.WorkOrderId == default(int))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, WorkOrder e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(WorkOrder e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[WorkOrder]
@@ -4131,14 +4157,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @StartDate
             )";
 
-            e.WorkOrderId = conn.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
+            e.WorkOrderId = this.Query<int>(cmd + "SELECT SCOPE_IDENTITY();", e, transaction, commandTimeout: commandTimeout).Single();
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, WorkOrder e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(WorkOrder e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[WorkOrder] SET
@@ -4152,7 +4178,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [StartDate] = @StartDate
             WHERE
                 [WorkOrderID] = @WorkOrderId";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
@@ -4162,17 +4188,17 @@ namespace CodegenCS.AdventureWorksPOCOSample
         /// <summary>
         /// Saves (if new) or Updates (if existing)
         /// </summary>
-        public static void Save(this IDbConnection conn, WorkOrderRouting e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Save(WorkOrderRouting e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             if (e.WorkOrderId == default(int) && e.ProductId == default(int) && e.OperationSequence == default(short))
-                conn.Insert(e, transaction, commandTimeout);
+                this.Insert(e, transaction, commandTimeout);
             else
-                conn.Update(e, transaction, commandTimeout);
+                this.Update(e, transaction, commandTimeout);
         }
         /// <summary>
         /// Saves new record
         /// </summary>
-        public static void Insert(this IDbConnection conn, WorkOrderRouting e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Insert(WorkOrderRouting e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             INSERT INTO [Production].[WorkOrderRouting]
@@ -4206,14 +4232,14 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 @WorkOrderId
             )";
 
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
         /// <summary>
         /// Updates existing record
         /// </summary>
-        public static void Update(this IDbConnection conn, WorkOrderRouting e, IDbTransaction transaction = null, int? commandTimeout = null)
+        public virtual void Update(WorkOrderRouting e, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             string cmd = @"
             UPDATE [Production].[WorkOrderRouting] SET
@@ -4233,7 +4259,7 @@ namespace CodegenCS.AdventureWorksPOCOSample
                 [WorkOrderID] = @WorkOrderId AND 
                 [ProductID] = @ProductId AND 
                 [OperationSequence] = @OperationSequence";
-            conn.Execute(cmd, e, transaction, commandTimeout);
+            this.Execute(cmd, e, transaction, commandTimeout);
 
             e.MarkAsClean();
         }
