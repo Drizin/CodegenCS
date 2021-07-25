@@ -1,4 +1,4 @@
-﻿//This file is supposed to be launched using: dotnet run Template.csproj
+﻿//This file is supposed to be launched using: codegencs run SimplePOCOGenerator.csx
 using CodegenCS;
 using CodegenCS.DbSchema;
 using System;
@@ -9,8 +9,9 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
-namespace CodegenCS.POCO
+namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 {
+    #region SimplePOCOGeneratorOptions
     public class SimplePOCOGeneratorOptions
     {
         /// <summary>
@@ -100,7 +101,7 @@ namespace CodegenCS.POCO
             /// By default it's named CRUDExtensions.cs
             /// </summary>
             public string CrudExtensionsFile { get; set; } = "CRUDExtensions.cs";
-            
+
             /// <summary>
             /// Class Name
             /// </summary>
@@ -136,7 +137,9 @@ namespace CodegenCS.POCO
         #endregion
 
     }
+    #endregion /SimplePOCOGeneratorOptions
 
+    #region SimplePOCOGenerator
     public class SimplePOCOGenerator
     {
         public SimplePOCOGenerator(SimplePOCOGeneratorOptions options)
@@ -151,7 +154,7 @@ namespace CodegenCS.POCO
         public Action<string> WriteLog = (x) => Console.WriteLine(x);
 
         /// <summary>
-        /// In-memory context which tracks all generated files (with indentation support), and later saves all files at once
+        /// In-memory context which tracks all generated files, and later saves all files at once
         /// </summary>
         private CodegenContext _generatorContext { get; set; } = new CodegenContext();
 
@@ -764,7 +767,7 @@ namespace CodegenCS.POCO
 
         private string GetFileNameForTable(Table table)
         {
-            return $"{table.TableName}.cs";
+            return $"{table.TableName}.generated.cs";
             if (table.TableSchema == "dbo")
                 return $"{table.TableName}.generated.cs";
             else
@@ -975,7 +978,9 @@ namespace CodegenCS.POCO
         }
 
     }
+    #endregion /SimplePOCOGenerator
 
+    #region SimplePOCOGeneratorConsoleHelper
     public class SimplePOCOGeneratorConsoleHelper
     {
         public static SimplePOCOGeneratorOptions GetOptions(SimplePOCOGeneratorOptions options = null)
@@ -1011,6 +1016,7 @@ namespace CodegenCS.POCO
             return options;
         }
     }
+    #endregion /SimplePOCOGeneratorConsoleHelper
 
     #region LogicalSchema
     /*************************************************************************************************************************
@@ -1045,7 +1051,7 @@ namespace CodegenCS.POCO
     }
 
 
-    #endregion
+    #endregion /LogicalSchema
 
 }
 
@@ -1053,10 +1059,10 @@ class Program
 {
     static void Main()
     {
-        //var options = new CodegenCS.POCO.SimplePOCOGeneratorOptions(inputJsonSchema: @"C:\Repositories\CodegenCS\src\CodegenCS.POCO\AdventureWorksSchema.json");
-        var options = Newtonsoft.Json.JsonConvert.DeserializeObject<CodegenCS.POCO.SimplePOCOGeneratorOptions>(@"
+        //var options = new CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGeneratorOptions(inputJsonSchema: @"..\..\AdventureWorksSchema.json");
+        var options = Newtonsoft.Json.JsonConvert.DeserializeObject<CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGeneratorOptions>(@"
             {
-              ""InputJsonSchema"": ""C:\\Repositories\\CodegenCS\\src\\CodegenCS.POCO\\AdventureWorksSchema.json"",
+              ""InputJsonSchema"": ""..\\..\\AdventureWorksSchema.json"",
               ""TargetFolder"": ""."",
               ""POCOsNamespace"": ""CodegenCS.AdventureWorksPOCOSample"",
               ""GenerateEqualsHashCode"": true,
@@ -1064,11 +1070,11 @@ class Program
               ""AddDatabaseGeneratedAttributes"": true,
               ""SingleFileName"": null,
               ""ActiveRecordSettings"": {
-                ""ActiveRecordIDbConnectionFactoryFile"": ""..\\IDbConnectionFactory.cs""
+                ""ActiveRecordIDbConnectionFactoryFile"": ""IDbConnectionFactory.cs""
               },
               ""CRUDExtensionSettings"": {
                 ""CrudExtensionsNamespace"": null,
-                ""CrudExtensionsFile"": ""..\\CRUDExtensions.cs"",
+                ""CrudExtensionsFile"": ""CRUDExtensions.cs"",
                 ""CrudExtensionsClassName"": ""CRUDExtensions""
               },
               ""CRUDClassMethodsSettings"": {
@@ -1078,7 +1084,7 @@ class Program
               }
             }
         ");
-        var generator = new CodegenCS.POCO.SimplePOCOGenerator(options);
+        var generator = new CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGenerator(options);
         generator.Generate();
         generator.Save();
     }
