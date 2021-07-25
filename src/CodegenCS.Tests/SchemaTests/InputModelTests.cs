@@ -20,7 +20,7 @@ namespace Tests
         public void TestDatabaseSchema()
         {
             string folder = GetCurrentFolder();
-            string jsonPath = Path.Combine(folder, @"..\..\CodegenCS.POCO\AdventureWorksSchema.json");
+            string jsonPath = Path.Combine(folder, @"..\..\CodegenCS.DbSchema.Templates\AdventureWorksSchema.json");
             string jsonModel = File.ReadAllText(jsonPath);
             var dbSchema = DatabaseSchema.TryParse(jsonModel);
             //File.WriteAllText(jsonPath, JsonConvert.SerializeObject(dbSchema, Formatting.Indented));
