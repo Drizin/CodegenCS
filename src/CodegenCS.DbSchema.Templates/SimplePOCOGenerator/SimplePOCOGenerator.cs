@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
-namespace CodegenCS.POCO
+namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 {
     public class SimplePOCOGeneratorOptions
     {

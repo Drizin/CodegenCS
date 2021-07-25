@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace CodegenCS.POCO
+namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 {
     public class Program
     {
@@ -89,11 +89,11 @@ namespace CodegenCS.POCO
                 {{
                     static void Main()
                     {{
-                        //var options = new CodegenCS.POCO.SimplePOCOGeneratorOptions(inputJsonSchema: @""{options.InputJsonSchema}"");
-                        var options = Newtonsoft.Json.JsonConvert.DeserializeObject<CodegenCS.POCO.SimplePOCOGeneratorOptions>(@""
+                        //var options = new CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGeneratorOptions(inputJsonSchema: @""{options.InputJsonSchema}"");
+                        var options = Newtonsoft.Json.JsonConvert.DeserializeObject<CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGeneratorOptions>(@""
                             {Newtonsoft.Json.JsonConvert.SerializeObject(options, Newtonsoft.Json.Formatting.Indented).Replace("\"","\"\"")}
                         "");
-                        var generator = new CodegenCS.POCO.SimplePOCOGenerator(options);
+                        var generator = new CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGenerator(options);
                         generator.Generate();
                         generator.Save();
                     }}
@@ -103,7 +103,7 @@ namespace CodegenCS.POCO
             // Save with CSX extension so that it doesn't interfere with other existing CSPROJs (which by default include *.cs)
             generator.GeneratorContext["Template.csx"].WriteLine(
                 "//This file is supposed to be launched using: dotnet run Template.csproj" + Environment.NewLine
-                + new StreamReader(typeof(SimplePOCOGenerator).Assembly.GetManifestResourceStream("CodegenCS.POCO.SimplePOCOGenerator.cs")).ReadToEnd() + Environment.NewLine
+                + new StreamReader(typeof(SimplePOCOGenerator).Assembly.GetManifestResourceStream("CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGenerator.cs")).ReadToEnd() + Environment.NewLine
                 + mainProgram.ToString()
             );
             generator.GeneratorContext["Template.csproj"].WriteLine(

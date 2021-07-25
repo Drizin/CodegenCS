@@ -1,8 +1,8 @@
 This page is only about this specific template - if you're looking for main library, utilities (e.g. database extractors) or other templates (e.g. Entity Framework), please check the [Main Page](https://github.com/Drizin/CodegenCS/).
 
-# CodegenCS.POCO
+# Simple POCO Generator
 
-**CodegenCS.POCO** is a CodegenCS template which reads a JSON database schema and generates [POCOS](https://stackoverflow.com/a/250006/3606250) for your tables. (See [example POCO](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/POCOs/Product.cs)).
+**Simple POCO Generator** is a CodegenCS template which reads a JSON database schema and generates [POCOS](https://stackoverflow.com/a/250006/3606250) for your tables. (See [example POCO](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/SampleOutput/Product.cs)).
 
 These POCOs can be used by Dapper, PetaPoco or any other micro-ORMs or full ORMs.
 
@@ -13,7 +13,7 @@ The template has multiple optional features including:
 * Can create CRUD statements as class methods invoking Dapper (or you can easily change to other micro ORM)
 * Can create CRUD statements with **ActiveRecord** pattern (Insert/Update directly from inside the POCO).
 
-# Usage (easy method)
+# Usage
 
 ## 1. Ensure you have [.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0) installed, and install **dotnet-codegencs tool**:
 
@@ -37,25 +37,25 @@ To use this template you first need to run [codegencs dbschema-extractor](https:
 
 ```codegencs poco /input=AdventureWorks.json /targetFolder=. /namespace=MyProject.POCOs /CrudClassMethods```
 
-For more options use ```codegencs poco /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO)
+For more options use ```codegencs poco /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)
 
-# Usage (alternative method using Powershell)
+# Adjusting the Templates
 
-- Check how to invoke [DbSchema.Extractor](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) using PowerShell
-- Copy the SimplePOCOGenerator files (CSX/PS1/CS) into any folder in your project (set the CS files to NOT be part of your build)
-- Edit the paths and the POCOs Namespace in [GenerateSimplePOCOs.csx](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/GenerateSimplePOCOs.csx)
-- Execute the PowerShell script [GenerateSimplePOCOs.ps1](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/GenerateSimplePOCOs.ps1)
-- The script will automatically install required NuGet packages (CodegenCS and Newtonsoft), will read the JSON file and generates POCOs.
-- Optionally you can specify a csproj file and all POCOs will be added to your csproj file.
-
-The [generator script](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/SimplePOCOGenerator.cs) is very simple to understand and customize.
+- After running the template for the first time (instructions above) you'll find (in the same output folder where your POCOs were generated) two files: `SimplePOCOGenerator.csx` and `SimplePOCOGenerator.csproj`.
+- `SimplePOCOGenerator.csx` is a copy of the standard template ([`SimplePOCOGenerator.cs`](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/SimplePOCOGenerator.cs)) enriched with the invocation parameters that you used in the command line.
+  This file is plain C#, easy to understand and customize, and Visual Studio will show full intellisense (autocomplete) for the CSX file.
+  CSX extension is used instead of CS because if it was named CS then your main project (where the POCOs are being used) would try to include (and compile) this template
+- You can edit `SimplePOCOGenerator.csx` if you want to make adjustments. 
+- Some common customizations are modifying `bool ShouldProcessColumn(Table table, Column column)` and `bool ShouldProcessTable(Table table)` where you'll be able to define which tables and columns you want (or don't want) POCOs.')
+- After making customizations or after a schema refresh (e.g. new tables) you'll want to run the templates again (regenerate the output) with `dotnet run SimplePOCOGenerator.csproj`
+- After running the templates through `dotnet run` you should have binary outputs (bin and obj folders) under a folder named `SimplePOCOGenerator.tmp` - you may want to clean the binary outputs by running `dotnet clean SimplePOCOGenerator.csproj`
 
 # Sample code (what this Template generates)
 
-See [example POCO here](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.POCO/POCOs/Product.cs).  
+See [example POCO here](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/SampleOutput/Product.cs).  
 See [example POCO usage here](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.Tests/POCOTests/POCOTests.cs).
 
-The generated POCOs are based on [Dapper](https://github.com/StackExchange/Dapper/) but you can easily modify the templates for other ORMs.
+The generated POCOs are based on [Dapper](https://github.com/DapperLib/Dapper) but you can easily modify the templates for other ORMs.
 
 **Sample POCOs usage**:
 
