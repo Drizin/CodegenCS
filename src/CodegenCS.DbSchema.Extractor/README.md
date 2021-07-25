@@ -34,13 +34,13 @@ and instead of running ```codegencs dbschema-extractor``` you should just run ``
 
 There are many [CodegenCS templates](https://github.com/Drizin/CodegenCS#dotnet-codegencs-templates) available - they will read this JSON schema and will generate code based on your Database Schema.  
 
-A very basic template (to generate [simple POCOs](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO)) can be invoked using [codegencs command-line tool](https://github.com/Drizin/CodegenCS#dotnet-codegencs-poco).
+A very basic template (to generate [simple POCOs](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)) can be invoked using [codegencs command-line tool](https://github.com/Drizin/CodegenCS#dotnet-codegencs-poco).
 
 **Sample usage**:
 
 ```codegencs poco /input=AdventureWorks.json /namespace=MyProject.POCOs```
 
-For more options use ```codegencs poco /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.POCO)
+For more options use ```codegencs poco /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)
 
 # Usage (alternative method using Powershell)
 

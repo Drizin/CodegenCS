@@ -1,7 +1,7 @@
 dotnet build -c release CodegenCS\CodegenCS.csproj
 dotnet build -c release CodegenCS.DbSchema\CodegenCS.DbSchema.csproj
 dotnet build -c release CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj
-dotnet build -c release CodegenCS.POCO\CodegenCS.POCO.csproj
+dotnet build -c release CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj
 dotnet build -c release CodegenCS.EntityFrameworkCore\CodegenCS.EntityFrameworkCore.csproj
 dotnet build -c release CodegenCS.Tests\CodegenCS.Tests.csproj
 dotnet test  CodegenCS.Tests\CodegenCS.Tests.csproj
