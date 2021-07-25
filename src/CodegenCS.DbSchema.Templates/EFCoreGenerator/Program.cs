@@ -1,7 +1,8 @@
-﻿using System;
+﻿using CodegenCS.Utils;
+using System;
 using System.IO;
 
-namespace CodegenCS.EntityFrameworkCore
+namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
 {
     class Program
     {
@@ -12,7 +13,7 @@ namespace CodegenCS.EntityFrameworkCore
         static void Main(string[] args)
         {
             #region Command-Line Arguments
-            var argsParser = new Helpers.CommandLineArgsParser(args);
+            var argsParser = new CommandLineArgsParser(args);
             if (argsParser["?"] != null || argsParser["help"] != null)
             {
                 ShowUsage();

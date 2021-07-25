@@ -7,10 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
-#if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
-namespace CodegenCS.EntityFrameworkCore
+namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
 {
-#endif
     public class EFCoreGenerator
     {
         /// <summary>
@@ -678,6 +676,41 @@ namespace CodegenCS.EntityFrameworkCore
         }
 
     }
-#if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
+
+    #region LogicalSchema
+    /*************************************************************************************************************************
+     The serialized JSON schema (http://codegencs.com/schemas/dbschema/2021-07/dbschema.json) has only Physical Properties.
+     Here we extend the Physical definitions with some new Logical definitions.
+     For example: ForeignKeys in a logical model have the "Navigation Property Name".
+     And POCOs (mapped 1-to-1 by Entities) track the list of Property Names used by Columns, used by Navigation Properties, etc., 
+     to avoid naming conflicts.
+    **************************************************************************************************************************/
+
+    public class LogicalSchema : CodegenCS.DbSchema.DatabaseSchema
+    {
+        public new List<Table> Tables { get; set; }
+    }
+    public class Table : CodegenCS.DbSchema.Table
+    {
+        public Dictionary<string, string> ColumnPropertyNames { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, string> FKPropertyNames { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, string> ReverseFKPropertyNames { get; set; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public new List<Column> Columns { get; set; } = new List<Column>();
+        public new List<ForeignKey> ForeignKeys { get; set; } = new List<ForeignKey>();
+        public new List<ForeignKey> ChildForeignKeys { get; set; } = new List<ForeignKey>();
+    }
+
+    public class ForeignKey : CodegenCS.DbSchema.ForeignKey
+    {
+        public string NavigationPropertyName { get; set; }
+    }
+    public class Column : CodegenCS.DbSchema.Column
+    {
+
+    }
+
+
+    #endregion
+
+
 }
-#endif
