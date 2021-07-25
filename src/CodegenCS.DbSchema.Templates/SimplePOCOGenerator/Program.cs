@@ -6,30 +6,25 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 {
     public class Program
     {
-        // Helpers to get the location of the current CS file
-        public static string GetScriptPath([System.Runtime.CompilerServices.CallerFilePath] string path = null) => path;
-        public static string GetScriptFolder([System.Runtime.CompilerServices.CallerFilePath] string path = null) => System.Diagnostics.Debugger.IsAttached ? Path.GetDirectoryName(path) : System.IO.Directory.GetCurrentDirectory();
-
         private string _commandLine { get; set; }
         public Program(string commandLine)
         {
             _commandLine = commandLine;
         }
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            new Program(System.AppDomain.CurrentDomain.FriendlyName).Run(args);
+            return new Program(System.AppDomain.CurrentDomain.FriendlyName).Run(args);
         }
-        public void Run(string[] args)
+        public int Run(string[] args)
         { 
             #region Command-Line Arguments
             var argsParser = new CommandLineArgsParser(args);
             if (argsParser["?"] != null || argsParser["help"] != null)
             {
                 ShowUsage();
-                Environment.Exit(0);
+                return 0;
             }
-            #endregion
 
             //string outputJsonSchema = Path.GetFullPath(Path.Combine(GetScriptFolder(), @".\AdventureWorksSchema.json"));
             var options = new SimplePOCOGeneratorOptions(inputJsonSchema: argsParser["input"]); // this is required, but if not provided SimplePOCOGeneratorConsoleHelper.GetOptions will ask for it
@@ -81,8 +76,11 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             }
 
             SimplePOCOGeneratorConsoleHelper.GetOptions(options); // if mandatory args were not provided, ask in Console
+            #endregion
+
             var generator = new SimplePOCOGenerator(options);
 
+            #region Adding SimplePOCOGenerator.csx
             var mainProgram = new CodegenTextWriter();
             mainProgram.WriteLine($@"
                 class Program
@@ -101,41 +99,19 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             ");
             // Export CS template (for customization)
             // Save with CSX extension so that it doesn't interfere with other existing CSPROJs (which by default include *.cs)
-            generator.GeneratorContext["Template.csx"].WriteLine(
-                "//This file is supposed to be launched using: dotnet run Template.csproj" + Environment.NewLine
-                + new StreamReader(typeof(SimplePOCOGenerator).Assembly.GetManifestResourceStream("CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGenerator.cs")).ReadToEnd() + Environment.NewLine
+            generator.GeneratorContext["SimplePOCOGenerator.csx"].WriteLine(
+                "//This file is supposed to be launched using: codegencs run SimplePOCOGenerator.csx" + Environment.NewLine
+                + new StreamReader(typeof(SimplePOCOGenerator).Assembly.GetManifestResourceStream(typeof(SimplePOCOGenerator).FullName + ".cs")).ReadToEnd() + Environment.NewLine
                 + mainProgram.ToString()
             );
-            generator.GeneratorContext["Template.csproj"].WriteLine(
-                $@"
-<Project Sdk=""Microsoft.NET.Sdk"">
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
-	<EnableDefaultItems>false</EnableDefaultItems>
-    <NoWarn>CS0162,CS0168</NoWarn>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include=""Template.csx"" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include=""CodegenCS"" Version=""1.*"" />
-    <PackageReference Include=""CodegenCS.DbSchema"" Version=""1.*"" />
-    <PackageReference Include=""Newtonsoft.Json"" Version=""12.*"" />
-  </ItemGroup>
-
-</Project>".TrimStart()
-            );
-
+            #endregion
 
             generator.Generate();
             generator.Save();
             var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("To regenerate the outputs use \"dotnet run Template.csproj\". Use Template.csx to customize the output.");
+            Console.WriteLine("To regenerate the outputs use \"codegencs run SimplePOCOGenerator.csx\". Modify the csx file to customize the template output.");
             Console.ForegroundColor = previousColor;
+            return 0;
         }
 
         void ShowUsage()

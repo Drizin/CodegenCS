@@ -9,91 +9,72 @@ using Newtonsoft.Json;
 
 namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
 {
-    public class EFCoreGenerator
+    #region EFCoreGeneratorOptions
+    public class EFCoreGeneratorOptions
     {
-        /// <summary>
-        /// Absolute path of JSON schema
-        /// </summary>
-        public string InputJsonSchema
-        {
-            get { return _inputJsonSchema; }
-            set { if (value != null && !System.IO.Path.IsPathRooted(value)) value = System.IO.Path.Combine(Program.GetScriptFolder(), value); _inputJsonSchema = value; }
-        }
-        private string _inputJsonSchema = null;
-
-        /// <summary>
-        /// Absolute path of the target folder where files will be written
-        /// </summary>
-        public string TargetFolder 
-        {
-            get { return _targetFolder; }
-            set { if (value != null && !System.IO.Path.IsPathRooted(value)) value = System.IO.Path.Combine(Program.GetScriptFolder(), value); _targetFolder = value; }
-        }
-        private string _targetFolder = null;
-
-        public string Namespace { get; set; }
-        public string ContextName { get; set; }
-
-        /// <summary>
-        /// In-memory context which tracks all generated files (with indentation support), and later saves all files at once
-        /// </summary>
-        CodegenContext _generatorContext { get; set; }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="inputJsonSchema">Absolute path of JSON schema</param>
-        public EFCoreGenerator()
+        public EFCoreGeneratorOptions(string inputJsonSchema)
         {
+            InputJsonSchema = inputJsonSchema;
         }
 
-        bool withAttributes = false;
+        #region Basic/Mandatory settings
+        /// <summary>
+        /// Absolute path of Database JSON schema
+        /// </summary>
+        public string InputJsonSchema { get; set; }
+
+        /// <summary>
+        /// Absolute path of the target folder where files will be written.
+        /// Trailing slash not required.
+        /// </summary>
+        public string TargetFolder { get; set; } = "."; // by default generate in current dir.
+
+        public string ContextName { get; set; }
+
+        /// <summary>
+        /// Namespace of generated Entities.
+        /// </summary>
+        public string EntitiesNamespace { get; set; } = "MyEntities";
+
+        public string DbContextNamespace { get { return EntitiesNamespace; } }
+        #endregion
+
+        public bool WithAttributes = false;
+    }
+    #endregion /EFCoreGeneratorOptions
+
+    #region EFCoreGenerator
+    public class EFCoreGenerator
+    {
+        public EFCoreGenerator(EFCoreGeneratorOptions options)
+        {
+            _options = options;
+            schema = Newtonsoft.Json.JsonConvert.DeserializeObject<LogicalSchema>(File.ReadAllText(_options.InputJsonSchema));
+            //schema.Tables = schema.Tables.Select(t => Map<LogicalTable, Table>(t)).ToList<Table>();
+        }
+
+        private EFCoreGeneratorOptions _options { get; set; }
+        private LogicalSchema schema { get; set; }
+
+        public Action<string> WriteLog = (x) => Console.WriteLine(x);
+
+        /// <summary>
+        /// In-memory context which tracks all generated files, and later saves all files at once
+        /// </summary>
+        private CodegenContext _generatorContext { get; set; } = new CodegenContext();
+
+        public CodegenContext GeneratorContext { get { return _generatorContext; } }
 
         /// <summary>
         /// Generates Entities and DbContext
         /// </summary>
         public void Generate()
         {
-
-            while (string.IsNullOrEmpty(InputJsonSchema))
-            {
-
-                Console.WriteLine($"[Choose an Input JSON Schema File]");
-                Console.Write($"Input file: ");
-                InputJsonSchema = Console.ReadLine();
-            }
-
-            while (string.IsNullOrEmpty(TargetFolder))
-            {
-
-                Console.WriteLine($"[Choose a Target Folder]");
-                Console.Write($"Target Folder: ");
-                TargetFolder = Console.ReadLine();
-            }
-
-            while (string.IsNullOrEmpty(Namespace))
-            {
-
-                Console.WriteLine($"[Choose a Namespace]");
-                Console.Write($"Namespace: ");
-                Namespace = Console.ReadLine();
-            }
-
-            while (string.IsNullOrEmpty(ContextName))
-            {
-
-                Console.WriteLine($"[Choose a DbContext Name]");
-                Console.Write($"DbContext Name: ");
-                ContextName = Console.ReadLine();
-            }
-
-
-            _generatorContext = new CodegenContext();
-
-            Console.WriteLine("Reading Schema...");
-
-            LogicalSchema schema = Newtonsoft.Json.JsonConvert.DeserializeObject<LogicalSchema>(File.ReadAllText(InputJsonSchema));
-            //schema.Tables = schema.Tables.Select(t => Map<LogicalTable, Table>(t)).ToList<Table>();
+            schema = schema ?? JsonConvert.DeserializeObject<LogicalSchema>(File.ReadAllText(_options.InputJsonSchema));
 
             // Define a unique property name for each column
             foreach (var table in schema.Tables)
@@ -116,7 +97,7 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
                     var pkTable = schema.Tables.SingleOrDefault(t => t.TableSchema == fk.PKTableSchema && t.TableName == fk.PKTableName);
                     if (pkTable == null)
                     {
-                        Console.WriteLine($"Can't find table {fk.PKTableName}");
+                        WriteLog($"Can't find table {fk.PKTableName}");
                         continue;
                     }
                     var reverseFk = pkTable.ChildForeignKeys.Single(rfk => rfk.ForeignKeyConstraintName == fk.ForeignKeyConstraintName);
@@ -134,20 +115,20 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
                 string entityClassName = GetClassNameForTable(table);
 
                 string tableFilePath = GetFileNameForTable(table);
-                Console.WriteLine($"Generating {tableFilePath}...");
+                WriteLog($"Generating {tableFilePath}...");
                 using (var writer = _generatorContext[tableFilePath])
                 {
                     writer.WriteLine(@"using System;");
                     writer.WriteLine(@"using System.Collections.Generic;");
-                    if (withAttributes)
+                    if (_options.WithAttributes)
                     {
                         writer.WriteLine(@"using System.ComponentModel.DataAnnotations;");
                         writer.WriteLine(@"using System.ComponentModel.DataAnnotations.Schema;");
                     }
                     writer.WriteLine();
-                    using (writer.WithCBlock($"namespace {Namespace}"))
+                    using (writer.WithCBlock($"namespace {_options.EntitiesNamespace}"))
                     {
-                        if (withAttributes && table.TableSchema != "dbo") //TODO or table different than class name?
+                        if (_options.WithAttributes && table.TableSchema != "dbo") //TODO or table different than class name?
                             writer.WriteLine($"[Table(\"{table.TableName}\", Schema = \"{table.TableSchema}\")]");
                         else if (entityClassName.ToLower() != table.TableName.ToLower())
                             writer.WriteLine($"[Table(\"{table.TableName}\")]");
@@ -171,7 +152,7 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
                             {
                                 string propertyName = GetPropertyNameForDatabaseColumn(table, column);
                                 string clrType = GetTypeDefinitionForDatabaseColumn(table, column) ?? "";
-                                if (withAttributes)
+                                if (_options.WithAttributes)
                                 {
                                     if (column.IsPrimaryKeyMember)
                                         writer.WriteLine("[Key]");
@@ -207,8 +188,8 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
                                 var parentToChildFK = pkTable.ChildForeignKeys.Single(fk => fk.ForeignKeyConstraintName == childToParentFK.ForeignKeyConstraintName);
 
                                 var fkCol = childToParentFK.Columns.First().FKColumnName; //TODO: composite keys
-                                Console.WriteLine($"{table.TableName}{fkCol}");
-                                if (withAttributes)
+                                WriteLog($"{table.TableName}{fkCol}");
+                                if (_options.WithAttributes)
                                 {
                                     writer.WriteLine($"[ForeignKey(nameof({table.ColumnPropertyNames[fkCol]}))]");
                                     writer.WriteLine($"[InverseProperty(nameof({GetClassNameForTable(pkTable)}.{parentToChildFK.NavigationPropertyName}))]");
@@ -221,7 +202,7 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
                                 var fkTable = schema.Tables.Single(t => t.TableSchema == parentToChildFK.FKTableSchema && t.TableName == parentToChildFK.FKTableName);
                                 var childToParentFK = fkTable.ForeignKeys.Single(fk => fk.ForeignKeyConstraintName == parentToChildFK.ForeignKeyConstraintName);
                                 var fkCol = parentToChildFK.Columns.First().FKColumnName; //TODO: composite keys
-                                if (withAttributes)
+                                if (_options.WithAttributes)
                                 {
                                     //writer.WriteLine($"[InverseProperty(nameof({GetClassNameForTable(fkTable)}.{fk.ReverseNavigationPropertyName}))]"); // some cases attribute is set by nameof?
                                     writer.WriteLine($"[InverseProperty(\"{childToParentFK.NavigationPropertyName}\")]"); // some cases attribute is set by nameof?
@@ -235,22 +216,22 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
             #endregion
 
             #region DbContext
-            using (var dbContextWriter = _generatorContext[ContextName + ".cs"])
+            using (var dbContextWriter = _generatorContext[_options.ContextName + ".cs"])
             {
                 dbContextWriter.WriteLine("using System;");
                 dbContextWriter.WriteLine("using Microsoft.EntityFrameworkCore;");
                 dbContextWriter.WriteLine("using Microsoft.EntityFrameworkCore.Metadata;");
                 dbContextWriter.WriteLine("");
-                using (dbContextWriter.WithCBlock($"namespace {Namespace}"))
+                using (dbContextWriter.WithCBlock($"namespace {_options.DbContextNamespace}"))
                 {
-                    using (dbContextWriter.WithCBlock($"public partial class {ContextName} : DbContext"))
+                    using (dbContextWriter.WithCBlock($"public partial class {_options.ContextName} : DbContext"))
                     {
-                        using (dbContextWriter.WithCBlock($"public {ContextName}()"))
+                        using (dbContextWriter.WithCBlock($"public {_options.ContextName}()"))
                         {
                         }
                         dbContextWriter.WriteLine();
 
-                        using (dbContextWriter.WithCBlock($"public {ContextName}(DbContextOptions<{ContextName}> options){Environment.NewLine}    : base(options)"))
+                        using (dbContextWriter.WithCBlock($"public {_options.ContextName}(DbContextOptions<{_options.ContextName}> options){Environment.NewLine}    : base(options)"))
                         {
                         }
                         dbContextWriter.WriteLine();
@@ -299,7 +280,7 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
                                     else
                                         dbContextWriter.WriteLine($"entity.HasNoKey();{Environment.NewLine}");
 
-                                    if (!withAttributes)
+                                    if (!_options.WithAttributes)
                                         dbContextWriter.WriteLine($"entity.ToTable(\"{table.TableName}\", \"{table.TableSchema}\");{Environment.NewLine}");
 
                                     if (!string.IsNullOrEmpty(table.TableDescription))
@@ -331,7 +312,7 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
                                         )
                                     {
                                         dbContextWriter.Write($"entity.Property(e => e.{GetPropertyNameForDatabaseColumn(table, column)})");
-                                        if (!withAttributes && column.ColumnName != GetPropertyNameForDatabaseColumn(table, column))
+                                        if (!_options.WithAttributes && column.ColumnName != GetPropertyNameForDatabaseColumn(table, column))
                                             dbContextWriter.Write($"{Environment.NewLine}    .HasColumnName(\"{column.ColumnName}\")");
 
                                         string typeName = null; // TODO: combine with identical block
@@ -418,7 +399,7 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
                                             dbContextWriter.Write($"{Environment.NewLine}.HasForeignKey(d => d.{GetPropertyNameForDatabaseColumn(fkTable, fkCol)})");
 
                                             // NO_ACTION seems like a bug in ef dbcontext scaffold when we use -d (annotations) ?
-                                            if (parentToChildFK.OnDeleteCascade == "SET_NULL" || (withAttributes && parentToChildFK.OnDeleteCascade == "NO_ACTION"))
+                                            if (parentToChildFK.OnDeleteCascade == "SET_NULL" || (_options.WithAttributes && parentToChildFK.OnDeleteCascade == "NO_ACTION"))
                                                 dbContextWriter.Write($"{Environment.NewLine}.OnDelete(DeleteBehavior.ClientSetNull)");
 
                                             dbContextWriter.WriteLine($";");
@@ -433,11 +414,20 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
                 }
             }
             #endregion
+        }
 
+        /// <summary>
+        /// Saves output
+        /// </summary>
+        public void Save()
+        {
             // since no errors happened, let's save all files
-            _generatorContext.SaveFiles(outputFolder: TargetFolder);
+            if (_options.TargetFolder != null)
+                _generatorContext.SaveFiles(outputFolder: _options.TargetFolder);
 
-            Console.WriteLine("Success!");
+            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.White;
+            WriteLog("Success!");
+            Console.ForegroundColor = previousColor;
         }
 
         string GetFileNameForTable(Table table)
@@ -525,7 +515,7 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
             catch (Exception ex)
             {
                 // some types are vendor-specific and may require specific DLLs (e.g. Microsoft.SqlServer.Types.SqlGeography)
-                Console.WriteLine($"Warning - unknown Type {column.ClrType} - you may need to add some reference to your project");
+                WriteLog($"Warning - unknown Type {column.ClrType} - you may need to add some reference to your project");
                 typeName = column.ClrType;
                 isReferenceType = true; // non-standard types are probably reference types
             }
@@ -544,16 +534,16 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
         }
 
         // From PetaPoco - https://github.com/CollaboratingPlatypus/PetaPoco/blob/development/T4Templates/PetaPoco.Core.ttinclude
-        static Regex rxCleanUp = new Regex(@"[^\w\d_]", RegexOptions.Compiled);
-        static string[] cs_keywords = { "abstract", "event", "new", "struct", "as", "explicit", "null",
-     "switch", "base", "extern", "object", "this", "bool", "false", "operator", "throw",
-     "break", "finally", "out", "true", "byte", "fixed", "override", "try", "case", "float",
-     "params", "typeof", "catch", "for", "private", "uint", "char", "foreach", "protected",
-     "ulong", "checked", "goto", "public", "unchecked", "class", "if", "readonly", "unsafe",
-     "const", "implicit", "ref", "ushort", "continue", "in", "return", "using", "decimal",
-     "int", "sbyte", "virtual", "default", "interface", "sealed", "volatile", "delegate",
-     "internal", "short", "void", "do", "is", "sizeof", "while", "double", "lock",
-     "stackalloc", "else", "long", "static", "enum", "namespace", "string" };
+        private static Regex rxCleanUp = new Regex(@"[^\w\d_]", RegexOptions.Compiled);
+        private static string[] cs_keywords = { "abstract", "event", "new", "struct", "as", "explicit", "null",
+		     "switch", "base", "extern", "object", "this", "bool", "false", "operator", "throw",
+		     "break", "finally", "out", "true", "byte", "fixed", "override", "try", "case", "float",
+		     "params", "typeof", "catch", "for", "private", "uint", "char", "foreach", "protected",
+		     "ulong", "checked", "goto", "public", "unchecked", "class", "if", "readonly", "unsafe",
+		     "const", "implicit", "ref", "ushort", "continue", "in", "return", "using", "decimal",
+		     "int", "sbyte", "virtual", "default", "interface", "sealed", "volatile", "delegate",
+		     "internal", "short", "void", "do", "is", "sizeof", "while", "double", "lock",
+		     "stackalloc", "else", "long", "static", "enum", "namespace", "string" };
 
         string GetPropertyNameForDatabaseColumn(Table table, Column column)
         {
@@ -622,7 +612,7 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
         // Splits both camelCaseWords and also TitleCaseWords. Underscores and dashes are also splitted. Uppercase acronyms are also splitted.
         // E.g. "BusinessEntityID" becomes ["Business","Entity","ID"]
         // E.g. "Employee_SSN" becomes ["employee","_","SSN"]
-        static Regex splitUpperCase = new Regex(@"
+        private static Regex splitUpperCase = new Regex(@"
                 (?<=[A-Z])(?=[A-Z][a-z0-9]) |
                  (?<=[^A-Z])(?=[A-Z]) |
                  (?<=[A-Za-z0-9])(?=[^A-Za-z0-9])", RegexOptions.IgnorePatternWhitespace);
@@ -676,6 +666,56 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
         }
 
     }
+    #endregion /EFCoreGenerator
+
+    #region EFCoreGeneratorConsoleHelper
+    public class EFCoreGeneratorConsoleHelper
+    {
+        public static EFCoreGeneratorOptions GetOptions(EFCoreGeneratorOptions options = null)
+        {
+            options = options ?? new EFCoreGeneratorOptions(null);
+            while (string.IsNullOrEmpty(options.InputJsonSchema))
+            {
+                Console.WriteLine($"[Choose an Input JSON Schema File]");
+                Console.Write($"Input file: ");
+                options.InputJsonSchema = Console.ReadLine();
+                if (!File.Exists(options.InputJsonSchema))
+                {
+                    Console.WriteLine($"File {options.InputJsonSchema} does not exist");
+                    options.InputJsonSchema = null;
+                    continue;
+                }
+                options.InputJsonSchema = new FileInfo(options.InputJsonSchema).FullName;
+            }
+
+            while (string.IsNullOrEmpty(options.TargetFolder))
+            {
+                Console.WriteLine($"[Choose a Target Folder]");
+                Console.Write($"Target Folder: ");
+                options.TargetFolder = Console.ReadLine();
+            }
+
+            while (string.IsNullOrEmpty(options.EntitiesNamespace))
+            {
+
+                Console.WriteLine($"[Choose a Namespace]");
+                Console.Write($"Namespace: ");
+                options.EntitiesNamespace = Console.ReadLine();
+            }
+
+            while (string.IsNullOrEmpty(options.ContextName))
+            {
+
+                Console.WriteLine($"[Choose a DbContext Name]");
+                Console.Write($"DbContext Name: ");
+                options.ContextName = Console.ReadLine();
+            }
+            return options;
+        }
+
+
+    }
+    #endregion /EFCoreGeneratorConsoleHelper
 
     #region LogicalSchema
     /*************************************************************************************************************************
@@ -710,7 +750,6 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
     }
 
 
-    #endregion
-
+    #endregion /LogicalSchema
 
 }

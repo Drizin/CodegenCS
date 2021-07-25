@@ -16,11 +16,11 @@ namespace CodegenCS.DbSchema.Extractor
             _commandLine = commandLine;
         }
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            new Program(System.AppDomain.CurrentDomain.FriendlyName).Run(args);
+            return new Program(System.AppDomain.CurrentDomain.FriendlyName).Run(args);
         }
-        public void Run(string[] args)
+        public int Run(string[] args)
         {
             #region Command-Line Arguments
             var argsParser = new Helpers.CommandLineArgsParser(args);
@@ -42,6 +42,7 @@ namespace CodegenCS.DbSchema.Extractor
 
 
             wizard.Run();
+            return 0;
         }
 
         private void ShowUsage()

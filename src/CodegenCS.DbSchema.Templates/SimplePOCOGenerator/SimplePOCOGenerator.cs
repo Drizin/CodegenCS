@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 
 namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 {
+    #region SimplePOCOGeneratorOptions
     public class SimplePOCOGeneratorOptions
     {
         /// <summary>
@@ -99,7 +100,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             /// By default it's named CRUDExtensions.cs
             /// </summary>
             public string CrudExtensionsFile { get; set; } = "CRUDExtensions.cs";
-            
+
             /// <summary>
             /// Class Name
             /// </summary>
@@ -135,7 +136,9 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
         #endregion
 
     }
+    #endregion /SimplePOCOGeneratorOptions
 
+    #region SimplePOCOGenerator
     public class SimplePOCOGenerator
     {
         public SimplePOCOGenerator(SimplePOCOGeneratorOptions options)
@@ -150,7 +153,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
         public Action<string> WriteLog = (x) => Console.WriteLine(x);
 
         /// <summary>
-        /// In-memory context which tracks all generated files (with indentation support), and later saves all files at once
+        /// In-memory context which tracks all generated files, and later saves all files at once
         /// </summary>
         private CodegenContext _generatorContext { get; set; } = new CodegenContext();
 
@@ -974,7 +977,9 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
         }
 
     }
+    #endregion /SimplePOCOGenerator
 
+    #region SimplePOCOGeneratorConsoleHelper
     public class SimplePOCOGeneratorConsoleHelper
     {
         public static SimplePOCOGeneratorOptions GetOptions(SimplePOCOGeneratorOptions options = null)
@@ -1010,6 +1015,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             return options;
         }
     }
+    #endregion /SimplePOCOGeneratorConsoleHelper
 
     #region LogicalSchema
     /*************************************************************************************************************************
@@ -1044,6 +1050,6 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
     }
 
 
-    #endregion
+    #endregion /LogicalSchema
 
 }
