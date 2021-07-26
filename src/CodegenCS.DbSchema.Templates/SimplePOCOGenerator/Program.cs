@@ -78,6 +78,10 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             SimplePOCOGeneratorConsoleHelper.GetOptions(options); // if mandatory args were not provided, ask in Console
             #endregion
 
+            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Executing '{typeof(SimplePOCOGenerator).Name}' template...");
+            Console.ForegroundColor = previousColor;
+
             var generator = new SimplePOCOGenerator(options);
 
             #region Adding SimplePOCOGenerator.csx
@@ -99,8 +103,8 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             ");
             // Export CS template (for customization)
             // Save with CSX extension so that it doesn't interfere with other existing CSPROJs (which by default include *.cs)
-            generator.GeneratorContext["SimplePOCOGenerator.csx"].WriteLine(
-                "//This file is supposed to be launched using: codegencs run SimplePOCOGenerator.csx" + Environment.NewLine
+            generator.GeneratorContext[typeof(SimplePOCOGenerator).Name + ".csx"].WriteLine(
+                $"//This file is supposed to be launched using: codegencs run {typeof(SimplePOCOGenerator).Name}.csx" + Environment.NewLine
                 + new StreamReader(typeof(SimplePOCOGenerator).Assembly.GetManifestResourceStream(typeof(SimplePOCOGenerator).FullName + ".cs")).ReadToEnd() + Environment.NewLine
                 + mainProgram.ToString()
             );
@@ -108,8 +112,10 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 
             generator.Generate();
             generator.Save();
-            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("To regenerate the outputs use \"codegencs run SimplePOCOGenerator.csx\". Modify the csx file to customize the template output.");
+            previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Finished executing '{typeof(SimplePOCOGenerator).Name}' template.");
+            Console.WriteLine($"A copy of the original template (with the options used) was saved as '{typeof(SimplePOCOGenerator).Name}.csx'.");
+            Console.WriteLine($"To customize the template outputs you can modify the csx file and regenerate using 'codegencs run {typeof(SimplePOCOGenerator).Name}.csx'.");
             Console.ForegroundColor = previousColor;
             return 0;
         }

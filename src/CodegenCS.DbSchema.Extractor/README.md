@@ -15,18 +15,18 @@ Basically it contains classes to represent the Database Schema (tables, columns,
 
 ## 2. Extract the Database Schema
 
-This utility can be invoked using [codegencs command-line tool](https://github.com/Drizin/CodegenCS#dotnet-codegencs-dbschema-extractor).
+This utility can be invoked using [codegencs command-line tool](https://github.com/Drizin/CodegenCS#dotnet-codegencs-extract-dbschema).
 
 **Sample usage**:
 
-```codegencs dbschema-extractor /postgresql /cn="Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" /output=AdventureWorks.json```
+```codegencs extract-dbschema /postgresql /cn="Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" /output=AdventureWorks.json```
 
-```codegencs dbschema-extractor /mssql /cn="Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" /output=AdventureWorks.json```
+```codegencs extract-dbschema /mssql /cn="Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" /output=AdventureWorks.json```
 
-```codegencs dbschema-extractor /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
+```codegencs extract-dbschema /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
 
 If you need to modify this utility (or port it to another database provider), you can modify the [DbSchema.Extractor source code](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) 
-and instead of running ```codegencs dbschema-extractor``` you should just run ```DbSchemaExtractor.exe```, like this:
+and instead of running ```codegencs extract-dbschema``` you should just run ```DbSchemaExtractor.exe```, like this:
 
 ```DbSchemaExtractor.exe /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
 
@@ -34,13 +34,13 @@ and instead of running ```codegencs dbschema-extractor``` you should just run ``
 
 There are many [CodegenCS templates](https://github.com/Drizin/CodegenCS#dotnet-codegencs-templates) available - they will read this JSON schema and will generate code based on your Database Schema.  
 
-A very basic template (to generate [simple POCOs](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)) can be invoked using [codegencs command-line tool](https://github.com/Drizin/CodegenCS#dotnet-codegencs-poco).
+A very basic template (to generate [simple POCOs](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)) can be invoked using [codegencs command-line tool](https://github.com/Drizin/CodegenCS#dotnet-codegencs-simplepocogenerator).
 
 **Sample usage**:
 
-```codegencs poco /input=AdventureWorks.json /namespace=MyProject.POCOs```
+```codegencs simplepocogenerator /input=AdventureWorks.json /namespace=MyProject.POCOs```
 
-For more options use ```codegencs poco /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)
+For more options use ```codegencs simplepocogenerator /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)
 
 # Usage (alternative method using Powershell)
 

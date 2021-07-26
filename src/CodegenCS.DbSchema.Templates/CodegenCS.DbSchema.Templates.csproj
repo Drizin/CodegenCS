@@ -18,6 +18,9 @@
 
   <ItemGroup>
     <EmbeddedResource Include="SimplePOCOGenerator\SimplePOCOGenerator.cs" />
+	<EmbeddedResource Include="EFCoreGenerator\EFCoreGenerator.cs" />
+	<!--<Compile Remove="**\SampleOutput\**" />-->
+	<Compile Remove="EFCoreGenerator\SampleOutput\**" />
   </ItemGroup>
 
   <ItemGroup>

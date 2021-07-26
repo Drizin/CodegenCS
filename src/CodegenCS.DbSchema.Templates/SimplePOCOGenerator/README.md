@@ -2,7 +2,7 @@ This page is only about this specific template - if you're looking for main libr
 
 # Simple POCO Generator
 
-**Simple POCO Generator** is a CodegenCS template which reads a JSON database schema and generates [POCOS](https://stackoverflow.com/a/250006/3606250) for your tables. (See [example POCO](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/SampleOutput/Product.cs)).
+**Simple POCO Generator** is a CodegenCS template which reads a JSON database schema and generates [POCOS](https://stackoverflow.com/a/250006/3606250) for your tables. (See [example POCO](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/SampleOutput/Product.generated.cs)).
 
 These POCOs can be used by Dapper, PetaPoco or any other micro-ORMs or full ORMs.
 
@@ -21,23 +21,23 @@ The template has multiple optional features including:
 
 ## 2. Extract the Database Schema
 
-To use this template you first need to run [codegencs dbschema-extractor](https://github.com/Drizin/CodegenCS#dotnet-codegencs-dbschema-extractor) to extracts the schema of a MSSQL or PostgreSQL database into a JSON file.
+To use this template you first need to run [codegencs extract-dbschema](https://github.com/Drizin/CodegenCS#dotnet-codegencs-extract-dbschema) to extracts the schema of a MSSQL or PostgreSQL database into a JSON file.
 
 **Sample usage**:
 
-```codegencs dbschema-extractor /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
+```codegencs extract-dbschema /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
 
 ## 3. Generate the POCOs
 
 **Sample usage**:
 
-```codegencs poco /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs```
+```codegencs simplepocogenerator /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs```
 
-```codegencs poco /input=AdventureWorks.json /targetFolder=. /namespace=MyProject.POCOs /SingleFile=POCOs.generated.cs /CrudExtensions```
+```codegencs simplepocogenerator /input=AdventureWorks.json /targetFolder=. /namespace=MyProject.POCOs /SingleFile=POCOs.generated.cs /CrudExtensions```
 
-```codegencs poco /input=AdventureWorks.json /targetFolder=. /namespace=MyProject.POCOs /CrudClassMethods```
+```codegencs simplepocogenerator /input=AdventureWorks.json /targetFolder=. /namespace=MyProject.POCOs /CrudClassMethods```
 
-For more options use ```codegencs poco /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)
+For more options use ```codegencs simplepocogenerator /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)
 
 # Adjusting the Templates
 
@@ -52,7 +52,7 @@ For more options use ```codegencs poco /?``` or check out [Simple POCO documenta
 
 # Sample code (what this Template generates)
 
-See [example POCO here](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/SampleOutput/Product.cs).  
+See [example POCO here](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/SampleOutput/Product.generated.cs).  
 See [example POCO usage here](https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS.Tests/POCOTests/POCOTests.cs).
 
 The generated POCOs are based on [Dapper](https://github.com/DapperLib/Dapper) but you can easily modify the templates for other ORMs.

@@ -22,13 +22,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="CodegenCS" Version="1.0.*" />
-	  <PackageReference Include="CodegenCS.DbSchema" Version="1.0.*" />
+		<PackageReference Include="CodegenCS" Version="1.0.*" />
+		<PackageReference Include="CodegenCS.DbSchema" Version="1.0.*" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj" />
-	  <ProjectReference Include="..\CodegenCS.POCO\CodegenCS.POCO.csproj" />
+		<ProjectReference Include="..\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj" />
+		<ProjectReference Include="..\CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Resources\RunStandaloneCode.csproj" />
 	</ItemGroup>
 
 </Project>

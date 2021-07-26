@@ -315,7 +315,7 @@ namespace CodegenCS
         /// Will automatically handle increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify something to be written BEFORE the indented block starts (before the automatic line break, yet with outer indentation)</param>
-        /// <param name="afterBlock">Optional - you can specify something to be written immediately AFTER the block finishes (back with outer indentation)
+        /// <param name="afterBlock">Optional - you can specify something to be written immediately AFTER the block finishes (back with outer indentation)</param>
         /// <returns></returns>
         public CodegenTextWriter WithIndent(string beforeBlock, string afterBlock, Action innerBlockAction)
         {
@@ -334,7 +334,7 @@ namespace CodegenCS
         /// Will automatically handle increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify something to be written BEFORE the indented block starts (before the automatic line break, yet with outer indentation)</param>
-        /// <param name="afterBlock">Optional - you can specify something to be written immediately AFTER the block finishes (back with outer indentation)
+        /// <param name="afterBlock">Optional - you can specify something to be written immediately AFTER the block finishes (back with outer indentation)</param>
         /// <returns></returns>
         public CodegenTextWriter WithIndent(string beforeBlock, string afterBlock, Action<CodegenTextWriter> innerBlockAction)
         {

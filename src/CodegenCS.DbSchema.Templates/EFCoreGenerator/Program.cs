@@ -39,6 +39,11 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
             EFCoreGeneratorConsoleHelper.GetOptions(options); // if mandatory args were not provided, ask in Console
             #endregion
 
+
+            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Executing '{typeof(EFCoreGenerator).Name}' template...");
+            Console.ForegroundColor = previousColor;
+
             var generator = new EFCoreGenerator(options);
 
             #region Adding EFCoreGenerator.csx
@@ -60,8 +65,8 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
             ");
             // Export CS template (for customization)
             // Save with CSX extension so that it doesn't interfere with other existing CSPROJs (which by default include *.cs)
-            generator.GeneratorContext["EFCoreGenerator.csx"].WriteLine(
-                "//This file is supposed to be launched using: codegencs run EFCoreGenerator.csx" + Environment.NewLine
+            generator.GeneratorContext[typeof(EFCoreGenerator).Name + ".csx"].WriteLine(
+                $"//This file is supposed to be launched using: codegencs run {typeof(EFCoreGenerator).Name}.csx" + Environment.NewLine
                 + new StreamReader(typeof(EFCoreGenerator).Assembly.GetManifestResourceStream(typeof(EFCoreGenerator).FullName + ".cs")).ReadToEnd() + Environment.NewLine
                 + mainProgram.ToString()
             );
@@ -69,8 +74,10 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
 
             generator.Generate();
             generator.Save();
-            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("To regenerate the outputs use \"codegencs run EFCoreGenerator.csx\". Modify the csx file to customize the template output.");
+            previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Finished executing '{typeof(EFCoreGenerator).Name}' template.");
+            Console.WriteLine($"A copy of the original template (with the options used) was saved as '{typeof(EFCoreGenerator).Name}.csx'.");
+            Console.WriteLine($"To customize the template outputs you can modify the csx file and regenerate using 'codegencs run {typeof(EFCoreGenerator).Name}.csx'.");
             Console.ForegroundColor = previousColor;
             return 0;
         }
