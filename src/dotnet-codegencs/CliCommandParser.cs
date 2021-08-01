@@ -25,7 +25,7 @@ namespace CodegenCS.DotNetTool
         private static readonly Command DbSchemaExtractorCommand = CodegenCS.DbSchema.Extractor.CliCommand.GetCommand();
         private static readonly Command RunCommand = Commands.Run.RunCommand.GetCommand();
 
-        private static readonly Option HelpOption = new Option(new[] { "--help", "-?" }, "Show Help"); // default lib will also track "-h" 
+        private static readonly Option HelpOption = new Option(new[] { "--help", "-?" }, "\nShow Help"); // default lib will also track "-h" 
         private static readonly Option DebugOption = new Option(new[] { "--debug" }, "Debug mode"); // verbose output, detailed exceptions
 
         private static Command ConfigureCommandLine(Command rootCommand)
@@ -106,13 +106,11 @@ namespace CodegenCS.DotNetTool
                     else if (o.ValueType == typeof(string) && o.Arity.MinimumNumberOfValues == 0) // if this is optional, why doesn't help show "[name]"  instead of "<name>" ?
                         descriptor = descriptor.Replace("<" + o.ArgumentHelpName + ">", "[" + o.ArgumentHelpName + "]");
 
-                    // Add small spacers between option groups
-                    // It's possible to add line breaks to Option.Description, but the default value is added AFTER this linebreak, so it's more aesthetic to add line break here in descriptor (left column)
-                    if (o.Description.EndsWith("\n"))
-                    {
-                        o.Description = o.Description.Substring(0, o.Description.Length - 1); // remove line break from right-side (specially because "[default: value]" would be appended AFTER linebreak)
-                        descriptor += "\n"; // add to left side
-                    }
+                    // Add small spacers between option groups - a linebreak added before or after the description (right side) should be copied (before or after) the descriptor (left side)
+                    if (o.Description.EndsWith("\n") && !descriptor.EndsWith("\n"))
+                        descriptor += "\n"; 
+                    if (o.Description.StartsWith("\n") && !descriptor.StartsWith("\n"))
+                        descriptor = "\n" + descriptor;
                     
 
                     if (h.Descriptor != descriptor)
