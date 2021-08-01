@@ -40,53 +40,49 @@ Want to learn more? Check out the [full documentation](https://github.com/Drizin
 
 # <a name="dotnet-codegencs"></a> dotnet-codegencs (.NET global tool)
 
-**This is a [.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0) global tool with some out-of-the-box templates and utilities.**
+**This is a [.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0) global tool which is used as entry-point to launch some embedded utilities and or to run the out-of-the-box templates.**
 
 **How to Install**: ```dotnet tool install -g dotnet-codegencs```
 
-## <a name="dotnet-codegencs-utilities"></a> Utilities
+**Usage - see all options**: ```codegencs -?``` 
 
-### <a name="dotnet-codegencs-extract-dbschema"> DbSchema Extractor
+# <a name="dotnet-codegencs-utilities"></a><a name="dotnet-codegencs-extract-dbschema"> DbSchema Extractor
 
-This is a command-line tool (part of dotnet command-line tool [**dotnet-codegencs**](#dotnet-codegencs)) which extracts the schema of a MSSQL or PostgreSQL database and save it in a JSON file.  
-
-**Sample usage**:
-
-```codegencs extract-dbschema /postgresql /cn="Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" /output=AdventureWorks.json```
-
-```codegencs extract-dbschema /mssql /cn="Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" /output=AdventureWorks.json```
-
-```codegencs extract-dbschema /mssql /cn="Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
-
-If you need to modify this utility (or port it to another database provider), check the [DbSchema.Extractor source code](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor).
-
-## <a name="dotnet-codegencs-templates"></a> Templates
-
-### <a name="dotnet-codegencs-simplepocogenerator"> Template: Simple POCO Generator
-
-This is a template (part of dotnet command-line tool [**dotnet-codegencs**](#dotnet-codegencs)) that generates POCO classes from a JSON schema extracted with [extract-dbschema](#dotnet-codegencs-extract-dbschema).
+This is a command-line tool which extracts the schema of a MSSQL or PostgreSQL database and save it in a JSON file.  
 
 **Sample usage**:
 
-```codegencs simplepocogenerator /input=AdventureWorks.json /namespace=MyProject.POCOs```
+```codegencs extract-dbschema postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
 
-```codegencs simplepocogenerator /input=AdventureWorks.json /namespace=MyProject.POCOs /targetFolder=OutputFolder /SingleFile=POCOs.generated.cs /CrudExtensions /CrudClassMethods```
+```codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json```
 
-For more options use ```codegencs simplepocogenerator /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/)
+```codegencs extract-dbschema mssql "Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
+
+# <a name="dotnet-codegencs-templates"></a><a name="dotnet-codegencs-simplepocogenerator"> Template: Simple POCO Generator
+
+This is a template that generates POCO classes from a JSON schema extracted with [extract-dbschema](#dotnet-codegencs-extract-dbschema).
+
+**Sample usage**:
+
+```codegencs simplepocogenerator AdventureWorks.json --Namespace=MyProject.POCOs```
+
+```codegencs simplepocogenerator AdventureWorks.json --Namespace=MyProject.POCOs --TargetFolder=OutputFolder --SingleFile=POCOs.generated.cs --CrudExtensions --CrudClassMethods```
+
+**To see all available options use** ```codegencs simplepocogenerator -?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/)
+
+**It's also easy to customize the template output** - [check out how to do it](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/#customizing)
 
 
-### Template: Entity Framework Core
+# Template: Entity Framework Core
 
-This is a template (not yet part of dotnet-codegencs) that generates EntityFrameworkCore Entities and DbContext from a JSON schema extracted with [extract-dbschema](#dotnet-codegencs-extract-dbschema).
+This is a template (still in beta) that generates EntityFrameworkCore Entities and DbContext from a JSON schema extracted with [extract-dbschema](#dotnet-codegencs-extract-dbschema).
 
 Sample usage:
 
-```CodegenCSEFCore.exe /input=AdventureWorks.json /targetFolder=OutputFolder /namespace=MyProject.POCOs /dbcontextname=AdventureWorksDbContext```
+```codegencs efcoregenerator AdventureWorks.json --TargetFolder=OutputFolder --Namespace=MyProject.POCOs --DbContextName=AdventureWorksDbContext```
 
 
-
-
-## Contributing
+# Contributing
 
 This is a brand new project, and your contribution can help a lot.  
 
@@ -95,7 +91,8 @@ This is a brand new project, and your contribution can help a lot.
 Please submit a pull-request or if you prefer you can [contact me](https://rdrizin.com/pages/Contact/) to discuss your idea.
 
 
-Some ideas for templates:
+Some ideas for new features or templates:
+- Port [DbSchema.Extractor](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) to other database vendors
 - Generate Dapper/Petapoco classes from database schema files - check [**Simple POCO Generator**](#dotnet-codegencs-simplepocogenerator)
 - Generate EF Core Entities/DBContext
 - Generate REST Web API endpoints from OpenAPI YAML

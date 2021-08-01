@@ -19,16 +19,13 @@ This utility can be invoked using [codegencs command-line tool](https://github.c
 
 **Sample usage**:
 
-```codegencs extract-dbschema /postgresql /cn="Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" /output=AdventureWorks.json```
+```codegencs extract-dbschema postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
 
-```codegencs extract-dbschema /mssql /cn="Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" /output=AdventureWorks.json```
+```codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json```
 
-```codegencs extract-dbschema /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
+```codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
 
-If you need to modify this utility (or port it to another database provider), you can modify the [DbSchema.Extractor source code](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) 
-and instead of running ```codegencs extract-dbschema``` you should just run ```DbSchemaExtractor.exe```, like this:
-
-```DbSchemaExtractor.exe /mssql /cn="Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" /output=AdventureWorks.json```
+If you need to modify this utility (or port it to another database provider), please check [DbSchema.Extractor source code](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor). 
 
 ## 3. Generate the POCOs (or any other Template)
 
@@ -38,9 +35,9 @@ A very basic template (to generate [simple POCOs](https://github.com/Drizin/Code
 
 **Sample usage**:
 
-```codegencs simplepocogenerator /input=AdventureWorks.json /namespace=MyProject.POCOs```
+```codegencs simplepocogenerator AdventureWorks.json --Namespace=MyProject.POCOs```
 
-For more options use ```codegencs simplepocogenerator /?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)
+For more options use ```codegencs simplepocogenerator -?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)
 
 # Usage (alternative method using Powershell)
 
