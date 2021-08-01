@@ -22,8 +22,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="ConsoleAppInvoker.old" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Include="ConsoleAppInvoker.old" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="CodegenCS" Version="1.0.*" />
 		<PackageReference Include="CodegenCS.DbSchema" Version="1.0.*" />
+		<PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
 	</ItemGroup>
 
 	<ItemGroup>

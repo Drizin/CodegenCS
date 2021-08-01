@@ -8,6 +8,7 @@ namespace CodegenCS.Utils
     /// <summary>
     /// Parse command-line arguments. Based on https://www.codeproject.com/Articles/3111/C-NET-Command-Line-Arguments-Parser
     /// </summary>
+    [Obsolete("Please use System.CommandLine")]
     public class CommandLineArgsParser
     {
         public Dictionary<string, string> Parameters;

@@ -326,6 +326,35 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
                 writer.DecreaseIndent().WriteLine("}"); // end of namespace
         }
 
+        public void AddCSX()
+        {
+            #region Adding SimplePOCOGenerator.csx
+            var mainProgram = new CodegenTextWriter();
+            mainProgram.WriteLine($@"
+                class Program
+                {{
+                    static void Main()
+                    {{
+                        //var options = new CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGeneratorOptions(inputJsonSchema: @""{_options.InputJsonSchema}"");
+                        var options = Newtonsoft.Json.JsonConvert.DeserializeObject<CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGeneratorOptions>(@""
+                            {Newtonsoft.Json.JsonConvert.SerializeObject(_options, Newtonsoft.Json.Formatting.Indented).Replace("\"", "\"\"")}
+                        "");
+                        var generator = new CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGenerator(options);
+                        generator.Generate();
+                        generator.Save();
+                    }}
+                }}
+            ");
+            // Export CS template (for customization)
+            // Save with CSX extension so that it doesn't interfere with other existing CSPROJs (which by default include *.cs)
+            GeneratorContext[typeof(SimplePOCOGenerator).Name + ".csx"].WriteLine(
+                $"//This file is supposed to be launched using: codegencs run {typeof(SimplePOCOGenerator).Name}.csx" + Environment.NewLine
+                + new StreamReader(typeof(SimplePOCOGenerator).Assembly.GetManifestResourceStream(typeof(SimplePOCOGenerator).FullName + ".cs")).ReadToEnd() + Environment.NewLine
+                + mainProgram.ToString()
+            );
+            #endregion
+        }
+
         /// <summary>
         /// Saves output
         /// </summary>

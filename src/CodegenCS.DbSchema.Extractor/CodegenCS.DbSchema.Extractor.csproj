@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>DbSchemaExtractor</AssemblyName>
     <RootNamespace>CodegenCS.DbSchema.Extractor</RootNamespace>
     <Authors>Rick Drizin</Authors>
@@ -24,6 +24,7 @@
     <PackageReference Include="CodegenCS.DbSchema" Version="1.0.1" />
     <PackageReference Include="Dapper" Version="2.0.78" />
     <PackageReference Include="Npgsql" Version="5.0.3" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
   </ItemGroup>
 

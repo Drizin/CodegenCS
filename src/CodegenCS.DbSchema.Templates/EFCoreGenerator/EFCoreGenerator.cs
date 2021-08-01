@@ -416,6 +416,36 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
             #endregion
         }
 
+        public void AddCSX()
+        {
+            #region Adding EFCoreGenerator.csx
+            var mainProgram = new CodegenTextWriter();
+            mainProgram.WriteLine($@"
+                class Program
+                {{
+                    static void Main()
+                    {{
+                        //var options = new CodegenCS.DbSchema.Templates.EFCoreGenerator.EFCoreGeneratorOptions(inputJsonSchema: @""{_options.InputJsonSchema}"");
+                        var options = Newtonsoft.Json.JsonConvert.DeserializeObject<CodegenCS.DbSchema.Templates.EFCoreGenerator.EFCoreGeneratorOptions>(@""
+                            {Newtonsoft.Json.JsonConvert.SerializeObject(_options, Newtonsoft.Json.Formatting.Indented).Replace("\"", "\"\"")}
+                        "");
+                        var generator = new CodegenCS.DbSchema.Templates.EFCoreGenerator.EFCoreGenerator(options);
+                        generator.Generate();
+                        generator.Save();
+                    }}
+                }}
+            ");
+            // Export CS template (for customization)
+            // Save with CSX extension so that it doesn't interfere with other existing CSPROJs (which by default include *.cs)
+            GeneratorContext[typeof(EFCoreGenerator).Name + ".csx"].WriteLine(
+                $"//This file is supposed to be launched using: codegencs run {typeof(EFCoreGenerator).Name}.csx" + Environment.NewLine
+                + new StreamReader(typeof(EFCoreGenerator).Assembly.GetManifestResourceStream(typeof(EFCoreGenerator).FullName + ".cs")).ReadToEnd() + Environment.NewLine
+                + mainProgram.ToString()
+            );
+            #endregion
+        }
+
+
         /// <summary>
         /// Saves output
         /// </summary>
