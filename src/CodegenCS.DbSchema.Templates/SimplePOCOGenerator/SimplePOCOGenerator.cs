@@ -247,7 +247,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
                 using System.Linq;
                 using System.Runtime.CompilerServices;");
                 if (_options.CRUDClassMethodsSettings.Namespace != null && _options.CRUDClassMethodsSettings.Namespace != _options.POCOsNamespace)
-                    _dbConnectionCrudExtensions.WriteLine($@"using {_options.POCOsNamespace};");
+                    _dbConnectionCrudClassMethods.WriteLine($@"using {_options.POCOsNamespace};");
                 _dbConnectionCrudClassMethods
                     .WriteLine()
                     .WriteLine($"namespace {_options.CRUDClassMethodsSettings.Namespace ?? _options.POCOsNamespace}").WriteLine("{").IncreaseIndent()

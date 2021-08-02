@@ -11,7 +11,7 @@
 		<Description>Command line tool to extract schema from MSSQL/PostgreSQL database into json files, and templates to generate POCO classes.</Description>
 		<Copyright>Rick Drizin</Copyright>
 		<Company>Rick Drizin</Company>
-		<Version>1.0.4</Version>
+		<Version>1.0.5</Version>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<RepositoryUrl>https://github.com/Drizin/CodegenCS</RepositoryUrl>
 
