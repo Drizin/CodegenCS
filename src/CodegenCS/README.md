@@ -21,6 +21,8 @@ Basically CodegenCS provides a custom TextWriter tweaked to solve common code ge
   (IDisposable context will automatically close blocks)
 - Helpers to write multi-line blocks without having to worry about different indentations for control logic and output code (you can align the multi-line blocks anywhere where it fits better inside your control code).
 - Allows writing **Interpolated strings** (FormattableString) and will process any kind of arguments (can be strings or Action delegates (callbacks)), while "keeping cursor position" of inline arguments.
+- **IF / ELSE / ENDIF symbols** that can be embedded within the text strings and allow concise syntax for **Control Blocks**
+- Immediate IF (**IIF**) symbol for concise conditionals;
 
 Besides the TextWriter, there are some helpers for common code generation tasks:
 - Keeps all code in memory until you can save all files at once (no need to save anything if something fails)
@@ -59,19 +61,6 @@ f2.WriteLine("Line1");
 
 ctx.SaveFiles(outputFolder);
 ```
-
-**How to add generated files to a .NET Framework project (csproj)**:
-
-```cs
-var ctx = new DotNetCodegenContext();
-
-var f1 = ctx["File1.cs"];
-f1.WriteLine("Line1");
-
-ctx.SaveFiles(outputFolder);
-ctx.AddToProject(csProj, outputFolder);
-```
-
 
 **Writing C-like block using FluentAPI and `WithCBlock()`**
 ```cs
@@ -217,6 +206,66 @@ if (something)
 }
 
 ```
+
+**Writing multi-line blocks with embedded IF statement**
+
+```cs
+w.WriteLine($@"
+public class MyApiClient
+{{
+    public MyApiClient({IF(injectHttpClient)}HttpClient httpClient{ENDIF})
+    {{{IF(injectHttpClient)}
+        _httpClient = httpClient;{ENDIF}
+    }}
+}}");
+```
+
+... will output this:
+
+```cs
+public class MyApiClient
+{
+    public MyApiClient(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+    }
+}
+```
+
+**Writing nested IF statement**
+
+```cs
+w.WriteLine($@"
+{IF(generateConstructor)}public class MyApiClient
+{{
+    public MyApiClient({IF(injectHttpClient)}HttpClient httpClient{ENDIF})
+    {{{IF(injectHttpClient)}
+        _httpClient = httpClient;{ENDIF}
+    }}
+}}{ENDIF}");
+```
+
+**IIF (Immediate IF):**
+
+```cs
+w.Write($@"{IIF(isVisibilityPublic, $"public ")}string FirstName {{ get; set; }}");
+w.Write($@"{IIF(isVisibilityPublic, $"public ", $"protected ")}string FirstName {{ get; set; }}");
+```
+
+
+
+**How to add automatically add the generated files to a .NET Framework project (csproj in the old non-SDK format)**:
+
+```cs
+var ctx = new DotNetCodegenContext();
+
+var f1 = ctx["File1.cs"];
+f1.WriteLine("Line1");
+
+ctx.SaveFiles(outputFolder);
+ctx.AddToProject(csProj, outputFolder);
+```
+
 
 **Reusable Action delegates can be used inside interpolated strings.**
 

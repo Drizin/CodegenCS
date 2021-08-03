@@ -16,6 +16,7 @@ Basically it provides a custom TextWriter tweaked to solve common issues in code
   (IDisposable context will automatically close blocks)
 - Helpers to write multi-line blocks without having to worry about different indentations for control logic and output code.
 - Helpers to keep track of multiple files which can be saved at once in the output folder.
+- **IF / ELSE / ENDIF symbols** that can be embedded within the text strings and allow concise syntax for **Control Blocks**
 
 **Sample usage**:
 

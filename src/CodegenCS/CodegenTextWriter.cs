@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CodegenCS.ControlFlow;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -43,6 +45,7 @@ namespace CodegenCS
     /// AdjustMultilineString will manipulate multi-line blocks (trim first line if it's empty, and will removes the left padding of the block by calculating the minimum number of spaces which happens in every line)<br />
     /// All public methods should call AdjustMultilineString to adjust the block before calling other methods.
     /// </summary>
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public partial class CodegenTextWriter : TextWriter
     {
         #region Members
@@ -355,6 +358,28 @@ namespace CodegenCS
         }
         #endregion
 
+        #region If-Else-Blocks
+        /// <summary>
+        /// Each level of indentation may have it's own indentation marker <br />
+        /// e.g. one block may have "    " (4 spaces), while other may have "-- " (SQL line-comment), etc.
+        /// </summary>
+        protected Stack<IControlFlowSymbol> _controlFlowSymbols = new Stack<IControlFlowSymbol>();
+        
+        /// <summary>
+        /// Returns true if there's no IF/ELSE block open, or if the current block is "active" (should NOT be discarded according to the IF clauses in the stack)
+        /// </summary>
+        protected bool IsControlBlockActive 
+        { 
+            get 
+            {
+                return _controlFlowSymbols.All(s =>
+                    (s is IfSymbol && ((IfSymbol)s).IfConditionValue == true) ||
+                    (s is ElseSymbol && ((ElseSymbol)s).IfConditionValue == false)
+                );
+            }
+        }
+        #endregion
+
         #region Block-Scope: methods based on IndentedBlockScope(), including language-specific helpers
         /// <summary>
         /// Opens a new indented Curly-Braces Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
@@ -571,8 +596,11 @@ namespace CodegenCS
         /// </summary>
         protected void InnerWriteRaw(string value)
         {
-            _innerWriter.Write(value);
-            System.Diagnostics.Debug.Write(value);
+            if (IsControlBlockActive)
+            {
+                _innerWriter.Write(value);
+                System.Diagnostics.Debug.Write(value);
+            }
         }
         #endregion
 
@@ -768,7 +796,6 @@ namespace CodegenCS
             }
             #endregion
 
-
             #region if arg is Action<CodegenTextWriter> or Action<TextWriter>
             if (arg as Action<CodegenTextWriter> != null)
             {
@@ -874,6 +901,35 @@ namespace CodegenCS
                 return;
             }
             #endregion
+
+            #region if arg is IControlFlowSymbol
+            if (arg is IControlFlowSymbol)
+            {
+                if (arg is IfSymbol)
+                    _controlFlowSymbols.Push((IControlFlowSymbol)arg); // just push IF with the condition-value
+                else if (arg is ElseSymbol) // pop the previous IF and push the new ELSE with the previous IF condition-value
+                {
+                    if (!_controlFlowSymbols.Any())
+                        throw new UnbalancedIfsException();
+                    IControlFlowSymbol previousSymbol = _controlFlowSymbols.Pop();
+                    if (!(previousSymbol is IfSymbol))
+                        throw new UnbalancedIfsException();
+                    _controlFlowSymbols.Push(new ElseSymbol(((IfSymbol)previousSymbol).IfConditionValue));
+                }
+                else if (arg is EndIfSymbol)
+                {
+                    if (!_controlFlowSymbols.Any())
+                        throw new UnbalancedIfsException();
+                    IControlFlowSymbol previousSymbol = _controlFlowSymbols.Pop();
+                    if (!(previousSymbol is IfSymbol) && !(previousSymbol is ElseSymbol))
+                        throw new UnbalancedIfsException();
+                }
+                else
+                    throw new NotImplementedException();
+                return;
+            }
+            #endregion
+
 
             #region else, just try ToString()
             InnerInlineAction(() =>
@@ -1091,7 +1147,7 @@ namespace CodegenCS
         }
         #endregion
 
-        #region I/O (SaveToFile, GetContents)
+        #region I/O (SaveToFile, GetContents, DebuggerDisplay)
         /// <summary>
         /// Writes current content (assuming it was in-memory writer) to a new file. If the target file already exists, it is overwritten. <br />
         /// </summary>
@@ -1118,7 +1174,18 @@ namespace CodegenCS
         /// <returns></returns>
         public string GetContents()
         {
+            if (_controlFlowSymbols.Any())
+                throw new UnbalancedIfsException();
             return _innerWriter.ToString();
+        }
+
+        private string DebuggerDisplay 
+        { 
+            get 
+            {
+                return _innerWriter.ToString() + 
+                    (_controlFlowSymbols.Any() ? $" - (warning: there are {_controlFlowSymbols.Count} open IF block(s)" : "");
+            } 
         }
         #endregion
 
