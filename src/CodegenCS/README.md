@@ -38,7 +38,9 @@ See documentation below, or more examples in [unit tests](https://github.com/Dri
 
 
 
-## Documentation
+# Documentation
+
+## Basics
 
 **Creating a TextWriter, writing lines, saving to file**
 
@@ -64,6 +66,9 @@ ctx.SaveFiles(outputFolder);
 
 **Using variables (interpolated strings)**
 
+By using interpolated strings (`$`) we can easily embed variables withing text templates.  
+Note that curly braces (`{ }`) are C# syntax for string interpolation, so if you want to write raw curly braces you'll have to escape them with double braces (`{{` and `}}`).
+
 ```cs
 string ns = "myNamespace";
 string className = "myClass";
@@ -82,13 +87,15 @@ namespace {ns}
 }}");
 ```
 
-**Using Fluent API**
+**Using Fluent API (method chaining)**
+
+(In this example we're manually managing the scope-curly-braces and indentation, just to show method chaining)
 
 ```cs
 var w = new CodegenTextWriter();
 w
   .WriteLine("// Testing FluentAPI")
-  .WriteLine("OtherMethod();");
+  .WriteLine("CallSomeOtherMethod();");
 foreach (var table in schema.Tables.OrderBy(t => t.TableName))
 {
   w.WriteLine($"public class {table.TableName}").WriteLine("{").IncreaseIndent();
@@ -101,7 +108,26 @@ foreach (var table in schema.Tables.OrderBy(t => t.TableName))
 w.SaveToFile("File1.cs"); 
 ```
 
-**Automatically managing Indented Blocks using Fluent API (automatically open/close curly braces and manages indentation)**
+... will output this:
+
+```cs
+// Testing FluentAPI
+CallSomeOtherMethod();
+public class Table1
+{
+    public int Property1 { get; set; }
+    public int Property2 { get; set; }
+}
+public class Table2
+{
+    public int Property3 { get; set; }
+    public int Property4 { get; set; }
+}
+```
+
+## Indented-Blocks Helpers
+
+**Helpers to write C-style indented blocks (they automatically manage opening/closing curly braces and indentation) - Lambda Syntax**
 
 ```cs
 var w = new CodegenTextWriter();
@@ -117,7 +143,7 @@ w.WithCBlock("public class MyClass", () =>
 
 ```
 
-**Automatically managing Indented Blocks using IDisposable (automatically open/close curly braces and manages indentation)**
+**... or writing indented Blocks with the IDisposable Syntax ("using")**
 
 ```cs
 var w = new CodegenTextWriter();
@@ -125,14 +151,14 @@ using (w.WithCBlock("public class MyClass")
 {
   w.WriteLine(@"
     /// <summary>
-    /// MyMethod does some cool stuff
+    /// MyMethod do some cool stuff
     /// </summary>");
-    using (w.WithCBlock("void MyMethod()")
-    {
-      w.WriteLine(@"
-        // Method body...
-        // Method body...");
-    });
+  using (w.WithCBlock("void MyMethod()")
+  {
+    w.WriteLine(@"
+      // Method body...
+      // Method body...");
+  });
 });
 ```
 
@@ -142,7 +168,7 @@ using (w.WithCBlock("public class MyClass")
 public class MyClass
 {
     /// <summary>
-    /// MyMethod does some cool stuff
+    /// MyMethod do some cool stuff
     /// </summary>
     void MyMethod()
     {
@@ -212,6 +238,9 @@ namespace myNamespace
 }
 ```
 
+## Multi-line blocks and the Mixed-indentation problem
+
+
 **Writing multi-line blocks without worrying about mixed indentation**
 
 ```cs
@@ -222,7 +251,7 @@ w.WithCurlyBraces($"public void MyMethod()", () =>
     .WriteLine(@"
     // And I can write multi-line texts
     // which can be indented wherever it fits best (according to the outer control logic)
-    // ... and in the end, it will be "realigned to the left" (left padding trimmed, docking the longest line to the margin)
+    // ... and in the end, it will be "realigned to the left" (left padding trimmed, docking the longest line to the margin )
     // so that the extra spaces are all ignored")
     .WriteLine("// No more worrying about mixed-indentations between literals and control logic");
 });
@@ -257,29 +286,22 @@ if (something)
             }
         }");
 }
-
-// In other code-generation engines (including T4 templates, Razor, Dotliquid, Mustache) you would have to code like this:
-
-if (something)
-{
-    // Mixed indentation levels can get pretty confusing. 
-    // And if the outer indentation level is changed (e.g. if this is put inside an if block) 
-    // you would have to add more spaces to each line, 
-    // since the TextWriter does not have any context information about the current indentation level
-    w.WriteLine(@"namespace codegencs
-{
-    public class Test1
-    {
-        // etc..
-    }
-}");
-}
-
 ```
+
+In most code-generation engines (including T4 templates, Razor, Dotliquid, Mustache) mixed indentation levels can get pretty confusing.  
+As an example, if the outer indentation level is changed (e.g. if a block is moved inside a new if block) we would have to add more spaces to each line,
+since the TextWriter does not have any context information about the current indentation level.
+
+## Control-Flow Symbols
+
 
 **Using IF-ENDIF statements in multi-line blocks**
 
 ```cs
+
+using CodegenCS;                 // besides this...
+using static CodegenCS.Symbols;  // you also need this
+
 w.WriteLine($@"
 public class MyApiClient
 {{
@@ -344,10 +366,13 @@ w.Write($@"{IIF(isVisibilityPublic, $"public ")}string FirstName {{ get; set; }}
 w.Write($@"{IIF(isVisibilityPublic, $"public ", $"protected ")}string FirstName {{ get; set; }}");
 ```
 
+## Breaking Templates into smaller Templates
 
-**Reusable templates (inline invocation of `Action<CodegenTextWriter>`**
 
-In the interpolated string you can just embed a reference to an `Action<CodegenTextWriter>` and it will be rendered:
+**Reusable templates (inline invocation of `Action<CodegenTextWriter>`**)
+
+One method of breaking complex templates into smaller blocks is to define the templates as an `Action<CodegenTextWriter>`. 
+The action can be embedded inside another template (interpolated) and it will be rendered by invoking the action.
 
 
 ```cs
@@ -371,10 +396,11 @@ w.Write(generateFile);
 
 **Reusable templates (inline invocation with arguments)**
 
-Or if your Action takes more parameters and you want to call it multiple times you can just convert it into an `Action<CodegenTextWriter>`:
+If your Action (or method) takes more parameters (other than `CodegenTextWriter`) you can just convert it (wrap) into an `Action<CodegenTextWriter>`:
 
 
 ```cs
+// generateClass is being invoked explicitly (wrapped inside a new Action), so it could also be a regular C# method 
 Action<CodegenTextWriter, string> generateClass = (w, className) => w.Write($@"
     public class {className}()
     {{
@@ -396,7 +422,7 @@ w.Write(generateFile);
 
 **Reusable templates (explicit invocation, example [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) as example)**
 
-If you are explicitly invoking the rendering functions you don't need Actions - you can use regular methods:
+If you are explicitly invoking the rendering functions (instead of embedding them inside interpolation blocks) you don't even need Actions - you can use regular methods:
 
 ```cs
 void GenerateTable(CodegenTextWriter w, Table table)
@@ -415,10 +441,10 @@ void GenerateFile(CodegenTextWriter w)
       using System;
       using System.Collections.Generic;");
 
-    using (w.WithCBlock("public class MyClass"))
+    using (w.WithCBlock("public namespace MyNamespace"))
     {
         foreach(var table in schema.Tables)
-            GenerateTable(table);
+            GenerateTable(w, table);
     }
 }
 GenerateFile(w);
@@ -426,7 +452,7 @@ GenerateFile(w);
 
 **Reusable templates (inline invocation of IEnumerable<FormattableString>)**
 
-If your reusable methods return FormattableString you can invoke for many items (returning an IEnumerable) and then 
+If your reusable methods return `FormattableString` you can invoke for many items (returning an IEnumerable) and then 
 juse use the .Join extension which combines and an IEnumerable<FormattableString> into a single FormattableString.
 
 ```cs
@@ -507,10 +533,12 @@ The reusable template was a `Func<FormattableString>` but it could be other type
 They would all be evaluated "on demand", only by the moment that we need to output those parameters.
 
 
+## Project-specific helpers
+
 **How to add automatically add the generated files to a .NET Framework project (csproj in the old non-SDK format)**
 
-The new csproj format will by default compile all *.cs files under the csproj folder, but if you're using .NET Full Framework in old csproj format 
-you may benefit from automatically adding all outputs to th csproj:
+The new csproj format will by default compile all *.cs files under the csproj folder (so it's just about defining where you want the output files to be generated), 
+but if you're using .NET Full Framework in old csproj format you may benefit from automatically adding all outputs to the csproj:
 
 ```cs
 var ctx = new DotNetCodegenContext();
