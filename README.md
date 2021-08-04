@@ -22,17 +22,28 @@ Basically it provides a custom TextWriter tweaked to solve common issues in code
 
 ```cs
 var w = new CodegenTextWriter();
-w.WithCBlock("public class MyClass", () =>
-{
-  w
-    .WriteLine("// Testing FluentAPI")
-    .WithCBlock("void MyMethod()", () =>
-    {
-      w.WriteLine("OtherMethod();");
-    });
-  foreach (var column in columns)
-    w.WriteLine($"public {GetTypeDefinitionForDatabaseColumn(column)} {propertyName} {{ get; set; }}");
-});
+
+Action<CodegenTextWriter> generateMyClass = w => w.Write($@"
+    void MyClass()
+    {{
+        void Method1()
+        {{
+            // ...
+        }}
+        void Method2()
+        {{
+            // ...
+        }}
+    }}");
+
+
+w.WriteLine($@"
+    using System;
+    using System.Collections.Generic;
+    namespace MyNamespace
+    {{
+        {generateMyClass}
+    }}");
 
 w.SaveToFile("File1.cs"); 
 ```
