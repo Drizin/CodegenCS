@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -15,8 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CodegenCS" Version="1.0.6" />
-    <PackageReference Include="CodegenCS.DbSchema" Version="1.0.1" />
     <PackageReference Include="nunit" Version="3.10.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
@@ -25,5 +23,21 @@
   <ItemGroup>
     <ProjectReference Include="..\CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj" />
   </ItemGroup>
+
+	<Choose>
+		<When Condition="'$(Configuration)' == 'Debug'">
+			<ItemGroup>
+				<ProjectReference Include="..\CodegenCS\CodegenCS.csproj" />
+				<ProjectReference Include="..\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<PackageReference Include="CodegenCS" Version="1.0.*" />
+				<PackageReference Include="CodegenCS.DbSchema" Version="1.0.*" />
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
+
 
 </Project>

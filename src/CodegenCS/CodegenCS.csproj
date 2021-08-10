@@ -1,24 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
-    <Authors>Rick Drizin</Authors>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS/</PackageProjectUrl>
-    <Description>C# Library for Code Generation
-... or Yet Another Code Generator</Description>
-    <Copyright>Rick Drizin</Copyright>
-    <Company>Rick Drizin</Company>
-    <Version>1.0.7</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <DocumentationFile>CodegenCS.xml</DocumentationFile>
-	<PackageOutputPath>..\packages-local\</PackageOutputPath>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+		<Authors>Rick Drizin</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/Drizin/CodegenCS/blob/master/src/CodegenCS/</PackageProjectUrl>
+		<Description>
+			C# Library for Code Generation
+			... or Yet Another Code Generator
+		</Description>
+		<Copyright>Rick Drizin</Copyright>
+		<Company>Rick Drizin</Company>
+		<Version>1.0.7</Version>
+		<DocumentationFile>CodegenCS.xml</DocumentationFile>
+	</PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14">
       <Aliases>NewtonsoftJsonSchema</Aliases>
     </PackageReference>
   </ItemGroup>
+
+	<Choose>
+		<When Condition="'$(Configuration)' == 'Debug'">
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+				<PackageOutputPath>..\packages-local\</PackageOutputPath>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+
 
 </Project>
