@@ -1,4 +1,4 @@
-This page is only about the Core Library - if you're looking for utilities (e.g. database extractors) and templates (e.g. POCOs), please check the [Main Page](https://github.com/Drizin/CodegenCS/).
+This page is only about the Core Library - if you're looking for utilities (e.g. database extractors) and templates (e.g. POCOs), please check out the [Main Page](https://github.com/Drizin/CodegenCS/).
 
 # CodegenCS (Core Library)
 
@@ -10,7 +10,7 @@ C# Library for Code Generation
 # Description
 
 CodegenCS is a class library for code generation:
-- Input can be the JSON schema of a relational database (check [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) which currently has [extractors](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) for MSSQL and PostgreSQL), or can be any other structured source data source that you can read using C#: JSON, YAML, XML, etc, including the schema of NoSQL databases.  
+- Input can be the JSON schema of a relational database (check out [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) which currently has [extractors](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor) for MSSQL and PostgreSQL), or can be any other structured source data source that you can read using C#: JSON, YAML, XML, etc, including the schema of NoSQL databases.  
 - Output can be C# code, CSHTML, HTML, XML, Javascript, Java, Python, or any other text-based output.  
 
 Basically CodegenCS provides a custom TextWriter tweaked to solve common code generation difficulties:
@@ -147,13 +147,13 @@ w.WithCBlock("public class MyClass", () =>
 
 ```cs
 var w = new CodegenTextWriter();
-using (w.WithCBlock("public class MyClass")
+using (w.WithCBlock("public class MyClass"))		
 {
   w.WriteLine(@"
     /// <summary>
     /// MyMethod do some cool stuff
     /// </summary>");
-  using (w.WithCBlock("void MyMethod()")
+  using (w.WithCBlock("void MyMethod()"))
   {
     w.WriteLine(@"
       // Method body...
@@ -362,17 +362,49 @@ w.WriteLine($@"
 **IIF (Immediate IF):**
 
 ```cs
-w.Write($@"{IIF(isVisibilityPublic, $"public ")}string FirstName {{ get; set; }}");
-w.Write($@"{IIF(isVisibilityPublic, $"public ", $"protected ")}string FirstName {{ get; set; }}");
+w.WriteLine($@"{IIF(isVisibilityPublic, $"public ")}string FirstName {{ get; set; }}");
+w.WriteLine($@"{IIF(isVisibilityPublic, $"public ", $"protected ")}string FirstName {{ get; set; }}");
 ```
 
-## Breaking Templates into smaller Templates
+## Breaking Complex Templates into Smaller Templates
+
+**Explicit invoking C# methods that write to the CodegenTextWriter**  
+
+One method of breaking complex templates into smaller blocks is to explicit invoke one method from another.  
+(In this example we're using a model from [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema))
+
+```cs
+void GenerateTable(CodegenTextWriter w, Table table)
+{
+    w.WriteLine($@"
+      public class {table.TableName}
+      {{
+          void Method1() { /* ... */ }
+          void Method2() { /* ... */ }
+      }}");
+}
+
+void GenerateFile(CodegenTextWriter w)
+{
+    w.WriteLine($@"
+      using System;
+      using System.Collections.Generic;");
+
+    using (w.WithCBlock("public namespace MyNamespace"))
+    {
+        foreach(var table in schema.Tables)
+            GenerateTable(w, table);
+    }
+}
+
+GenerateFile(w);
+```
 
 
-**Reusable templates (inline invocation of `Action<CodegenTextWriter>`**)
+**Embedding (interpolating) an `Action<CodegenTextWriter>`**
 
-One method of breaking complex templates into smaller blocks is to define the templates as an `Action<CodegenTextWriter>`. 
-The action can be embedded inside another template (interpolated) and it will be rendered by invoking the action.
+If we embed inside the interpolated string an  `Action<CodegenTextWriter>` this `Action` will be automatically invoked (and the `CodegenTextWriter` will be passed to the action).  
+Embedding can ve very elegant when we don't need much control logic. If you don't want to be coupled to `CodegenTextWriter` you can also use `Action<TextWriter>`.
 
 
 ```cs
@@ -383,7 +415,7 @@ Action<CodegenTextWriter> generateClass = w => w.Write($@"
         void Method2() { /* ... */ }
     }}");
 
-Action<CodegenTextWriter> generateFile = w => w.Write($@"
+Action<CodegenTextWriter> generateFile = w => w.WriteLine($@"
     using System;
     using System.Collections.Generic;
     namespace {ns}
@@ -394,21 +426,52 @@ Action<CodegenTextWriter> generateFile = w => w.Write($@"
 w.Write(generateFile);
 ```
 
-**Reusable templates (inline invocation with arguments)**
+**Embedding (interpolating) a `FormattableString`**
+
+If we don't need the flexibility from `Action<CodegenTextWriter>` we can just just embed a `FormattableString`. Or if you need a little more flexibility you can also use `Func<FormattableString>`.
+
+
+```cs
+FormattableString generateClass = $@"
+    void MyClass()
+    {{
+        void Method1() { /* ... */ }
+        void Method2() { /* ... */ }
+    }}";
+
+Action<CodegenTextWriter> generateFile = w => w.WriteLine($@"
+    using System;
+    using System.Collections.Generic;
+    namespace {ns}
+    {{
+        {generateClass}
+    }}");
+
+w.Write(generateFile);
+```
+
+To sum, embedded subtemplates can return different types like  `FormattableString`,  `Func<FormattableString>`, `Action<CodegenTextWriter>`, `Action`, or even `string` and `Func<string>`.  
+They are all evaluated "on demand", only by the moment that we need to output those parameters.
+
+
+**Wrapping into `Action<CodegenTextWriter>` a subtemplate that takes arguments**
 
 If your Action (or method) takes more parameters (other than `CodegenTextWriter`) you can just convert it (wrap) into an `Action<CodegenTextWriter>`:
 
 
 ```cs
-// generateClass is being invoked explicitly (wrapped inside a new Action), so it could also be a regular C# method 
-Action<CodegenTextWriter, string> generateClass = (w, className) => w.Write($@"
+// generateClass is a regular C# method being invoked explicitly (wrapped inside a new Action)
+void generateClass(CodegenTextWriter w, string className)
+{
+  w.Write($@"
     public class {className}()
     {{
         void Method1() { /* ... */ }
         void Method2() { /* ... */ }
     }}");
+}
 
-Action<CodegenTextWriter> generateFile = w => w.Write($@"
+Action<CodegenTextWriter> generateFile = w => w.WriteLine($@"
     using System;
     using System.Collections.Generic;
     namespace {ns}
@@ -420,60 +483,37 @@ Action<CodegenTextWriter> generateFile = w => w.Write($@"
 w.Write(generateFile);
 ```
 
-**Reusable templates (explicit invocation, example [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) as example)**
-
-If you are explicitly invoking the rendering functions (instead of embedding them inside interpolation blocks) you don't even need Actions - you can use regular methods:
+Or like this:
 
 ```cs
-void GenerateTable(CodegenTextWriter w, Table table)
-{
-    w.Write($@"
-      public class {table.TableName}
-      {{
-          void Method1() { /* ... */ }
-          void Method2() { /* ... */ }
-      }}");
-}
-
-void GenerateFile(CodegenTextWriter w)
-{
-    w.Write($@"
-      using System;
-      using System.Collections.Generic;");
-
-    using (w.WithCBlock("public namespace MyNamespace"))
-    {
-        foreach(var table in schema.Tables)
-            GenerateTable(w, table);
-    }
-}
-GenerateFile(w);
-```
-
-**Reusable templates (inline invocation of IEnumerable<FormattableString>)**
-
-If your reusable methods return `FormattableString` you can invoke for many items (returning an IEnumerable) and then 
-juse use the .Join extension which combines and an IEnumerable<FormattableString> into a single FormattableString.
-
-```cs
-Func<Table, FormattableString> generateTable = (table) => $@"
-    public class {table.TableName}()
+Action<CodegenTextWriter> generateClass(string className) = new Action<CodegenTextWriter>(w => w.Write($@"
+    public class {className}()
     {{
-        void Method1() {{ /* ... */ }}
+        void Method1() { /* ... */ }
+        void Method2() { /* ... */ }
     }}");
 
-w.Write($@"
+Action<CodegenTextWriter> generateFile = w => w.WriteLine($@"
     using System;
     using System.Collections.Generic;
     namespace {ns}
     {{
-        {schema.Tables.Select(t => generateTable(t)).Join()}
+        {generateClass("ClassName1"))}
+        {generateClass("ClassName2"))}
     }}");
+
+w.Write(generateFile);
 ```
 
-Or you can do it yourself by manually joining the IEnumerable items (even if they are plain strings). CodegenTextWriter will "keep the cursor position" 
-and each line will be rendered as if you were doing a foreach.
 
+
+**Looping through multiple items using `string.Join` and  `IEnumerable<FormattableString>` or `IEnumerable<string>`**
+
+If your reusable methods (subtemplate) returns `FormattableString` or `string` you can invoke the method for many items (using `LINQ Select()` and returning an `IEnumerable`) and then just `string.Join()` the results.  
+
+CodegenTextWriter will "keep the cursor position" and each line will be rendered as if you were doing a foreach:
+
+<!---
 ```cs
 // This is a reusable method which you can embed anywhere inside your string-interpolated templates
 Func<FormattableString> RenderProperties(List<Property> props)
@@ -485,8 +525,7 @@ Func<FormattableString> RenderProperties(List<Property> props)
     // In other words, when you're writing multi-line blocks "inline" inside another interpolated string, 
     // all lines will have the same horizontal indenting as the first line.
     return () => $@"
-        {string.Join(Environment.NewLine, props.Select(prop => $"public {prop.Type} {prop.Name} {{ get; set; }}"))}"
-    ;
+        {string.Join(Environment.NewLine, props.Select(prop => $"public {prop.Type} {prop.Name} {{ get; set; }}"))}";
 }
 
 List<Property> props = new List<Property>() 
@@ -500,7 +539,7 @@ public void GenerateMyClass()
     var writer = new CodegenTextWriter();
     string myNamespace = "codegencs";
     string myClass = "Test1";
-    writer.Write($@"
+    writer.WriteLine($@"
         namespace {myNamespace}
         {{
             public class {myClass}
@@ -511,6 +550,39 @@ public void GenerateMyClass()
         }}");
 }
 ```
+-->
+
+```cs
+// This is a reusable method which you can embed anywhere inside your string-interpolated templates
+Func<FormattableString> RenderProperties(List<Property> props)
+{
+    // LINQ Select() returns multiple lines (IEnumerable<FormattableString>), and string.Join() will join those lines with line breaks separators
+    return () => $@"{string.Join(Environment.NewLine, props.Select(prop => $"public {prop.Type} {prop.Name} {{ get; set; }}"))}";
+}
+
+List<Property> props = new List<Property>() 
+{ 
+  new Property() { Name = "Name", Type = "string" }, 
+  new Property() { Name = "Age", Type = "int" } 
+};
+
+public void GenerateMyClass()
+{
+    var writer = new CodegenTextWriter();
+    string myNamespace = "codegencs";
+    string myClass = "Test1";
+    writer.WriteLine($@"
+        namespace {myNamespace}
+        {{
+            public class {myClass}
+            {{
+                // My Properties start here
+                { RenderProperties(props) }
+            }}
+        }}");
+}
+```
+
 
 ... will output this:
 
@@ -529,8 +601,28 @@ As you can see, the inner block has multiple lines, and yet all those lines were
 In other words, the inner block was fully written in the "current cursor position".  
 And again, if the text writer had indent level 1, all that output (outer and inner template) would have 4 more spaces before each line.  
 
-The reusable template was a `Func<FormattableString>` but it could be other types like `FormattableString`,  `string`, `Func<string>`, `Action`, or `Action<CodegenTextWriter>`.  
-They would all be evaluated "on demand", only by the moment that we need to output those parameters.
+
+<!---
+
+Another helper is the `.Join()` extension which combines an IEnumerable<FormattableString> into a single FormattableString.
+
+```cs
+Func<Table, FormattableString> generateTable = (table) => $@"
+    public class {table.TableName}()
+    {{
+        void Method1() {{ /* ... */ }}
+    }}");
+
+w.Write($@"
+    using System;
+    using System.Collections.Generic;
+    namespace {ns}
+    {{
+        {schema.Tables.Select(t => generateTable(t)).Join()}
+    }}");
+```
+-->
+
 
 
 ## Project-specific helpers

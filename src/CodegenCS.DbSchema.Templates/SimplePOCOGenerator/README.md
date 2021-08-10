@@ -114,6 +114,8 @@ using (var tran = cn.BeginTransaction())
 }
 ```
 
+<!---
+
 # All Options
 
 <table>
@@ -150,6 +152,7 @@ V Extra blank line below!
 </td>
 </tr>
 </table>
+-->
 
 
 
