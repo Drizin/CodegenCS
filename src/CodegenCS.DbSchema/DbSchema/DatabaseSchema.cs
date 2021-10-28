@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 #if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
 namespace CodegenCS.DbSchema
@@ -29,11 +28,12 @@ namespace CodegenCS.DbSchema
         public static DatabaseSchema TryParse(string input)
         {
             var validationErrors = new JsonInputModelParser().ValidateSchema(_jsonSchema.Value, input);
-            
+
             // ignore these irrelevant errors from previous versions
-            validationErrors.RemoveAll(v => v.Message.StartsWith("Property 'Id' has not been defined and the schema does not allow additional properties."));
-            validationErrors.RemoveAll(v => v.Message.StartsWith("Property 'Schema' has not been defined and the schema does not allow additional properties."));
-            validationErrors.RemoveAll(v => v.Message.StartsWith("Required properties are missing from object: $schema."));
+            // TODO: Clearify how to handle this without "message"
+            //validationErrors.RemoveAll(v => v.Message.StartsWith("Property 'Id' has not been defined and the schema does not allow additional properties."));
+            //validationErrors.RemoveAll(v => v.Message.StartsWith("Property 'Schema' has not been defined and the schema does not allow additional properties."));
+            //validationErrors.RemoveAll(v => v.Message.StartsWith("Required properties are missing from object: $schema."));
 
             if (validationErrors.Any())
                 return null;

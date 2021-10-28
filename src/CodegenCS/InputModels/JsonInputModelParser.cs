@@ -1,9 +1,8 @@
-﻿extern alias NewtonsoftJsonSchema;
-using System;
+﻿using Newtonsoft.Json.Linq;
+using NJsonSchema;
+using NJsonSchema.Validation;
 using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json.Linq;
-using NewtonsoftJsonSchema::Newtonsoft.Json.Schema;
+using System.Linq;
 
 namespace CodegenCS.InputModels
 {
@@ -18,14 +17,12 @@ namespace CodegenCS.InputModels
         /// </summary>
         public List<ValidationError> ValidateSchema(string jsonSchema, string input)
         {
-            JSchema schema = JSchema.Parse(jsonSchema);
+            JsonSchema schema = JsonSchema.FromSampleJson(jsonSchema);
             JObject jObject = JObject.Parse(input);
-            List<ValidationError> errors = new List<ValidationError>();
-            jObject.Validate(schema, (sender, e) => 
-            {
-                errors.Add(e.ValidationError);
-                System.Diagnostics.Debug.WriteLine($"Error {e.Message} on line {e.ValidationError.LineNumber}");
-            });
+            List<ValidationError> errors = new JsonSchemaValidator().Validate(input, schema).ToList();
+
+            errors.ForEach(error => System.Diagnostics.Debug.WriteLine($"Error {error.Kind} on line {error.LineNumber}"));
+
             return errors;
         }
     }
