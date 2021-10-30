@@ -8,7 +8,7 @@
 		<Description>C# Code and Scripts to extract schema from SQL database into json files.</Description>
 		<Copyright>Rick Drizin</Copyright>
 		<Company>Rick Drizin</Company>
-		<Version>1.1.0</Version>
+		<Version>1.1.1</Version>
 		<RepositoryUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema</RepositoryUrl>
 	</PropertyGroup>
 

@@ -13,7 +13,7 @@
     <tags>code generation;code generator;templating;codegencs</tags>
     <repository type="git" url="https://github.com/Drizin/CodegenCS" commit="503233196dfbf6391dcbd807cf7e04403bb91a28" />
     <dependencies>
-		<dependency id="Newtonsoft.Json.Schema" version="[3.0.1" include="All" />
+		<dependency id="NJsonSchema" version="[10.0.0" include="All" />
     </dependencies>
   </metadata>
   <files>

@@ -16,8 +16,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CodegenCS" Version="1.*" />
-		<PackageReference Include="CodegenCS.DbSchema" Version="1.*" />
+		<PackageReference Include="CodegenCS" Version="1.1.*" />
+		<PackageReference Include="CodegenCS.DbSchema" Version="1.1.*" />
 		<PackageReference Include="Newtonsoft.Json" Version="12.*" />
 	</ItemGroup>
 
