@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 #if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
 namespace CodegenCS.DbSchema
@@ -25,15 +26,14 @@ namespace CodegenCS.DbSchema
         });
         #endregion
 
-        public static DatabaseSchema TryParse(string input)
+        public async static Task<DatabaseSchema> TryParseAsync(string input)
         {
-            var validationErrors = new JsonInputModelParser().ValidateSchema(_jsonSchema.Value, input);
+            var validationErrors = await new JsonInputModelParser().ValidateSchemaAsync(_jsonSchema.Value, input);
 
             // ignore these irrelevant errors from previous versions
-            // TODO: Clearify how to handle this without "message"
-            //validationErrors.RemoveAll(v => v.Message.StartsWith("Property 'Id' has not been defined and the schema does not allow additional properties."));
-            //validationErrors.RemoveAll(v => v.Message.StartsWith("Property 'Schema' has not been defined and the schema does not allow additional properties."));
-            //validationErrors.RemoveAll(v => v.Message.StartsWith("Required properties are missing from object: $schema."));
+            validationErrors.RemoveAll(v => v.Kind == NJsonSchema.Validation.ValidationErrorKind.NoAdditionalPropertiesAllowed && v.Property == "Id");
+            validationErrors.RemoveAll(v => v.Kind == NJsonSchema.Validation.ValidationErrorKind.NoAdditionalPropertiesAllowed && v.Property == "Schema");
+            validationErrors.RemoveAll(v => v.Kind == NJsonSchema.Validation.ValidationErrorKind.PropertyRequired && v.Property == "$schema");
 
             if (validationErrors.Any())
                 return null;
