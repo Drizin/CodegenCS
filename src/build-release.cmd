@@ -1,6 +1,6 @@
 rmdir /s /q ".\packages-local"
-rmdir /s /q "%HOMEPATH%\.nuget\packages\codegencs"
-rmdir /s /q "%HOMEPATH%\.nuget\packages\codegencs.schema"
+rmdir /s /q "%HOMEDRIVE%%HOMEPATH%\.nuget\packages\codegencs"
+rmdir /s /q "%HOMEDRIVE%%HOMEPATH%\.nuget\packages\codegencs.schema"
 
 if not exist packages-local mkdir packages-local
 

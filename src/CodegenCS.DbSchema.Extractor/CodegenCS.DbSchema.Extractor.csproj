@@ -35,7 +35,7 @@
 		</When>
 		<Otherwise>
 			<ItemGroup>
-				<PackageReference Include="CodegenCS.DbSchema" Version="1.0.*" />
+				<PackageReference Include="CodegenCS.DbSchema" Version="1.1.*" />
 			</ItemGroup>
 		</Otherwise>
 	</Choose>

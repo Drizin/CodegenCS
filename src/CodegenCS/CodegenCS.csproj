@@ -11,7 +11,7 @@
 		</Description>
 		<Copyright>Rick Drizin</Copyright>
 		<Company>Rick Drizin</Company>
-		<Version>1.0.7</Version>
+		<Version>1.1.0</Version>
 		<DocumentationFile>CodegenCS.xml</DocumentationFile>
 	</PropertyGroup>
 
