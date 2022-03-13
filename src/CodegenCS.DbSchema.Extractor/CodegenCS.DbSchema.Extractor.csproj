@@ -1,10 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+	<OutputType>Library</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <AssemblyName>DbSchemaExtractor</AssemblyName>
-    <RootNamespace>CodegenCS.DbSchema.Extractor</RootNamespace>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor</PackageProjectUrl>
@@ -12,8 +10,7 @@
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
     <Version>1.0.0</Version>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <RepositoryUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor</RepositoryUrl>
+	<EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -25,6 +22,10 @@
     <PackageReference Include="Npgsql" Version="5.0.3" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+	<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+		<PrivateAssets>all</PrivateAssets>
+		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
   </ItemGroup>
 
 	<Choose>
