@@ -310,7 +310,7 @@ namespace CodegenCS
         [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return CodegenTextWriter")]
         public IDisposable WithIndent(string beforeBlock = null, string afterBlock = null)
         {
-            return new IndentedBlockScope(this, beforeBlock, afterBlock);
+            return new IndentedBlockScope(this, AdjustMultilineString(beforeBlock), AdjustMultilineString(afterBlock));
         }
 
         /// <summary>
@@ -398,14 +398,14 @@ namespace CodegenCS
                 default:
                         innerBlock = new IndentedBlockScope(this, 
                             beforeBlock: 
-                                (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + NewLine) :("")) 
+                                (!string.IsNullOrEmpty(beforeBlock) ? (AdjustMultilineString(beforeBlock) + NewLine) :("")) 
                                 + "{", 
                             afterBlock: "}");
                     break;
                 case CurlyBracesStyleType.Java:
                     innerBlock = new IndentedBlockScope(this,
                         beforeBlock:
-                            (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + " ") : (""))
+                            (!string.IsNullOrEmpty(beforeBlock) ? (AdjustMultilineString(beforeBlock) + " ") : (""))
                             + "{",
                         afterBlock: "}");
                     break;
@@ -471,7 +471,7 @@ namespace CodegenCS
         {
             IDisposable innerBlock = new IndentedBlockScope(this,
                 beforeBlock:
-                    (!string.IsNullOrEmpty(beforeBlock) ? (beforeBlock + " :") : ("")),
+                    (!string.IsNullOrEmpty(beforeBlock) ? (AdjustMultilineString(beforeBlock) + " :") : ("")),
                 afterBlock: "");
             return innerBlock;
         }
