@@ -11,23 +11,22 @@
 		</Description>
 		<Copyright>Rick Drizin</Copyright>
 		<Company>Rick Drizin</Company>
-		<Version>1.1.1</Version>
+		<Version>1.1.2</Version>
 		<DocumentationFile>CodegenCS.xml</DocumentationFile>
+		<PackageTags>code generation;code generator;templating;codegencs</PackageTags>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<!-- Include symbol files (*.pdb) in the main .nupkg -->
+		<PackageReadmeFile>NuGetReadMe.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="NuGetReadMe.md" Pack="true" PackagePath="\"/>
 		<PackageReference Include="NJsonSchema" Version="10.5.2" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
-
-	<Choose>
-		<When Condition="'$(Configuration)' == 'Debug'">
-		</When>
-		<Otherwise>
-			<PropertyGroup>
-				<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-				<PackageOutputPath>..\packages-local\</PackageOutputPath>
-			</PropertyGroup>
-		</Otherwise>
-	</Choose>
 
 </Project>

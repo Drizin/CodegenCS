@@ -8,8 +8,13 @@
 		<Description>C# Code and Scripts to extract schema from SQL database into json files.</Description>
 		<Copyright>Rick Drizin</Copyright>
 		<Company>Rick Drizin</Company>
-		<Version>1.1.1</Version>
-		<RepositoryUrl>https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema</RepositoryUrl>
+		<Version>1.1.2</Version>
+		<DocumentationFile>CodegenCS.DbSchema.xml</DocumentationFile>
+		<PackageTags>code generation;code generator;templating;codegencs</PackageTags>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<!-- Include symbol files (*.pdb) in the main .nupkg -->
+		<PackageReadmeFile>NuGetReadMe.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -21,8 +26,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="NuGetReadMe.md" Pack="true" PackagePath="\"/>
 		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 		<PackageReference Include="NJsonSchema" Version="10.5.2" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<Choose>
@@ -35,10 +45,6 @@
 			<ItemGroup>
 				<PackageReference Include="CodegenCS" Version="1.1.*" />
 			</ItemGroup>
-			<PropertyGroup>
-				<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-				<PackageOutputPath>..\packages-local\</PackageOutputPath>
-			</PropertyGroup>
 		</Otherwise>
 	</Choose>
 

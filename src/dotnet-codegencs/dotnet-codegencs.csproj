@@ -11,18 +11,23 @@
 		<Description>Command line tool to extract schema from MSSQL/PostgreSQL database into json files, and templates to generate POCO classes.</Description>
 		<Copyright>Rick Drizin</Copyright>
 		<Company>Rick Drizin</Company>
-		<Version>1.1.1</Version>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<RepositoryUrl>https://github.com/Drizin/CodegenCS</RepositoryUrl>
-
+		<Version>1.1.2</Version>
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>codegencs</ToolCommandName>
-		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<PackageOutputPath>..\packages-local\</PackageOutputPath>
+		<PackageTags>code generation;code generator;templating;codegencs</PackageTags>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<!-- Include symbol files (*.pdb) in the main .nupkg -->
+		<PackageReadmeFile>NuGetReadMe.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="NuGetReadMe.md" Pack="true" PackagePath="\"/>
 		<PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>
