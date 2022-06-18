@@ -9,6 +9,51 @@ using System.Text.RegularExpressions;
 
 namespace CodegenCS
 {
+    public interface ICodegenTextWriter : IDisposable
+    {
+        CodegenTextWriter.MultilineBehaviorType MultilineBehavior { get; set; }
+        CodegenTextWriter.CurlyBracesStyleType CurlyBracesStyle { get; set; }
+        string NewLine { get; set; }
+        Encoding Encoding { get; }
+        void Close();
+        void Flush();
+        string ToString();
+        int IndentLevel { get; }
+        string IndentString { get; set; }
+        CodegenTextWriter IncreaseIndent();
+        CodegenTextWriter DecreaseIndent();
+        CodegenTextWriter EnsureEmptyLine();
+        CodegenTextWriter WithIndent(string beforeBlock, string afterBlock, Action innerBlockAction);
+        CodegenTextWriter WithIndent(string beforeBlock, string afterBlock, Action<CodegenTextWriter> innerBlockAction);
+        CodegenTextWriter WithCurlyBraces(string beforeBlock, Action innerBlockAction);
+        CodegenTextWriter WithCurlyBraces(string beforeBlock, Action<CodegenTextWriter> innerBlockAction);
+        CodegenTextWriter WithPythonBlock(string beforeBlock, Action innerBlockAction);
+        CodegenTextWriter WithPythonBlock(string beforeBlock, Action<CodegenTextWriter> innerBlockAction);
+        CodegenTextWriter WithCBlock(string beforeBlock, Action innerBlockAction);
+        CodegenTextWriter WithCBlock(string beforeBlock, Action<CodegenTextWriter> innerBlockAction);
+        CodegenTextWriter WithJavaBlock(string beforeBlock, Action innerBlockAction);
+        CodegenTextWriter WithJavaBlock(string beforeBlock, Action<CodegenTextWriter> innerBlockAction);
+        CodegenTextWriter Write(FormattableString formattable);
+        CodegenTextWriter WriteLine(FormattableString formattable);
+        CodegenTextWriter Write(RawString format, params object[] arguments);
+        CodegenTextWriter WriteLine(RawString format, params object[] arguments);
+        CodegenTextWriter Write(object value);
+        CodegenTextWriter WriteLine(object value);
+        CodegenTextWriter WriteLine();
+        CodegenTextWriter Write(RawString value);
+        CodegenTextWriter WriteLine(RawString value);
+        CodegenTextWriter Write(Func<RawString> fnString);
+        CodegenTextWriter WriteLine(Func<RawString> fnString);
+        CodegenTextWriter Write(Func<FormattableString> fnFormattableString);
+        CodegenTextWriter WriteLine(Func<FormattableString> fnFormattableString);
+        CodegenTextWriter Write(char[] buffer);
+        CodegenTextWriter Write(char[] buffer, int index, int count);
+        CodegenTextWriter WriteLine(char[] buffer);
+        CodegenTextWriter WriteLine(char[] buffer, int index, int count);
+        void SaveToFile(string path, bool createFolder = true);
+        string GetContents();
+    }
+
     /// <summary>
     /// This text writer has some features to help code-generation tools: <br />
     /// - Will keep track of "Indent Levels", and will write whitespace-indents accordingly to the current level. <br />
@@ -46,7 +91,7 @@ namespace CodegenCS
     /// All public methods should call AdjustMultilineString to adjust the block before calling other methods.
     /// </summary>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public partial class CodegenTextWriter : TextWriter
+    public partial class CodegenTextWriter : TextWriter, ICodegenTextWriter
     {
         #region Members
         /// <summary>
@@ -70,7 +115,7 @@ namespace CodegenCS
         /// <summary>
         /// How multi-line text blocks are adjusted
         /// </summary>
-        public MultilineBehaviorType MultilineBehavior = MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine;
+        public MultilineBehaviorType MultilineBehavior { get; set; } = MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine;
 
         /// <summary>
         /// How multi-line text blocks are adjusted

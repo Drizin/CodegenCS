@@ -8,15 +8,25 @@ using System.Threading.Tasks;
 
 namespace CodegenCS
 {
+    public interface ICodegenOutputFile : ICodegenTextWriter
+    {
+        string RelativePath { get; }
+    }
+    public interface ICodegenOutputFile<FT> : ICodegenOutputFile
+        where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 
+    {
+        FT FileType { get; set; }
+    }
+
     /// <summary>
     /// CodegenTextWriter with added properties that describe Outputfile location (RelativePath)
     /// </summary>
-    public class CodegenOutputFile : CodegenTextWriter
+    public class CodegenOutputFile : CodegenTextWriter, ICodegenOutputFile
     {
         /// <summary>
         /// Relative path of the output file (relative to the outputFolder)
         /// </summary>
-        public string RelativePath;
+        public string RelativePath { get; }
 
         /// <summary>
         /// Creates a new OutputFile, with a relative path
@@ -32,7 +42,7 @@ namespace CodegenCS
     /// CodegenTextWriter with added properties that describe Outputfile location (RelativePath) <br />
     /// and type of output (regarding .NET Project - if file is Compiled, NotCompiled, etc)
     /// </summary>
-    public class CodegenOutputFile<FT> : CodegenOutputFile
+    public class CodegenOutputFile<FT> : CodegenOutputFile, ICodegenOutputFile<FT>
         where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 
     {
 
