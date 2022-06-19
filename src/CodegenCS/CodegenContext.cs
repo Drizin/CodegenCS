@@ -45,6 +45,8 @@ namespace CodegenCS
 
         public CodegenOutputFile DefaultOutputFile { get { return _defaultOutputFile; } }
         protected CodegenOutputFile _defaultOutputFile;
+        public DependencyContainer DependencyContainer { get { return _dependencyContainer; } }
+        protected DependencyContainer _dependencyContainer;
         #endregion
 
         #region ctors
@@ -52,6 +54,15 @@ namespace CodegenCS
         public CodegenContext()
         {
             _defaultOutputFile = new CodegenOutputFile(null);
+            
+            _dependencyContainer = new DependencyContainer();
+            _dependencyContainer.RegisterSingleton<ICodegenContext>(this);
+            _dependencyContainer.RegisterSingleton<CodegenContext>(this);
+            _dependencyContainer.RegisterSingleton<ICodegenOutputFile>(() => this.DefaultOutputFile);
+            _dependencyContainer.RegisterSingleton<CodegenOutputFile>(() => this.DefaultOutputFile);
+            _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this.DefaultOutputFile);
+            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this.DefaultOutputFile);
+
         }
         #endregion
 
@@ -69,12 +80,15 @@ namespace CodegenCS
                 if (!this._outputFiles.ContainsKey(relativePath))
                 {
                     this._outputFiles[relativePath] = new CodegenOutputFile(relativePath);
+                    this._outputFiles[relativePath].DependencyContainer.RegisterSingleton<ICodegenContext>(this);
+                    this._outputFiles[relativePath].DependencyContainer.RegisterSingleton<CodegenContext>(this);
                 }
                 return this._outputFiles[relativePath];
             }
         }
         #endregion
 
+        //TODO: protected IPersistenceProvider PersistenceProvider { get; protected set; } = new DiskPersistenceProvider()
         #region I/O
         /// <summary>
         /// Saves all files in the outputFolder. <br />
@@ -128,6 +142,47 @@ namespace CodegenCS
 
         #endregion
 
+        #region Dependency Injection Container
+        /// <summary>
+        /// Creates an instance of a dependency <typeparamref name="T"/> (usually a Template) and (if constructor needs) it injects ICodegenContext or ICodegenTextWriter
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        protected T ResolveDependency<T>(params object[] args) where T : class
+        {
+            return (T)_dependencyContainer.Resolve(typeof(T), args);
+        }
+
+        /// <summary>
+        /// Creates an instance of a dependency <paramref name="type"/> (usually a Template) and (if constructor needs) it injects ICodegenContext or ICodegenTextWriter
+        /// </summary>
+        protected object ResolveDependency(Type type, params object[] args)
+        {
+            return _dependencyContainer.Resolve(type, args);
+        }
+        #endregion
+
+        #region Templates
+        public CodegenContext RenderMultifileTemplate(ICodegenMultifileTemplate template)
+        {
+            template.Render(this);
+            return this;
+        }
+        public CodegenContext RenderMultifileTemplate<T>(params object[] args) where T : class, ICodegenMultifileTemplate
+        {
+            var template = this.ResolveDependency<T>(args);
+            return RenderMultifileTemplate(template);
+        }
+        public CodegenContext RenderGenericTemplate(ICodegenGenericTemplate template)
+        {
+            template.Render();
+            return this;
+        }
+        public CodegenContext RenderGenericTemplate<T>(params object[] args) where T : class, ICodegenGenericTemplate
+        {
+            var template = this.ResolveDependency<T>(args);
+            return RenderGenericTemplate(template);
+        }
+        #endregion
     }
 
     public class CustomWriterCodegenContext<O> : CodegenContext, ICustomWriterCodegenContext<O>
@@ -304,6 +359,8 @@ namespace CodegenCS
                 {
                     this._outputFiles[relativePath] = _outputFileFactory(relativePath, fileType, this);
                     this._outputFiles[relativePath].FileType = fileType;
+                    this._outputFiles[relativePath].DependencyContainer.RegisterSingleton<ICodegenContext>(this);
+                    this._outputFiles[relativePath].DependencyContainer.RegisterSingleton<CodegenContext>(this);
                 }
                 return this._outputFiles[relativePath];
             }
@@ -321,6 +378,5 @@ namespace CodegenCS
 
         #endregion
     }
-
-
+    
 }

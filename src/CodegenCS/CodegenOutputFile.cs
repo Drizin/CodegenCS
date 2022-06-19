@@ -35,6 +35,8 @@ namespace CodegenCS
         public CodegenOutputFile(string relativePath) : base()
         {
             this.RelativePath = relativePath;
+            _dependencyContainer.RegisterSingleton<ICodegenOutputFile>(() => this);
+            _dependencyContainer.RegisterSingleton<CodegenOutputFile>(() => this);
         }
     }
 

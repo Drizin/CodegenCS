@@ -13,6 +13,11 @@ namespace CodegenCS
         List<string> Errors { get; }
         void SaveFiles(string outputFolder);
         CodegenOutputFile DefaultOutputFile { get; }
+        CodegenContext RenderMultifileTemplate(ICodegenMultifileTemplate template);
+        CodegenContext RenderMultifileTemplate<T>(params object[] args) where T : class, ICodegenMultifileTemplate;
+        CodegenContext RenderGenericTemplate(ICodegenGenericTemplate template);
+        CodegenContext RenderGenericTemplate<T>(params object[] args) where T : class, ICodegenGenericTemplate;
+        DependencyContainer DependencyContainer { get; }
     }
 
     /// <summary>

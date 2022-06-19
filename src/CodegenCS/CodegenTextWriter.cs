@@ -52,6 +52,11 @@ namespace CodegenCS
         CodegenTextWriter WriteLine(char[] buffer, int index, int count);
         void SaveToFile(string path, bool createFolder = true);
         string GetContents();
+        DependencyContainer DependencyContainer { get; }
+        CodegenTextWriter RenderSinglefileTemplate(ICodegenSinglefileTemplate template);
+        CodegenTextWriter RenderSinglefileTemplate<T>(params object[] args) where T : class, ICodegenSinglefileTemplate;
+        CodegenTextWriter RenderTextTemplate(ICodegenTextTemplate template);
+        CodegenTextWriter RenderTextTemplate<T>(params object[] args) where T : class, ICodegenTextTemplate;
     }
 
     /// <summary>
@@ -176,6 +181,8 @@ namespace CodegenCS
 
         StringBuilder _currentLine = new StringBuilder();
         bool _dontIndentCurrentLine = false; // when we're in the middle of a line and start an inline block (which could be multiline string), the first line don't need to be indented - only the next ones
+        public DependencyContainer DependencyContainer { get { return _dependencyContainer; } internal set { _dependencyContainer = value; } }
+        protected DependencyContainer _dependencyContainer;
         #endregion
 
         #region ctors
@@ -187,6 +194,9 @@ namespace CodegenCS
         {
             _innerWriter = new StringWriter();
             _encoding = Encoding.UTF8;
+            _dependencyContainer = new DependencyContainer();
+            _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
+            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
         }
 
         /// <summary>
@@ -198,6 +208,9 @@ namespace CodegenCS
         {
             _innerWriter = new StreamWriter(filePath); // default encoding is UTF-8
             _encoding = Encoding.UTF8;
+            _dependencyContainer = new DependencyContainer();
+            _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
+            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
         }
 
         /// <summary>
@@ -209,6 +222,9 @@ namespace CodegenCS
         {
             _innerWriter = new StreamWriter(filePath, append: false, encoding: encoding);
             _encoding = encoding;
+            _dependencyContainer = new DependencyContainer();
+            _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
+            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
         }
 
         /// <summary>
@@ -219,6 +235,9 @@ namespace CodegenCS
         {
             _innerWriter = textWriter;
             _encoding = textWriter.Encoding;
+            _dependencyContainer = new DependencyContainer();
+            _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
+            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
         }
         #endregion
 
@@ -644,7 +663,7 @@ namespace CodegenCS
             if (IsControlBlockActive)
             {
                 _innerWriter.Write(value);
-                System.Diagnostics.Debug.Write(value);
+                //System.Diagnostics.Debug.Write(value);
             }
         }
         #endregion
@@ -840,6 +859,59 @@ namespace CodegenCS
                 return;
             }
             #endregion
+
+            #region if arg is some Template (embedded using Include.Template which wraps under EmbeddedTemplate, or described by typeof(T))
+            if (typeof(Include.EmbeddedTemplate).IsAssignableFrom(arg.GetType()))
+            {
+                var templateType = ((Include.EmbeddedTemplate)arg).TemplateType;
+                var templateArgs = ((Include.EmbeddedTemplate)arg).Arguments;
+                arg = (ICodegenTemplate)this.ResolveDependency(templateType, templateArgs);
+            }
+            else if (arg is Type && typeof(ICodegenTemplate).IsAssignableFrom((Type)arg))
+            {
+                arg = (ICodegenTemplate)this.ResolveDependency((Type)arg);
+            }
+
+            if (typeof(ICodegenSinglefileTemplate).IsAssignableFrom(arg.GetType()))
+            {
+                ICodegenSinglefileTemplate template = (ICodegenSinglefileTemplate)arg;
+                InnerInlineAction(() =>
+                {
+                    template.Render(this);
+                });                
+                return;
+            }
+            if (typeof(ICodegenMultifileTemplate).IsAssignableFrom(arg.GetType()))
+            {
+                ICodegenMultifileTemplate template = (ICodegenMultifileTemplate)arg;
+                ICodegenContext context = this.ResolveDependency<ICodegenContext>(); // it doesn't make much sense to inline a ICodegenMultifileTemplate inside a text writer, but... 
+                InnerInlineAction(() =>
+                {
+                    template.Render(context);
+                });
+                return;
+            }
+            if (typeof(ICodegenTextTemplate).IsAssignableFrom(arg.GetType()))
+            {
+                ICodegenTextTemplate template = (ICodegenTextTemplate)arg;
+                InnerInlineAction(() =>
+                {
+                    FormattableString formattable = template.GetTemplate();
+                    InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
+                });
+                return;
+            }
+            if (typeof(ICodegenGenericTemplate).IsAssignableFrom(arg.GetType()))
+            {
+                ICodegenGenericTemplate template = (ICodegenGenericTemplate)arg;
+                InnerInlineAction(() =>
+                {
+                    template.Render();
+                });
+                return;
+            }
+            #endregion
+
 
             #region if arg is Action<CodegenTextWriter> or Action<TextWriter>
             if (arg as Action<CodegenTextWriter> != null)
@@ -1285,6 +1357,48 @@ namespace CodegenCS
             sb.Append(lastLine.Substring(Math.Min(lastLine.Length, minNumberOfSpaces)));
 
             return sb.ToString();
+        }
+        #endregion
+
+        #region Dependency Injection Container
+        /// <summary>
+        /// Creates an instance of a dependency <typeparamref name="T"/> (usually a Template) and (if constructor needs) it injects ICodegenContext or ICodegenTextWriter
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        protected T ResolveDependency<T>(params object[] args) where T : class
+        {
+            return (T)_dependencyContainer.Resolve(typeof(T), args);
+        }
+
+        /// <summary>
+        /// Creates an instance of a dependency<paramref name= "type" /> (usually a Template) and(if constructor needs) it injects ICodegenContext or ICodegenTextWriter
+        /// </summary>
+        protected object ResolveDependency(Type type, params object[] args)
+        {
+            return _dependencyContainer.Resolve(type, args);
+        }
+        #endregion
+
+        #region Templates
+        public CodegenTextWriter RenderSinglefileTemplate(ICodegenSinglefileTemplate template)
+        {
+            template.Render(this);
+            return this;
+        }
+        public CodegenTextWriter RenderSinglefileTemplate<T>(params object[] args) where T : class, ICodegenSinglefileTemplate
+        {
+            var template = this.ResolveDependency<T>(args);
+            return RenderSinglefileTemplate(template);
+        }
+        public CodegenTextWriter RenderTextTemplate(ICodegenTextTemplate template)
+        {
+            Write(() => template.GetTemplate());
+            return this;
+        }
+        public CodegenTextWriter RenderTextTemplate<T>(params object[] args) where T : class, ICodegenTextTemplate
+        {
+            var template = this.ResolveDependency<T>(args);
+            return RenderTextTemplate(template);
         }
         #endregion
     }
