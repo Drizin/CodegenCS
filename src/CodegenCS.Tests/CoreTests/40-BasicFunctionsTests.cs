@@ -23,7 +23,7 @@ namespace Tests
         [Test]
         public void TestCallback1()
         {
-            Action<CodegenTextWriter> callback = (w) => w.WriteLine("Hello3");
+            Action<ICodegenTextWriter> callback = (w) => w.WriteLine("Hello3");
 
             _w
                 // Inside indented block we call anonymous Action

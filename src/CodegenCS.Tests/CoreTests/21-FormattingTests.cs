@@ -40,7 +40,7 @@ namespace Tests
         public void TestFormat3()
         {
             decimal[] prices = new decimal[] { .34m, .55m, 3.693m };
-            Action<CodegenTextWriter> writeFn = (w) => prices.ToList().ForEach(p => w.WriteLine($"Price: {p:000.0000}"));
+            Action<ICodegenTextWriter> writeFn = (w) => prices.ToList().ForEach(p => w.WriteLine($"Price: {p:000.0000}"));
             _w.Write(writeFn);
             string expected = @"
 Price: 000.3400

@@ -9,14 +9,14 @@ namespace CodegenCS
     /// </summary>
     public interface ICodegenContext
     {
-        CodegenOutputFile this[string relativePath] { get; }
+        ICodegenOutputFile this[string relativePath] { get; }
         List<string> Errors { get; }
         void SaveFiles(string outputFolder);
-        CodegenOutputFile DefaultOutputFile { get; }
-        CodegenContext RenderMultifileTemplate(ICodegenMultifileTemplate template);
-        CodegenContext RenderMultifileTemplate<T>(params object[] args) where T : class, ICodegenMultifileTemplate;
-        CodegenContext RenderGenericTemplate(ICodegenGenericTemplate template);
-        CodegenContext RenderGenericTemplate<T>(params object[] args) where T : class, ICodegenGenericTemplate;
+        ICodegenOutputFile DefaultOutputFile { get; }
+        ICodegenContext RenderMultifileTemplate(ICodegenMultifileTemplate template);
+        ICodegenContext RenderMultifileTemplate<T>(params object[] args) where T : class, ICodegenMultifileTemplate;
+        ICodegenContext RenderGenericTemplate(ICodegenGenericTemplate template);
+        ICodegenContext RenderGenericTemplate<T>(params object[] args) where T : class, ICodegenGenericTemplate;
         DependencyContainer DependencyContainer { get; }
     }
 
@@ -28,15 +28,15 @@ namespace CodegenCS
     public interface IMultipleFiletypeCodegenContext<FT> : ICodegenContext
         where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 
     {
-        new CodegenOutputFile<FT> this[string relativePath] { get; }
-        CodegenOutputFile<FT> this[string relativePath, FT fileType] { get; }
+        new ICodegenOutputFile<FT> this[string relativePath] { get; }
+        ICodegenOutputFile<FT> this[string relativePath, FT fileType] { get; }
     }
 
     /// <summary>
     /// ICodegenContext<typeparamref name="O"/> extends <see cref="ICodegenContext"/> by allowing the the use of a custom implementation of OutputFile (custom writer of type <typeparamref name="O"/>)
     /// </summary>
     public interface ICustomWriterCodegenContext<O> : ICodegenContext
-        where O : CodegenOutputFile
+        where O : ICodegenOutputFile
     {
         new O this[string relativePath] { get; }
         new O DefaultOutputFile { get; }
@@ -50,7 +50,7 @@ namespace CodegenCS
     /// - The different types are used for something (e.g. the different types may use different actions for being added to the project file)
     /// </summary>
     public interface ICodegenContext<O, FT> : ICodegenContext, ICustomWriterCodegenContext<O>, IMultipleFiletypeCodegenContext<FT>
-        where O : CodegenOutputFile<FT>
+        where O : ICodegenOutputFile<FT>
         where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 
     {
         new O this[string relativePath] { get; /*set;*/ }

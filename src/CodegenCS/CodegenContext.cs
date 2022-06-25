@@ -43,7 +43,7 @@ namespace CodegenCS
         /// </summary>
         public List<string> Errors { get; } = new List<string>();
 
-        public CodegenOutputFile DefaultOutputFile { get { return _defaultOutputFile; } }
+        public ICodegenOutputFile DefaultOutputFile { get { return _defaultOutputFile; } }
         protected CodegenOutputFile _defaultOutputFile;
         public DependencyContainer DependencyContainer { get { return _dependencyContainer; } }
         protected DependencyContainer _dependencyContainer;
@@ -59,9 +59,9 @@ namespace CodegenCS
             _dependencyContainer.RegisterSingleton<ICodegenContext>(this);
             _dependencyContainer.RegisterSingleton<CodegenContext>(this);
             _dependencyContainer.RegisterSingleton<ICodegenOutputFile>(() => this.DefaultOutputFile);
-            _dependencyContainer.RegisterSingleton<CodegenOutputFile>(() => this.DefaultOutputFile);
+            _dependencyContainer.RegisterSingleton<CodegenOutputFile>(() => this._defaultOutputFile);
             _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this.DefaultOutputFile);
-            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this.DefaultOutputFile);
+            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this._defaultOutputFile);
 
         }
         #endregion
@@ -73,7 +73,7 @@ namespace CodegenCS
         /// </summary>
         /// <param name="relativePath"></param>
         /// <returns></returns>
-        public CodegenOutputFile this[string relativePath]
+        public ICodegenOutputFile this[string relativePath]
         {
             get
             {
@@ -162,22 +162,22 @@ namespace CodegenCS
         #endregion
 
         #region Templates
-        public CodegenContext RenderMultifileTemplate(ICodegenMultifileTemplate template)
+        public ICodegenContext RenderMultifileTemplate(ICodegenMultifileTemplate template)
         {
             template.Render(this);
             return this;
         }
-        public CodegenContext RenderMultifileTemplate<T>(params object[] args) where T : class, ICodegenMultifileTemplate
+        public ICodegenContext RenderMultifileTemplate<T>(params object[] args) where T : class, ICodegenMultifileTemplate
         {
             var template = this.ResolveDependency<T>(args);
             return RenderMultifileTemplate(template);
         }
-        public CodegenContext RenderGenericTemplate(ICodegenGenericTemplate template)
+        public ICodegenContext RenderGenericTemplate(ICodegenGenericTemplate template)
         {
             template.Render();
             return this;
         }
-        public CodegenContext RenderGenericTemplate<T>(params object[] args) where T : class, ICodegenGenericTemplate
+        public ICodegenContext RenderGenericTemplate<T>(params object[] args) where T : class, ICodegenGenericTemplate
         {
             var template = this.ResolveDependency<T>(args);
             return RenderGenericTemplate(template);
@@ -366,11 +366,11 @@ namespace CodegenCS
             }
         }
         #region Explicit IMultiplefiletypeCodegenContext<FT>
-        CodegenOutputFile<FT> IMultipleFiletypeCodegenContext<FT>.this[string relativePath, FT fileType] { 
+        ICodegenOutputFile<FT> IMultipleFiletypeCodegenContext<FT>.this[string relativePath, FT fileType] { 
             get => this[relativePath, fileType];
             //set => this[relativePath, fileType] = (O)value; 
         }
-        CodegenOutputFile<FT> IMultipleFiletypeCodegenContext<FT>.this[string relativePath] {
+        ICodegenOutputFile<FT> IMultipleFiletypeCodegenContext<FT>.this[string relativePath] {
             get => this[relativePath];
             //set => this[relativePath] = (O)value;
         }
