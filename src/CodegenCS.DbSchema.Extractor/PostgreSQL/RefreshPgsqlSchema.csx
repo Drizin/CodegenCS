@@ -13,7 +13,7 @@
 #r "system.text.json\5.0.0\lib\netstandard2.0\System.Text.Json.dll"
 #r "system.threading.channels\4.7.1\lib\netstandard2.0\System.Threading.Channels.dll"
 #r "microsoft.bcl.asyncinterfaces\1.0.0\lib\netstandard2.0\Microsoft.Bcl.AsyncInterfaces.dll"
-#r "newtonsoft.json\12.0.3\lib\netstandard2.0\Newtonsoft.Json.dll"
+#r "newtonsoft.json\13.0.1\lib\netstandard2.0\Newtonsoft.Json.dll"
 
 // CS files are better than CSX because Intellisense and Compile-time checks works better. 
 #load "..\DbSchema\Table.cs"

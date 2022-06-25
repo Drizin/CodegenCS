@@ -9,7 +9,7 @@
 
 // Load third-party libraries by their relative paths, relative to "$Env:userprofile\.nuget\packages\"
 #r "dapper\2.0.35\lib\netstandard2.0\Dapper.dll"
-#r "newtonsoft.json\12.0.3\lib\netstandard2.0\Newtonsoft.Json.dll"
+#r "newtonsoft.json\13.0.1\lib\netstandard2.0\Newtonsoft.Json.dll"
 #r "codegencs.dbschema\1.0.0\lib\netstandard2.0\CodegenCS.DbSchema.dll"
 
 // CS files are better than CSX because Intellisense and Compile-time checks works better. 

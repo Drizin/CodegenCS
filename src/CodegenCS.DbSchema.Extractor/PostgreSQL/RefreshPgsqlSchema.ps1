@@ -13,7 +13,7 @@
 $dir = Split-Path $MyInvocation.MyCommand.Path 
 $script = Join-Path $dir ".\RefreshPgsqlSchema.csx"
 $requiredLibs = @(
-    @{ Name = "Newtonsoft.Json"; Version = "12.0.3" },
+    @{ Name = "Newtonsoft.Json"; Version = "13.0.1" },
     @{ Name = "Dapper"; Version = "2.0.35" },
     @{ Name = "Npgsql"; Version = "5.0.3" },
     @{ Name = "System.Threading.Channels"; Version = "4.7.1" },

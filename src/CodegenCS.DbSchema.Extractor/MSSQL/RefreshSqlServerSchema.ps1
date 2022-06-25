@@ -13,7 +13,7 @@
 $dir = Split-Path $MyInvocation.MyCommand.Path 
 $script = Join-Path $dir ".\RefreshSqlServerSchema.csx"
 $requiredLibs = @(
-    @{ Name = "Newtonsoft.Json"; Version = "12.0.3" },
+    @{ Name = "Newtonsoft.Json"; Version = "13.0.1" },
     @{ Name = "Dapper"; Version = "2.0.35" }
 );
 
