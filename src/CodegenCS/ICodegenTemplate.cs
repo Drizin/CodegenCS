@@ -4,7 +4,20 @@ using System.Text;
 
 namespace CodegenCS
 {
+    /// <summary>
+    /// All Templates should "inherit" from this interface.
+    /// </summary>
     public interface ICodegenTemplate { }
+
+    /// <summary>
+    /// Any Template that does need some model(s) for the Rendering (and yet they can get other parameters through dependency-injection)
+    /// </summary>
+    public interface ICodegenTemplate<TModel> { }
+
+    /// <summary>
+    /// Any Template that does need some model(s) for the Rendering (and yet they can get other parameters through dependency-injection)
+    /// </summary>
+    public interface ICodegenTemplate<TModel1, TModel2> { }
 
     /// <summary>
     /// Templates that output into a single file just get a <see cref="ICodegenTextWriter"/> and will write directly into that writer
@@ -13,6 +26,15 @@ namespace CodegenCS
     {
         void Render(ICodegenTextWriter writer);
     }
+    public interface ICodegenSinglefileTemplate<TModel> : ICodegenTemplate<TModel>
+    {
+        void Render(ICodegenTextWriter writer, TModel model);
+    }
+    public interface ICodegenSinglefileTemplate<TModel1, TModel2> : ICodegenTemplate<TModel1, TModel2>
+    {
+        void Render(ICodegenTextWriter writer, TModel1 model1, TModel2 model2);
+    }
+
 
     /// <summary>
     /// Templates that output into multiple files usually get a <see cref="ICodegenContext"/> which can manage multiple files
@@ -20,6 +42,14 @@ namespace CodegenCS
     public interface ICodegenMultifileTemplate : ICodegenTemplate
     {
         void Render(ICodegenContext context);
+    }
+    public interface ICodegenMultifileTemplate<TModel> : ICodegenTemplate<TModel>
+    {
+        void Render(ICodegenContext context, TModel model);
+    }
+    public interface ICodegenMultifileTemplate<TModel1, TModel2> : ICodegenTemplate<TModel1, TModel2>
+    {
+        void Render(ICodegenContext context, TModel1 model1, TModel2 model2);
     }
 
     /// <summary>
@@ -31,6 +61,14 @@ namespace CodegenCS
     {
         FormattableString GetTemplate();
     }
+    public interface ICodegenTextTemplate<TModel> : ICodegenTemplate<TModel>
+    {
+        FormattableString GetTemplate(TModel model);
+    }
+    public interface ICodegenTextTemplate<TModel1, TModel2> : ICodegenTemplate<TModel1, TModel2>
+    {
+        FormattableString GetTemplate(TModel1 model1, TModel2 model2);
+    }
 
     /// <summary>
     /// If the template does not output anything to a <see cref="ICodegenTextWriter"/> or to a <see cref="ICodegenContext"/> you can just have a parameterless Render() method.
@@ -40,6 +78,14 @@ namespace CodegenCS
     public interface ICodegenGenericTemplate : ICodegenTemplate
     {
         void Render();
+    }
+    public interface ICodegenGenericTemplate<TModel> : ICodegenTemplate<TModel>
+    {
+        void Render(TModel model);
+    }
+    public interface ICodegenGenericTemplate<TModel1, TModel2> : ICodegenTemplate<TModel1, TModel2>
+    {
+        void Render(TModel1 model1, TModel2 model2);
     }
 
 }

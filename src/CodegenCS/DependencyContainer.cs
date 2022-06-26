@@ -14,31 +14,31 @@ namespace CodegenCS
     {
         private readonly Dictionary<Type, Func<object>> regs = new Dictionary<Type, Func<object>>();
 
-        public object Resolve(Type type, params object[] args)
+        public object Resolve(Type type, params object[] otherDependencies)
         {
             // If type is registered (either as singleton or per instance)
             if (regs.TryGetValue(type, out Func<object> fac)) return fac();
 
             // Else try to create..
-            var obj = CreateInstance(type, args);
+            var obj = CreateInstance(type, otherDependencies);
             if (obj == null)
                 throw new InvalidOperationException($"{type} is not registered and couldn't be created");
             return obj;
         }
 
-        protected object CreateInstance(Type type, params object[] args)
+        protected object CreateInstance(Type type, params object[] otherDependencies)
         {
             if (type.IsValueType && Nullable.GetUnderlyingType(type) == null) // primitive non-nullable types  - use the default value
                 return Activator.CreateInstance(type);
 
-            // Check if any dependencies (like models required by a template) were explicitly provided as args.
-            foreach (var arg in args)
+            // Check if any dependencies (like models required by a template) were explicitly provided as otherDependencies.
+            foreach (var arg in otherDependencies)
                 if (type.IsAssignableFrom(arg.GetType()))
                     return arg;
 
             if (Nullable.GetUnderlyingType(type) != null)
             {
-                var underlyingTypeInstance = CreateInstance(Nullable.GetUnderlyingType(type), args);
+                var underlyingTypeInstance = CreateInstance(Nullable.GetUnderlyingType(type), otherDependencies);
                 if (underlyingTypeInstance != null)
                     return underlyingTypeInstance;
             }
@@ -63,7 +63,7 @@ namespace CodegenCS
                     else if (parmInfo.HasDefaultValue) // not registered but has a default value (might be null)
                         obj[i] = parmInfo.DefaultValue;
                     else
-                        obj[i] = CreateInstance(parmInfo.ParameterType, args); // try to create (result might also be null)
+                        obj[i] = CreateInstance(parmInfo.ParameterType, otherDependencies); // try to create (result might also be null)
                 }
                 try
                 {

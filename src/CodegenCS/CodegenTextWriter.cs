@@ -54,9 +54,17 @@ namespace CodegenCS
         string GetContents();
         DependencyContainer DependencyContainer { get; }
         ICodegenTextWriter RenderSinglefileTemplate(ICodegenSinglefileTemplate template);
-        ICodegenTextWriter RenderSinglefileTemplate<T>(params object[] args) where T : class, ICodegenSinglefileTemplate;
+        ICodegenTextWriter RenderSinglefileTemplate<TModel>(ICodegenSinglefileTemplate<TModel> template, TModel model);
+        ICodegenTextWriter RenderSinglefileTemplate<TModel1, TModel2>(ICodegenSinglefileTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2);
+        ICodegenTextWriter RenderSinglefileTemplate<T>(params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate;
+        ICodegenTextWriter RenderSinglefileTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate<TModel>;
+        ICodegenTextWriter RenderSinglefileTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate<TModel1, TModel2>;
         ICodegenTextWriter RenderTextTemplate(ICodegenTextTemplate template);
-        ICodegenTextWriter RenderTextTemplate<T>(params object[] args) where T : class, ICodegenTextTemplate;
+        ICodegenTextWriter RenderTextTemplate<TModel>(ICodegenTextTemplate<TModel> template, TModel model);
+        ICodegenTextWriter RenderTextTemplate<TModel1, TModel2>(ICodegenTextTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2);
+        ICodegenTextWriter RenderTextTemplate<T>(params object[] otherDependencies) where T : class, ICodegenTextTemplate;
+        ICodegenTextWriter RenderTextTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenTextTemplate<TModel>;
+        ICodegenTextWriter RenderTextTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenTextTemplate<TModel1, TModel2>;
         IDisposable WithCBlock(string beforeBlock = null); // obsolete
         IDisposable WithIndent(string beforeBlock = null, string afterBlock = null);
     }
@@ -862,53 +870,26 @@ namespace CodegenCS
             }
             #endregion
 
-            #region if arg is some Template (embedded using Include.Template which wraps under EmbeddedTemplate, or described by typeof(T))
+            #region if arg is some Embedded Template (embedded using Include.Template which wraps under EmbeddedTemplate)
             if (typeof(Include.EmbeddedTemplate).IsAssignableFrom(arg.GetType()))
             {
-                var templateType = ((Include.EmbeddedTemplate)arg).TemplateType;
-                var templateArgs = ((Include.EmbeddedTemplate)arg).Arguments;
-                arg = (ICodegenTemplate)this.ResolveDependency(templateType, templateArgs);
-            }
-            else if (arg is Type && typeof(ICodegenTemplate).IsAssignableFrom((Type)arg))
-            {
-                arg = (ICodegenTemplate)this.ResolveDependency((Type)arg);
-            }
+                var embeddedTemplate = (Include.EmbeddedTemplate)arg;
+                InnerInlineAction(() =>
+                {
+                    // embeddedTemplate can be EmbeddedTemplate, EmbeddedTemplate<TModel> or EmbeddedTemplate<TModel1, TModel2>. Generic versions will Render using the respective models.
+                    embeddedTemplate.Render(this, _dependencyContainer);
+                });
+                return;
 
-            if (typeof(ICodegenSinglefileTemplate).IsAssignableFrom(arg.GetType()))
-            {
-                ICodegenSinglefileTemplate template = (ICodegenSinglefileTemplate)arg;
-                InnerInlineAction(() =>
-                {
-                    template.Render(this);
-                });                
-                return;
             }
-            if (typeof(ICodegenMultifileTemplate).IsAssignableFrom(arg.GetType()))
+            #endregion
+            #region if arg is the typeof(T) of any ITemplate (ITemplates will Render() without requiring any TModel. But yet they can use injected dependencies in the constructor)
+            if (arg is Type && typeof(ICodegenTemplate).IsAssignableFrom((Type)arg))
             {
-                ICodegenMultifileTemplate template = (ICodegenMultifileTemplate)arg;
-                ICodegenContext context = this.ResolveDependency<ICodegenContext>(); // it doesn't make much sense to inline a ICodegenMultifileTemplate inside a text writer, but... 
+                var template = (ICodegenTemplate)this.ResolveDependency((Type)arg);
                 InnerInlineAction(() =>
                 {
-                    template.Render(context);
-                });
-                return;
-            }
-            if (typeof(ICodegenTextTemplate).IsAssignableFrom(arg.GetType()))
-            {
-                ICodegenTextTemplate template = (ICodegenTextTemplate)arg;
-                InnerInlineAction(() =>
-                {
-                    FormattableString formattable = template.GetTemplate();
-                    InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
-                });
-                return;
-            }
-            if (typeof(ICodegenGenericTemplate).IsAssignableFrom(arg.GetType()))
-            {
-                ICodegenGenericTemplate template = (ICodegenGenericTemplate)arg;
-                InnerInlineAction(() =>
-                {
-                    template.Render();
+                    TemplateRenderer.Render(template, this, _dependencyContainer);
                 });
                 return;
             }
@@ -1378,17 +1359,17 @@ namespace CodegenCS
         /// Creates an instance of a dependency <typeparamref name="T"/> (usually a Template) and (if constructor needs) it injects ICodegenContext or ICodegenTextWriter
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        protected T ResolveDependency<T>(params object[] args) where T : class
+        protected T ResolveDependency<T>(params object[] otherDependencies) where T : class
         {
-            return (T)_dependencyContainer.Resolve(typeof(T), args);
+            return (T)_dependencyContainer.Resolve(typeof(T), otherDependencies);
         }
 
         /// <summary>
         /// Creates an instance of a dependency<paramref name= "type" /> (usually a Template) and(if constructor needs) it injects ICodegenContext or ICodegenTextWriter
         /// </summary>
-        protected object ResolveDependency(Type type, params object[] args)
+        protected object ResolveDependency(Type type, params object[] otherDependencies)
         {
-            return _dependencyContainer.Resolve(type, args);
+            return _dependencyContainer.Resolve(type, otherDependencies);
         }
         #endregion
 
@@ -1398,20 +1379,60 @@ namespace CodegenCS
             template.Render(this);
             return this;
         }
-        public ICodegenTextWriter RenderSinglefileTemplate<T>(params object[] args) where T : class, ICodegenSinglefileTemplate
+        public ICodegenTextWriter RenderSinglefileTemplate<TModel>(ICodegenSinglefileTemplate<TModel> template, TModel model)
         {
-            var template = this.ResolveDependency<T>(args);
+            template.Render(this, model);
+            return this;
+        }
+        public ICodegenTextWriter RenderSinglefileTemplate<TModel1, TModel2>(ICodegenSinglefileTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2)
+        {
+            template.Render(this, model1, model2);
+            return this;
+        }
+        public ICodegenTextWriter RenderSinglefileTemplate<T>(params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
             return RenderSinglefileTemplate(template);
+        }
+        public ICodegenTextWriter RenderSinglefileTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate<TModel>
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
+            return RenderSinglefileTemplate(template, model);
+        }
+        public ICodegenTextWriter RenderSinglefileTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate<TModel1, TModel2>
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
+            return RenderSinglefileTemplate(template, model1, model2);
         }
         public ICodegenTextWriter RenderTextTemplate(ICodegenTextTemplate template)
         {
             Write(() => template.GetTemplate());
             return this;
         }
-        public ICodegenTextWriter RenderTextTemplate<T>(params object[] args) where T : class, ICodegenTextTemplate
+        public ICodegenTextWriter RenderTextTemplate<TModel>(ICodegenTextTemplate<TModel> template, TModel model)
         {
-            var template = this.ResolveDependency<T>(args);
+            Write(() => template.GetTemplate(model));
+            return this;
+        }
+        public ICodegenTextWriter RenderTextTemplate<TModel1, TModel2>(ICodegenTextTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2)
+        {
+            Write(() => template.GetTemplate(model1, model2));
+            return this;
+        }
+        public ICodegenTextWriter RenderTextTemplate<T>(params object[] otherDependencies) where T : class, ICodegenTextTemplate
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
             return RenderTextTemplate(template);
+        }
+        public ICodegenTextWriter RenderTextTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenTextTemplate<TModel>
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
+            return RenderTextTemplate<TModel>(template, model);
+        }
+        public ICodegenTextWriter RenderTextTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenTextTemplate<TModel1, TModel2>
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
+            return RenderTextTemplate<TModel1, TModel2>(template, model1, model2);
         }
         #endregion
     }

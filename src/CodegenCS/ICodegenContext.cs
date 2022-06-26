@@ -14,9 +14,17 @@ namespace CodegenCS
         void SaveFiles(string outputFolder);
         ICodegenOutputFile DefaultOutputFile { get; }
         ICodegenContext RenderMultifileTemplate(ICodegenMultifileTemplate template);
-        ICodegenContext RenderMultifileTemplate<T>(params object[] args) where T : class, ICodegenMultifileTemplate;
+        ICodegenContext RenderMultifileTemplate<TModel>(ICodegenMultifileTemplate<TModel> template, TModel model);
+        ICodegenContext RenderMultifileTemplate<TModel1, TModel2>(ICodegenMultifileTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2);
+        ICodegenContext RenderMultifileTemplate<T>(params object[] otherDependencies) where T : class, ICodegenMultifileTemplate;
+        ICodegenContext RenderMultifileTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenMultifileTemplate<TModel>;
+        ICodegenContext RenderMultifileTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenMultifileTemplate<TModel1, TModel2>;
         ICodegenContext RenderGenericTemplate(ICodegenGenericTemplate template);
-        ICodegenContext RenderGenericTemplate<T>(params object[] args) where T : class, ICodegenGenericTemplate;
+        ICodegenContext RenderGenericTemplate<TModel>(ICodegenGenericTemplate<TModel> template, TModel model);
+        ICodegenContext RenderGenericTemplate<TModel1, TModel2>(ICodegenGenericTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2);
+        ICodegenContext RenderGenericTemplate<T>(params object[] otherDependencies) where T : class, ICodegenGenericTemplate;
+        ICodegenContext RenderGenericTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenGenericTemplate<TModel>;
+        ICodegenContext RenderGenericTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenGenericTemplate<TModel1, TModel2>;
         DependencyContainer DependencyContainer { get; }
     }
 

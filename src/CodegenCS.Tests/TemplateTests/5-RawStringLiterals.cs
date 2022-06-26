@@ -11,29 +11,24 @@ namespace CodegenCS.Tests.TemplateTests
         /**** Using C# 11 Raw String Literals (Requires Visual Studio 2012 17.2+ and requires <LangVersion>preview</LangVersion> in the csproj file ***/
 
 
-        public class MyDatabaseTemplate : ICodegenMultifileTemplate
+        public class MyDatabaseTemplate : ICodegenMultifileTemplate<DatabaseSchema>
         {
-            DatabaseSchema _databaseSchema;
-            public MyDatabaseTemplate(DatabaseSchema databaseSchema) { _databaseSchema = databaseSchema; } // injected by dependency injection container
-
-            public void Render(ICodegenContext context)
+            public void Render(ICodegenContext context, DatabaseSchema databaseSchema)
             {
-                foreach (var table in _databaseSchema.Tables)
+                foreach (var table in databaseSchema.Tables)
                 {
-                    context[$"{table.TableName}.cs"].RenderSinglefileTemplate<MyTableTemplate>(table);
+                    context[$"{table.TableName}.cs"].RenderSinglefileTemplate<MyTableTemplate, Table>(table);
                 }
             }
         }
-        public class MyTableTemplate : ICodegenSinglefileTemplate
+        public class MyTableTemplate : ICodegenSinglefileTemplate<Table>
         {
-            Table _table;
-            public MyTableTemplate(Table table) { _table = table; } // injected by dependency injection container
-            public void Render(ICodegenTextWriter writer)
+            public void Render(ICodegenTextWriter writer, Table table)
             {
                 writer.Write($$"""
-                    public class {{_table.TableName}}
+                    public class {{table.TableName}}
                     {
-                        {{ string.Join("\n", _table.Columns.Select(c => $$"""public {{c.ClrType}} {{c.ColumnName}} { get; set; }""")) }}
+                        {{ string.Join("\n", table.Columns.Select(c => $$"""public {{c.ClrType}} {{c.ColumnName}} { get; set; }""")) }}
                     }
                     """);
             }
@@ -44,7 +39,7 @@ namespace CodegenCS.Tests.TemplateTests
         public void RawStringLiteralsTest()
         {
             var ctx = new CodegenContext();
-            ctx.RenderMultifileTemplate<MyDatabaseTemplate>(databaseSchema);
+            ctx.RenderMultifileTemplate<MyDatabaseTemplate, DatabaseSchema>(databaseSchema);
             Assert.That(ctx.OutputFiles.Count == 2);
             string expected = @"
 public class Users

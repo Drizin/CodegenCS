@@ -147,17 +147,17 @@ namespace CodegenCS
         /// Creates an instance of a dependency <typeparamref name="T"/> (usually a Template) and (if constructor needs) it injects ICodegenContext or ICodegenTextWriter
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        protected T ResolveDependency<T>(params object[] args) where T : class
+        protected T ResolveDependency<T>(params object[] otherDependencies) where T : class
         {
-            return (T)_dependencyContainer.Resolve(typeof(T), args);
+            return (T)_dependencyContainer.Resolve(typeof(T), otherDependencies);
         }
 
         /// <summary>
         /// Creates an instance of a dependency <paramref name="type"/> (usually a Template) and (if constructor needs) it injects ICodegenContext or ICodegenTextWriter
         /// </summary>
-        protected object ResolveDependency(Type type, params object[] args)
+        protected object ResolveDependency(Type type, params object[] otherDependencies)
         {
-            return _dependencyContainer.Resolve(type, args);
+            return _dependencyContainer.Resolve(type, otherDependencies);
         }
         #endregion
 
@@ -167,20 +167,60 @@ namespace CodegenCS
             template.Render(this);
             return this;
         }
-        public ICodegenContext RenderMultifileTemplate<T>(params object[] args) where T : class, ICodegenMultifileTemplate
+        public ICodegenContext RenderMultifileTemplate<TModel>(ICodegenMultifileTemplate<TModel> template, TModel model)
         {
-            var template = this.ResolveDependency<T>(args);
+            template.Render(this, model);
+            return this;
+        }
+        public ICodegenContext RenderMultifileTemplate<TModel1, TModel2>(ICodegenMultifileTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2)
+        {
+            template.Render(this, model1, model2);
+            return this;
+        }
+        public ICodegenContext RenderMultifileTemplate<T>(params object[] otherDependencies) where T : class, ICodegenMultifileTemplate
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
             return RenderMultifileTemplate(template);
+        }
+        public ICodegenContext RenderMultifileTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenMultifileTemplate<TModel>
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
+            return RenderMultifileTemplate(template, model);
+        }
+        public ICodegenContext RenderMultifileTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenMultifileTemplate<TModel1, TModel2>
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
+            return RenderMultifileTemplate(template, model1, model2);
         }
         public ICodegenContext RenderGenericTemplate(ICodegenGenericTemplate template)
         {
             template.Render();
             return this;
         }
-        public ICodegenContext RenderGenericTemplate<T>(params object[] args) where T : class, ICodegenGenericTemplate
+        public ICodegenContext RenderGenericTemplate<TModel>(ICodegenGenericTemplate<TModel> template, TModel model)
         {
-            var template = this.ResolveDependency<T>(args);
+            template.Render(model);
+            return this;
+        }
+        public ICodegenContext RenderGenericTemplate<TModel1, TModel2>(ICodegenGenericTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2)
+        {
+            template.Render(model1, model2);
+            return this;
+        }
+        public ICodegenContext RenderGenericTemplate<T>(params object[] otherDependencies) where T : class, ICodegenGenericTemplate
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
             return RenderGenericTemplate(template);
+        }
+        public ICodegenContext RenderGenericTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenGenericTemplate<TModel>
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
+            return RenderGenericTemplate(template, model);
+        }
+        public ICodegenContext RenderGenericTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenGenericTemplate<TModel1, TModel2>
+        {
+            var template = this.ResolveDependency<T>(otherDependencies);
+            return RenderGenericTemplate(template, model1, model2);
         }
         #endregion
     }
