@@ -12,6 +12,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
     <PackageProjectUrl>https://github.com/Drizin/CodegenCS/</PackageProjectUrl>
+
+	<LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

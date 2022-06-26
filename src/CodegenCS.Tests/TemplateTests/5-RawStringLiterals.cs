@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace CodegenCS.Tests.TemplateTests
 {
-    public class ParametersInjectionTests
+    public class RawStringLiteralsTests
     {
-        /**** Passing parameters to subtemplates using Include.Template<T>(args) ***/
+        /**** Using C# 11 Raw String Literals (Requires Visual Studio 2012 17.2+ and requires <LangVersion>preview</LangVersion> in the csproj file ***/
 
 
         public class MyDatabaseTemplate : ICodegenMultifileTemplate
@@ -30,17 +30,18 @@ namespace CodegenCS.Tests.TemplateTests
             public MyTableTemplate(Table table) { _table = table; } // injected by dependency injection container
             public void Render(ICodegenTextWriter writer)
             {
-                writer.Write($@"
-                    public class {_table.TableName}
-                    {{
-                        {string.Join("\n", _table.Columns.Select(c => $"public {c.ClrType} {c.ColumnName} {{ get; set; }}"))}
-                    }}");
+                writer.Write($$"""
+                    public class {{_table.TableName}}
+                    {
+                        {{ string.Join("\n", _table.Columns.Select(c => $$"""public {{c.ClrType}} {{c.ColumnName}} { get; set; }""")) }}
+                    }
+                    """);
             }
         }
 
 
         [Test]
-        public void ParametersInjectionTest()
+        public void RawStringLiteralsTest()
         {
             var ctx = new CodegenContext();
             ctx.RenderMultifileTemplate<MyDatabaseTemplate>(databaseSchema);
