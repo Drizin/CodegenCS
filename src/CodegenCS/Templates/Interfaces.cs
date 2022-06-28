@@ -102,7 +102,7 @@ namespace CodegenCS.___InternalInterfaces___
     public interface IBase2ModelTemplate<TModel1, TModel2> : IBaseTemplate { }
 
     /// <summary>
-    /// Templates that output into a single file (and therefore they take a <see cref="ICodegenTextWriter"/> and will write directly into that writer)
+    /// Templates that output into a single file (either by expecting and writing into a <see cref="ICodegenTextWriter"/> or by returning a string like <see cref="IBaseStringTemplate"/> )
     /// </summary>
     public interface IBaseSinglefileTemplate : IBaseTemplate { }
 
@@ -114,6 +114,6 @@ namespace CodegenCS.___InternalInterfaces___
     /// <summary>
     /// Templates that can be as simple as a single block of text, in this case they just return an interpolated string.
     /// </summary>
-    public interface IBaseStringTemplate : IBaseTemplate { }
+    public interface IBaseStringTemplate : IBaseTemplate, IBaseSinglefileTemplate { }
 }
 #endregion

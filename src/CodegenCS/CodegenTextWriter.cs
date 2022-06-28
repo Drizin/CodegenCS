@@ -1,4 +1,5 @@
-﻿using CodegenCS.ControlFlow;
+﻿using CodegenCS.___InternalInterfaces___;
+using CodegenCS.ControlFlow;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -53,20 +54,29 @@ namespace CodegenCS
         void SaveToFile(string path, bool createFolder = true);
         string GetContents();
         DependencyContainer DependencyContainer { get; }
-        ICodegenTextWriter RenderSinglefileTemplate(ICodegenSinglefileTemplate template);
-        ICodegenTextWriter RenderSinglefileTemplate<TModel>(ICodegenSinglefileTemplate<TModel> template, TModel model);
-        ICodegenTextWriter RenderSinglefileTemplate<TModel1, TModel2>(ICodegenSinglefileTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2);
-        ICodegenTextWriter RenderSinglefileTemplate<T>(params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate;
-        ICodegenTextWriter RenderSinglefileTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate<TModel>;
-        ICodegenTextWriter RenderSinglefileTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate<TModel1, TModel2>;
-        ICodegenTextWriter RenderTextTemplate(ICodegenTextTemplate template);
-        ICodegenTextWriter RenderTextTemplate<TModel>(ICodegenTextTemplate<TModel> template, TModel model);
-        ICodegenTextWriter RenderTextTemplate<TModel1, TModel2>(ICodegenTextTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2);
-        ICodegenTextWriter RenderTextTemplate<T>(params object[] otherDependencies) where T : class, ICodegenTextTemplate;
-        ICodegenTextWriter RenderTextTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenTextTemplate<TModel>;
-        ICodegenTextWriter RenderTextTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenTextTemplate<TModel1, TModel2>;
         IDisposable WithCBlock(string beforeBlock = null); // obsolete
         IDisposable WithIndent(string beforeBlock = null, string afterBlock = null);
+        
+        /// <summary>
+        /// Loads any template by the Type.
+        /// After loading don't forget to call Render() extensions (<see cref="IContextedTemplateWrapperExtensions.Render(IContextedTemplateWrapper{IBase0ModelTemplate, ICodegenContext})"/>)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dependencies">Optional dependencies can be used and will be automatically injected if template constructor requires it</param>
+        /// <returns></returns>
+        IContextedTemplateWrapper<T, ICodegenTextWriter> LoadTemplate<T>(params object[] dependencies) where T : IBaseSinglefileTemplate;
+
+        /// <summary>
+        /// Renders to the <see cref="DefaultOutputFile"/> a <see cref="ICodegenTemplate"/> template that do not need any model.
+        /// If you need a template that takes a model please use <see cref="LoadTemplate{T}(object[])"/> method.
+        /// </summary>
+        ICodegenTextWriter RenderTemplate(ICodegenTemplate template);
+
+        /// <summary>
+        /// Renders to the <see cref="DefaultOutputFile"/> a <see cref="ICodegenStringTemplate"/> template that do not need any model.
+        /// If you need a template that takes a model please use <see cref="LoadTemplate{T}(object[])"/> method.
+        /// </summary>
+        ICodegenTextWriter RenderTemplate(ICodegenStringTemplate template);
     }
 
     /// <summary>
@@ -870,23 +880,50 @@ namespace CodegenCS
             }
             #endregion
 
-            #region if arg is some Embedded Template (embedded using Include.Template which wraps under EmbeddedTemplate)
-            if (typeof(Include.EmbeddedTemplate).IsAssignableFrom(arg.GetType()))
+            #region if arg is some Embedded Template (embedded using Template.Load<TemplateType>.Render<TModel>(model) - which creates a lazy-renderable IEmbeddedTemplateWithModel)
+            if (typeof(__Hidden_IContextedTemplateWithModelWrapper).IsAssignableFrom(arg.GetType()))
             {
-                var embeddedTemplate = (Include.EmbeddedTemplate)arg;
+                var embeddedTemplateWrapper = (__Hidden_IContextedTemplateWithModelWrapper)arg;
                 InnerInlineAction(() =>
                 {
-                    // embeddedTemplate can be EmbeddedTemplate, EmbeddedTemplate<TModel> or EmbeddedTemplate<TModel1, TModel2>. Generic versions will Render using the respective models.
-                    embeddedTemplate.Render(this, _dependencyContainer);
+                    embeddedTemplateWrapper.Render(this, _dependencyContainer);
                 });
                 return;
+            }
+            #endregion
+
+            #region If user by mistake interpolated a Template.Load<TemplateType> but forgot to invoke .Render() 
+            if (IsAssignableToGenericType(arg.GetType(), typeof(IContextedTemplateWrapper<,>)))
+            {
+                var embeddedTemplateWrapper = (__Hidden_IContextedTemplateWrapper)arg;
+
+                var templateType = arg.GetType().GetInterface("IContextedTemplateWrapper").GetGenericArguments()[0].GetType();
+                // ContextedTemplateWrapper<TTemplate,> - but TTemplate can require models. If it doesn't require any model we can be lenient and just Render() it
+                if (typeof(IBase0ModelTemplate).IsAssignableFrom(templateType))
+                {
+                    InnerInlineAction(() =>
+                    {
+                        IBase0ModelTemplate template = (IBase0ModelTemplate)embeddedTemplateWrapper.CreateTemplateInstance(_dependencyContainer);
+                        TemplateRenderer.Render(template, this, _dependencyContainer);
+                    });
+                    return;
+                }
+                // EmbeddedTemplate<TModel> and EmbeddedTemplate <TModel1, TModel2> require a model which was not provided using Render()
+                // try to output error in the container (which should go to Visual Studio errors through a VS Extension)
+                try
+                {
+                    _dependencyContainer.Resolve<ICodegenContext>().Errors.Add($"Template of type {embeddedTemplateWrapper.TemplateType.FullName} was Loaded() but was not Rendered() with required models.");
+                }
+                catch { }
+                this.Write("#ERROR#");
 
             }
             #endregion
-            #region if arg is the typeof(T) of any ITemplate (ITemplates will Render() without requiring any TModel. But yet they can use injected dependencies in the constructor)
-            if (arg is Type && typeof(ICodegenTemplate).IsAssignableFrom((Type)arg))
+
+            #region if arg is the typeof(T) of any IBase0ModelTemplate (those templates that do not require any TModel) we can just resolve (allowing injected dependencies in the constructor) and render
+            if (arg is Type && typeof(IBase0ModelTemplate).IsAssignableFrom((Type)arg))
             {
-                var template = (ICodegenTemplate)this.ResolveDependency((Type)arg);
+                var template = (IBase0ModelTemplate)this.ResolveDependency((Type)arg);
                 InnerInlineAction(() =>
                 {
                     TemplateRenderer.Render(template, this, _dependencyContainer);
@@ -1374,66 +1411,49 @@ namespace CodegenCS
         #endregion
 
         #region Templates
-        public ICodegenTextWriter RenderSinglefileTemplate(ICodegenSinglefileTemplate template)
+        
+       
+        
+        public ICodegenTextWriter RenderTemplate(ICodegenTemplate template)
         {
             template.Render(this);
             return this;
         }
-        public ICodegenTextWriter RenderSinglefileTemplate<TModel>(ICodegenSinglefileTemplate<TModel> template, TModel model)
-        {
-            template.Render(this, model);
-            return this;
-        }
-        public ICodegenTextWriter RenderSinglefileTemplate<TModel1, TModel2>(ICodegenSinglefileTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2)
-        {
-            template.Render(this, model1, model2);
-            return this;
-        }
-        public ICodegenTextWriter RenderSinglefileTemplate<T>(params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate
-        {
-            var template = this.ResolveDependency<T>(otherDependencies);
-            return RenderSinglefileTemplate(template);
-        }
-        public ICodegenTextWriter RenderSinglefileTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate<TModel>
-        {
-            var template = this.ResolveDependency<T>(otherDependencies);
-            return RenderSinglefileTemplate(template, model);
-        }
-        public ICodegenTextWriter RenderSinglefileTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenSinglefileTemplate<TModel1, TModel2>
-        {
-            var template = this.ResolveDependency<T>(otherDependencies);
-            return RenderSinglefileTemplate(template, model1, model2);
-        }
-        public ICodegenTextWriter RenderTextTemplate(ICodegenTextTemplate template)
+
+        public ICodegenTextWriter RenderTemplate(ICodegenStringTemplate template)
         {
             Write(() => template.GetTemplate());
             return this;
         }
-        public ICodegenTextWriter RenderTextTemplate<TModel>(ICodegenTextTemplate<TModel> template, TModel model)
+        
+        public IContextedTemplateWrapper<T, ICodegenTextWriter> LoadTemplate<T>(params object[] dependencies) where T : IBaseSinglefileTemplate
         {
-            Write(() => template.GetTemplate(model));
-            return this;
-        }
-        public ICodegenTextWriter RenderTextTemplate<TModel1, TModel2>(ICodegenTextTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2)
-        {
-            Write(() => template.GetTemplate(model1, model2));
-            return this;
-        }
-        public ICodegenTextWriter RenderTextTemplate<T>(params object[] otherDependencies) where T : class, ICodegenTextTemplate
-        {
-            var template = this.ResolveDependency<T>(otherDependencies);
-            return RenderTextTemplate(template);
-        }
-        public ICodegenTextWriter RenderTextTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenTextTemplate<TModel>
-        {
-            var template = this.ResolveDependency<T>(otherDependencies);
-            return RenderTextTemplate<TModel>(template, model);
-        }
-        public ICodegenTextWriter RenderTextTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenTextTemplate<TModel1, TModel2>
-        {
-            var template = this.ResolveDependency<T>(otherDependencies);
-            return RenderTextTemplate<TModel1, TModel2>(template, model1, model2);
+            return new ContextedTemplateWrapper<T, ICodegenTextWriter>(typeof(T), dependencies) { CodegenTextWriter = this };
         }
         #endregion
+
+        static bool IsInstanceOfGenericType(Type genericType, object instance)
+        {
+            Type type = instance.GetType();
+            return IsAssignableToGenericType(type, genericType);
+        }
+        public static bool IsAssignableToGenericType(Type givenType, Type genericType)
+        {
+            var interfaceTypes = givenType.GetInterfaces();
+
+            foreach (var it in interfaceTypes)
+            {
+                if (it.IsGenericType && it.GetGenericTypeDefinition() == genericType)
+                    return true;
+            }
+
+            if (givenType.IsGenericType && givenType.GetGenericTypeDefinition() == genericType)
+                return true;
+
+            Type baseType = givenType.BaseType;
+            if (baseType == null) return false;
+
+            return IsAssignableToGenericType(baseType, genericType);
+        }
     }
 }

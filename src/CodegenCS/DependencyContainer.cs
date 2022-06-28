@@ -14,6 +14,11 @@ namespace CodegenCS
     {
         private readonly Dictionary<Type, Func<object>> regs = new Dictionary<Type, Func<object>>();
 
+        public T Resolve<T>(params object[] otherDependencies)
+        {
+            return (T)Resolve(typeof(T), otherDependencies);
+        }
+
         public object Resolve(Type type, params object[] otherDependencies)
         {
             // If type is registered (either as singleton or per instance)

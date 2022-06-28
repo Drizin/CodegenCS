@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CodegenCS.___InternalInterfaces___;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -13,18 +14,35 @@ namespace CodegenCS
         List<string> Errors { get; }
         void SaveFiles(string outputFolder);
         ICodegenOutputFile DefaultOutputFile { get; }
-        ICodegenContext RenderMultifileTemplate(ICodegenMultifileTemplate template);
-        ICodegenContext RenderMultifileTemplate<TModel>(ICodegenMultifileTemplate<TModel> template, TModel model);
-        ICodegenContext RenderMultifileTemplate<TModel1, TModel2>(ICodegenMultifileTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2);
-        ICodegenContext RenderMultifileTemplate<T>(params object[] otherDependencies) where T : class, ICodegenMultifileTemplate;
-        ICodegenContext RenderMultifileTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenMultifileTemplate<TModel>;
-        ICodegenContext RenderMultifileTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenMultifileTemplate<TModel1, TModel2>;
-        ICodegenContext RenderGenericTemplate(ICodegenGenericTemplate template);
-        ICodegenContext RenderGenericTemplate<TModel>(ICodegenGenericTemplate<TModel> template, TModel model);
-        ICodegenContext RenderGenericTemplate<TModel1, TModel2>(ICodegenGenericTemplate<TModel1, TModel2> template, TModel1 model1, TModel2 model2);
-        ICodegenContext RenderGenericTemplate<T>(params object[] otherDependencies) where T : class, ICodegenGenericTemplate;
-        ICodegenContext RenderGenericTemplate<T, TModel>(TModel model, params object[] otherDependencies) where T : class, ICodegenGenericTemplate<TModel>;
-        ICodegenContext RenderGenericTemplate<T, TModel1, TModel2>(TModel1 model1, TModel2 model2, params object[] otherDependencies) where T : class, ICodegenGenericTemplate<TModel1, TModel2>;
+        
+        /// <summary>
+        /// Loads any template by the Type.
+        /// After loading don't forget to call Render() extensions (<see cref="IContextedTemplateWrapperExtensions.Render(IContextedTemplateWrapper{IBase0ModelTemplate, ICodegenContext})"/>)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dependencies">Optional dependencies can be used and will be automatically injected if template constructor requires it</param>
+        /// <returns></returns>
+        IContextedTemplateWrapper<T, ICodegenContext> LoadTemplate<T>(params object[] dependencies) where T : IBaseTemplate;
+
+        /// <summary>
+        /// Renders to the <see cref="DefaultOutputFile"/> a <see cref="ICodegenTemplate"/> template that do not need any model.
+        /// If you need a template that takes a model please use <see cref="LoadTemplate{T}(object[])"/> method.
+        /// </summary>
+        ICodegenContext RenderTemplate(ICodegenTemplate template);
+
+        /// <summary>
+        /// Renders to the <see cref="DefaultOutputFile"/> a <see cref="ICodegenStringTemplate"/> template that do not need any model.
+        /// If you need a template that takes a model please use <see cref="LoadTemplate{T}(object[])"/> method.
+        /// </summary>
+        ICodegenContext RenderTemplate(ICodegenStringTemplate template);
+
+        /// <summary>
+        /// Renders a <see cref="ICodegenMultifileTemplate"/> template that do not need any model. 
+        /// Template can render to multiple output files.
+        /// If you need a template that takes a model please use <see cref="LoadTemplate{T}(object[])"/> method.
+        /// </summary>
+        ICodegenContext RenderTemplate(ICodegenMultifileTemplate template);
+
         DependencyContainer DependencyContainer { get; }
     }
 
