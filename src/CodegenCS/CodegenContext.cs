@@ -55,7 +55,9 @@ namespace CodegenCS
         public CodegenContext()
         {
             _defaultOutputFile = new CodegenOutputFile(null);
-            
+            _defaultOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
+            _defaultOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
+
             _dependencyContainer = new DependencyContainer();
             _dependencyContainer.RegisterSingleton<ICodegenContext>(this);
             _dependencyContainer.RegisterSingleton<CodegenContext>(this);

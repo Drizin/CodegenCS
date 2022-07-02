@@ -52,7 +52,7 @@ namespace CodegenCS
         }
         #endregion
 
-        #region Render() for templates that were loaded using ICodegenTextWriter FluentAPI - after .LoadTemplate<TTemplate>.Render() it should get back the originalICodegenTextWriter
+        #region Render() for templates that were loaded using ICodegenTextWriter FluentAPI - after .LoadTemplate<TTemplate>.Render() it should get back the original ICodegenTextWriter
         /// <summary>
         /// Renders the template
         /// </summary>
@@ -90,14 +90,14 @@ namespace CodegenCS
         }
         #endregion
 
-        #region Render() for templates that were loaded using ICodegenContext FluentAPI - after .LoadTemplate<TTemplate>.Render() it should get back the originalICodegenTextWriter
+        #region Render() for templates that were loaded using ICodegenContext FluentAPI - after .LoadTemplate<TTemplate>.Render() it should get back the original ICodegenContext
         /// <summary>
         /// Renders the template
         /// </summary>
         public static ICodegenContext Render(this IContextedTemplateWrapper<IBase0ModelTemplate, ICodegenContext> self)
         {
             var templateWrapper = (__Hidden_IContextedTemplateWrapper)self;
-            var writer = templateWrapper.CodegenTextWriter;
+            var writer = templateWrapper.CodegenContext.DefaultOutputFile;
             var template = (IBase0ModelTemplate)templateWrapper.CreateTemplateInstance(writer.DependencyContainer);
             TemplateRenderer.Render(template, writer, writer.DependencyContainer);
             return templateWrapper.CodegenContext;
@@ -109,7 +109,7 @@ namespace CodegenCS
         public static ICodegenContext Render<TModel>(this IContextedTemplateWrapper<IBase1ModelTemplate<TModel>, ICodegenContext> self, TModel model)
         {
             var templateWrapper = (__Hidden_IContextedTemplateWrapper)self;
-            var writer = templateWrapper.CodegenTextWriter;
+            var writer = templateWrapper.CodegenContext.DefaultOutputFile;
             var template = (IBase1ModelTemplate<TModel>)templateWrapper.CreateTemplateInstance(writer.DependencyContainer);
             TemplateRenderer.Render(template, writer, writer.DependencyContainer, model);
             return templateWrapper.CodegenContext;
@@ -121,7 +121,7 @@ namespace CodegenCS
         public static ICodegenContext Render<TModel1, TModel2>(this IContextedTemplateWrapper<IBase2ModelTemplate<TModel1, TModel2>, ICodegenContext> self, TModel1 model1, TModel2 model2)
         {
             var templateWrapper = (__Hidden_IContextedTemplateWrapper)self;
-            var writer = templateWrapper.CodegenTextWriter;
+            var writer = templateWrapper.CodegenContext.DefaultOutputFile;
             var template = (IBase2ModelTemplate<TModel1, TModel2>)templateWrapper.CreateTemplateInstance(writer.DependencyContainer);
             TemplateRenderer.Render(template, writer, writer.DependencyContainer, model1, model2);
             return templateWrapper.CodegenContext;
