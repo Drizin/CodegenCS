@@ -24,6 +24,7 @@ namespace CodegenCS
         ICodegenTextWriter IncreaseIndent();
         ICodegenTextWriter DecreaseIndent();
         ICodegenTextWriter EnsureEmptyLine();
+        ICodegenTextWriter EnsureLineBreakBeforeNextWrite();
         ICodegenTextWriter WithIndent(string beforeBlock, string afterBlock, Action innerBlockAction);
         ICodegenTextWriter WithIndent(string beforeBlock, string afterBlock, Action<ICodegenTextWriter> innerBlockAction);
         ICodegenTextWriter WithCurlyBraces(string beforeBlock, Action innerBlockAction);
@@ -200,9 +201,12 @@ namespace CodegenCS
         /// </summary>
 
         StringBuilder _currentLine = new StringBuilder();
+        bool _nextWriteRequiresLineBreak = false;
         bool _dontIndentCurrentLine = false; // when we're in the middle of a line and start an inline block (which could be multiline string), the first line don't need to be indented - only the next ones
         public DependencyContainer DependencyContainer { get { return _dependencyContainer; } internal set { _dependencyContainer = value; } }
         protected DependencyContainer _dependencyContainer;
+
+        protected RenderEnumerableOptions _iEnumerableRenderOptions = RenderEnumerableOptions.LineBreaksWithSpacer;
         #endregion
 
         #region ctors
@@ -366,6 +370,17 @@ namespace CodegenCS
         {
             if (_currentLine.Length > 0)
                 WriteLine();
+            return this;
+        }
+
+        /// <summary>
+        /// Ensures that if current line is dirty then nothing more can be written to this line, so the next write will enforce (render automatically) a line break.
+        /// </summary>
+        /// <returns></returns>
+        public ICodegenTextWriter EnsureLineBreakBeforeNextWrite()
+        {
+            if (_currentLine.Length > 0)
+                _nextWriteRequiresLineBreak = true;
             return this;
         }
 
@@ -710,6 +725,13 @@ namespace CodegenCS
                 string lineBreak = value.Substring(matches[i].Index, matches[i].Length);
                 lastPos = matches[i].Index + matches[i].Length;
 
+                // Previous block finished without a newline and decrease indent - so it makes sense to expect that new block should start on a non-dirty line
+                if (line.Length > 0 && _nextWriteRequiresLineBreak)
+                {
+                    WriteLine();
+                }
+
+                // indent before starting writing a new line
                 // if _dontIndentCurrentLine is set, it's because we're starting an inner block right "at cursor position"-  no need to indent again - we're already positioned!
                 if (line.Length > 0 && _currentLine.Length == 0 && !_dontIndentCurrentLine)
                     InnerIndentCurrentLine();
@@ -719,10 +741,17 @@ namespace CodegenCS
                     InnerWriteRaw(NewLine);
                 else
                     InnerWriteRaw(lineBreak);
+                _nextWriteRequiresLineBreak = false;
                 _currentLine.Clear();
                 _dontIndentCurrentLine = false;
             }
             string lastLine = value.Substring(lastPos);
+
+            // Previous block finished without a newline and decrease indent - so it makes sense to expect that new block should start on a non-dirty line
+            if (lastLine.Length > 0 && _nextWriteRequiresLineBreak)
+            {
+                WriteLine();
+            }
 
             if (lastLine.Length > 0 && _currentLine.Length == 0 && !_dontIndentCurrentLine)
                 InnerIndentCurrentLine();
@@ -958,7 +987,19 @@ namespace CodegenCS
             // TODO: maybe instead of accepting IEnumerable<FormattableString>, IEnumerable<string>, IEnumerable<Func<FormattableString>>, IEnumerable<Func<string>>, 
             // we should just remove this and expect users to use extensions like Join() that process each item and add separators (default is NewLine) between the items
 
+            RenderEnumerableOptions enumerableRenderOptions = this._iEnumerableRenderOptions; // accept from a wrapper and unwrap
+
+            // If IEnumerable<T> was wrapped using IEnumerableExtensions.Render (that allow to specify custom EnumerableRenderOptions), unwrap.
+            if (typeof(IInlineIEnumerable).IsAssignableFrom(arg.GetType()))
+            {
+                enumerableRenderOptions = ((IInlineIEnumerable)arg).RenderOptions;
+                arg = ((IInlineIEnumerable)arg).Items;
+                interfaceTypes = arg.GetType().GetInterfaces();
+            }
+
+
             #region if arg is IEnumerable<string> or IEnumerable<Func<string>>
+
             if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
                 t.IsGenericType &&
                 t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
@@ -972,6 +1013,7 @@ namespace CodegenCS
                     {
                         string item = list.ElementAt(j);
                         InnerWrite(item);
+                        WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: j == list.Count() - 1);
                     }
                 });
                 return;
@@ -992,6 +1034,7 @@ namespace CodegenCS
                     {
                         Func<string> item = list.ElementAt(j);
                         InnerWrite(item());
+                        WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: j == list.Count() - 1);
                     }
                 });
                 return;
@@ -1012,6 +1055,7 @@ namespace CodegenCS
                     {
                         FormattableString item = list.ElementAt(j);
                         InnerWriteFormattable(AdjustMultilineString(item.Format), item.GetArguments());
+                        WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: j == list.Count() - 1);
                     }
                 });
                 return;
@@ -1033,6 +1077,7 @@ namespace CodegenCS
                         Func<FormattableString> fnFormattable = list.ElementAt(j);
                         FormattableString formattable = fnFormattable();
                         InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
+                        WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: j == list.Count() - 1);
                     }
                 });
                 return;
@@ -1075,6 +1120,31 @@ namespace CodegenCS
             });
             #endregion
 
+        }
+        private void WriteIEnumerableItemSeparator(RenderEnumerableOptions options, bool isLastItem)
+        {
+            var behavior = (isLastItem) ? options.AfterLastItemBehavior : options.BetweenItemsBehavior;
+            switch(behavior)
+            {
+                case ItemsSeparatorBehavior.WriteLineBreak:
+                    WriteLine(); // add a line break (even if it's already there)
+                    break;
+                case ItemsSeparatorBehavior.EnsureLineBreak:
+                    EnsureEmptyLine(); // if current line is dirty, add a line break (giving a new empty line)
+                    break;
+                case ItemsSeparatorBehavior.EnsureFullEmptyLine:
+                    EnsureEmptyLine(); // if current line is dirty, add a line break (giving a new empty line)
+                    WriteLine();       // then forcible we add a full empty line
+                    break;
+                case ItemsSeparatorBehavior.EnsureLineBreakBeforeNextWrite:
+                    EnsureLineBreakBeforeNextWrite(); 
+                    break;
+                case ItemsSeparatorBehavior.WriteCustomSeparator:
+                    InnerWriteRaw(options.CustomSeparator); 
+                    break;
+                case ItemsSeparatorBehavior.None:
+                    break;
+            }
         }
         #endregion
 
@@ -1190,6 +1260,7 @@ namespace CodegenCS
         {
             InnerWriteRaw(this.NewLine);
             _currentLine.Clear();
+            _nextWriteRequiresLineBreak = false;
             return this;
         }
 
@@ -1432,6 +1503,7 @@ namespace CodegenCS
         }
         #endregion
 
+        #region Utils
         static bool IsInstanceOfGenericType(Type genericType, object instance)
         {
             Type type = instance.GetType();
@@ -1455,5 +1527,6 @@ namespace CodegenCS
 
             return IsAssignableToGenericType(baseType, genericType);
         }
+        #endregion
     }
 }

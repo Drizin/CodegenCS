@@ -23,7 +23,7 @@ namespace CodegenCS
         /// 
         /// For convenience this helper will automatically add line breaks if it find "dirty" lines (lines which have some text but don't end in a line break): <br />
         /// - The indented block will always start on an empty (non-dirty) line (adds linebreak if previous write didn't end in line break) <br />
-        /// - The indented block will always end on an empty (non-dirty) line (adds linebreak if previous write didn't end in line break) <br />
+        /// - The indented block will always ensure that next write starts on an empty (non-dirty) line (next write after block end will add a linebreak if previous write didn't end in line break) <br />
         /// - The text that is written before the block (if provided) will always start on an empty (non-dirty) line (adds linebreak if previous write didn't end in line break) <br />
         /// - The text that is written after the block (if provided) will always end "into" an empty (non-dirty) line (automatically adds final linebreak if not defined in text)
         /// </summary>
@@ -63,7 +63,7 @@ namespace CodegenCS
             {
                 if (!string.IsNullOrEmpty(_beforeBlock))
                 {
-                    // If there's something to write before block, it's safe to assume that this should be on it's own line, right?
+                    // If there's something to write before indented block, it's safe to assume that this should be on it's own line, right?
                     // e.g. if the writer is in a dirty state (current line didn't end with a linebreak), it doesn't make sense to start a "if" statement which would open a new IndentedBlockScope
                     _writer.EnsureEmptyLine(); 
 
@@ -79,16 +79,17 @@ namespace CodegenCS
             {
                 _writer.InnerDecreaseIndent();
 
-                // By definition what happens after an indented block needs to be written on a blank (non-dirty) line
-                _writer.EnsureEmptyLine();
-
                 if (!string.IsNullOrEmpty(_afterBlock))
                 {
+                    // By definition what happens after an indented block needs to be written on a blank (non-dirty) line
+                    _writer.EnsureEmptyLine();
+
                     _writer.InnerWrite(_afterBlock);
 
-                    // If we're writing something after the indented block finishes (after indent is reverted back) 
-                    // we can assume that this block-finisher should end up in a clean (non-dirty) line
-                    _writer.EnsureEmptyLine();
+                    // After the indented block finishes (after indent is reverted back) we're writing a block-finalizer
+                    // We can assume that if the block-finalizer does not end in a linebreak then any further writes should start in a clean (non-dirty) line (force a linebreak)
+                    if (_writer._currentLine.Length > 0)
+                        _writer.EnsureLineBreakBeforeNextWrite();
                 }
             }
 
