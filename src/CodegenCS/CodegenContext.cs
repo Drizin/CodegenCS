@@ -47,6 +47,9 @@ namespace CodegenCS
         public ICodegenOutputFile DefaultOutputFile { get { return _defaultOutputFile; } }
         protected CodegenOutputFile _defaultOutputFile;
         public DependencyContainer DependencyContainer { get { return _dependencyContainer; } }
+
+        HashSet<string> ICodegenContext.OutputFilesPaths => new HashSet<string>(_outputFiles.Keys);
+
         protected DependencyContainer _dependencyContainer;
         #endregion
 
@@ -194,6 +197,7 @@ namespace CodegenCS
     {
         #region Members
         private Dictionary<string, O> _outputFiles = new Dictionary<string, O>(StringComparer.InvariantCultureIgnoreCase); // key insensitive
+        HashSet<string> ICodegenContext.OutputFilesPaths => new HashSet<string>(_outputFiles.Keys);
         public new List<O> OutputFiles { get { return _outputFiles.Values.ToList(); } }
         public new Dictionary<string, O> OutputFilesRelative { get { return _outputFiles; } }
 
@@ -290,6 +294,7 @@ namespace CodegenCS
         protected Func<string, FT> _getDefaultType { get; /*set;*/ } = null;
 
         private Dictionary<string, O> _outputFiles = new Dictionary<string, O>(StringComparer.InvariantCultureIgnoreCase); // key insensitive
+        HashSet<string> ICodegenContext.OutputFilesPaths => new HashSet<string>(_outputFiles.Keys);
         public new List<O> OutputFiles { get { return _outputFiles.Values.ToList(); } }
         public new Dictionary<string, O> OutputFilesRelative { get { return _outputFiles; } }
 

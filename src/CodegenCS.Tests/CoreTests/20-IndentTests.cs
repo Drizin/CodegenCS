@@ -25,8 +25,7 @@ namespace Tests
 void MyMethod()
 {
     int i = 0;
-}
-".TrimStart();
+}".TrimStart();
 
         [Test]
         public void TestCBlockFluentAPI()
@@ -60,8 +59,7 @@ void MyMethod()
 // will open a Java block
 void MyMethod() {
     int i = 0;
-}
-".TrimStart();
+}".TrimStart();
 
         [Test]
         public void TestJavaBlockFluentAPI()

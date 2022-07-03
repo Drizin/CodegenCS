@@ -14,7 +14,8 @@ namespace CodegenCS
         List<string> Errors { get; }
         void SaveFiles(string outputFolder);
         ICodegenOutputFile DefaultOutputFile { get; }
-        
+        HashSet<string> OutputFilesPaths { get; }
+
         /// <summary>
         /// Loads any template by the Type.
         /// After loading don't forget to call Render() extensions (<see cref="IContextedTemplateWrapperExtensions.Render(IContextedTemplateWrapper{IBase0ModelTemplate, ICodegenContext})"/>)

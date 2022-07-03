@@ -1,6 +1,5 @@
 using CodegenCS;
 using static CodegenCS.Symbols;
-using CodegenCS.Extensions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;

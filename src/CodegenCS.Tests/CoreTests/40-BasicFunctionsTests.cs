@@ -1,5 +1,4 @@
 using CodegenCS;
-using CodegenCS.Extensions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -152,18 +151,27 @@ Hello3
         }
         #endregion
 
-        #region Testing Join() extension, which can be used to write multiple items (one by one, with separator which by default is NewLine), and while keeping "inline cursor position"
+        #region Testing IEnumerable extension, which can be used to write multiple items (one by one, with default or custom behavior for separating items), and while keeping "inline cursor position"
         [Test]
-        public void TestJoin()
+        public void TestIEnumerable()
         {
             _w.Write($@"
                 I have a LOT of things to do today:
-                    {todoList.Select(item => $"- {item.Description}").Join()}");
+                    {todoList.Select(item => $"- {item.Description}").Render(new RenderEnumerableOptions() { BetweenItemsBehavior = ItemsSeparatorBehavior.WriteLineBreak })}");
             string expected = @"
 I have a LOT of things to do today:
     - Get milk
     - Clean the house
     - Mow the lawn".TrimStart(Environment.NewLine.ToCharArray());
+
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        [Test]
+        public void TestIEnumerable2()
+        {
+            _w.Write($@"I have a LOT of things to do today: {todoList.Select(item => $"{item.Description}").Render(new RenderEnumerableOptions() { BetweenItemsBehavior = ItemsSeparatorBehavior.WriteCustomSeparator })}");
+            string expected = "I have a LOT of things to do today: Get milk, Clean the house, Mow the lawn";
 
             Assert.AreEqual(expected, _w.GetContents());
         }

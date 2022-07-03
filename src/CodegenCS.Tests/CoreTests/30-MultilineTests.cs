@@ -152,8 +152,7 @@ namespace MyNameSpace
         This is a multi-line block
                             
     }
-}
-";
+}";
             Assert.AreEqual(expected.TrimStart(), _w.GetContents());
         }
 
@@ -210,8 +209,7 @@ namespace AdventureWorks
         public int MyProp0 { get; set; }
         public int MyProp1 { get; set; }
     }
-}
-";
+}";
             Assert.AreEqual(expected.TrimStart(), _w.GetContents());
         }
 
@@ -252,8 +250,7 @@ namespace AdventureWorks
             it will be all left-aligned (trimmed)
         }
     }
-}
-";
+}";
 
             Assert.AreEqual(expected, _w.GetContents());
         }
@@ -299,8 +296,7 @@ namespace AdventureWorks
             it will be all left-aligned (trimmed)
         }
     }
-}
-";
+}";
 
             Assert.AreEqual(expected, _w.GetContents());
         }
