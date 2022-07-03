@@ -27,7 +27,13 @@ namespace Tests
             var f2 = _ctx["README.TXT"];
             var f3 = _ctx["Transaltions.RESX"];
 
+            CodegenContext context = (CodegenContext)_ctx;
+
             Assert.That(_ctx.OutputFiles.Count == 3);
+            Assert.That(context.OutputFiles.Count == 3);
+
+            f1.WriteLine("Test");
+            Assert.That(context["File1.cs"].GetContents().Length > 0);
 
             Assert.That(f1.FileType == BuildActionType.Compile);
             Assert.That(f2.FileType == BuildActionType.None);

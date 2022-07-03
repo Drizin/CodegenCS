@@ -12,7 +12,7 @@ namespace CodegenCS.DotNet
     /// If you're generating only .CS files for a SDK-Style project (those created with Visual Studio 2017 or newer) you can just use the regular CodegenContext,
     /// since you don't need to add the output cs files to the csproj file.
     /// </summary>
-    public class DotNetCodegenContext : MultipleFiletypeCodegenContext<BuildActionType>
+    public class DotNetCodegenContext : CodegenContext<BuildActionType>
     {
         /// <inheritdocs />
         public DotNetCodegenContext() : base(getDefaultType: GetFileType)

@@ -1,23 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CodegenCS
 {
-    public interface ICodegenOutputFile : ICodegenTextWriter
-    {
-        string RelativePath { get; }
-    }
-    public interface ICodegenOutputFile<FT> : ICodegenOutputFile
-        where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 
-    {
-        FT FileType { get; set; }
-    }
-
     /// <summary>
     /// CodegenTextWriter with added properties that describe Outputfile location (RelativePath)
     /// </summary>
@@ -63,5 +47,4 @@ namespace CodegenCS
             this.FileType = fileType;
         }
     }
-
 }

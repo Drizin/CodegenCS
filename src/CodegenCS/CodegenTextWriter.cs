@@ -204,53 +204,12 @@ namespace CodegenCS
         bool _nextWriteRequiresLineBreak = false;
         bool _dontIndentCurrentLine = false; // when we're in the middle of a line and start an inline block (which could be multiline string), the first line don't need to be indented - only the next ones
         public DependencyContainer DependencyContainer { get { return _dependencyContainer; } internal set { _dependencyContainer = value; } }
-        protected DependencyContainer _dependencyContainer;
+        protected DependencyContainer _dependencyContainer = new DependencyContainer();
 
         protected RenderEnumerableOptions _iEnumerableRenderOptions = RenderEnumerableOptions.LineBreaksWithSpacer;
         #endregion
 
         #region ctors
-        /// <summary>
-        /// New CodegenTextWriter writing to an in-memory StringWriter (using UTF-8 encoding). <br />
-        /// You may choose when to save this file.
-        /// </summary>
-        public CodegenTextWriter()
-        {
-            _innerWriter = new StringWriter();
-            _encoding = Encoding.UTF8;
-            _dependencyContainer = new DependencyContainer();
-            _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
-            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
-        }
-
-        /// <summary>
-        /// New CodegenTextWriter writing directly to a file. <br />
-        /// Default encoding is UTF-8.
-        /// </summary>
-        /// <param name="filePath">Target file</param>
-        public CodegenTextWriter(string filePath)
-        {
-            _innerWriter = new StreamWriter(filePath); // default encoding is UTF-8
-            _encoding = Encoding.UTF8;
-            _dependencyContainer = new DependencyContainer();
-            _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
-            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
-        }
-
-        /// <summary>
-        /// New CodegenTextWriter writing directly to a file. 
-        /// </summary>
-        /// <param name="filePath">Target file</param>
-        /// <param name="encoding">Encoding</param>
-        public CodegenTextWriter(string filePath, Encoding encoding)
-        {
-            _innerWriter = new StreamWriter(filePath, append: false, encoding: encoding);
-            _encoding = encoding;
-            _dependencyContainer = new DependencyContainer();
-            _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
-            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
-        }
-
         /// <summary>
         /// New CodegenTextWriter writing to another (inner) textWriter
         /// </summary>
@@ -259,9 +218,37 @@ namespace CodegenCS
         {
             _innerWriter = textWriter;
             _encoding = textWriter.Encoding;
-            _dependencyContainer = new DependencyContainer();
             _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
             _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
+        }
+
+        /// <summary>
+        /// New CodegenTextWriter writing to an in-memory StringWriter (using UTF-8 encoding). <br />
+        /// You may choose when to save this file.
+        /// </summary>
+        public CodegenTextWriter() : this(new StringWriter())
+        {
+            _encoding = Encoding.UTF8;
+        }
+
+        /// <summary>
+        /// New CodegenTextWriter writing directly to a file. <br />
+        /// Default encoding is UTF-8.
+        /// </summary>
+        /// <param name="filePath">Target file</param>
+        public CodegenTextWriter(string filePath) : this(new StreamWriter(filePath))
+        {
+            _encoding = Encoding.UTF8;
+        }
+
+        /// <summary>
+        /// New CodegenTextWriter writing directly to a file. 
+        /// </summary>
+        /// <param name="filePath">Target file</param>
+        /// <param name="encoding">Encoding</param>
+        public CodegenTextWriter(string filePath, Encoding encoding) : this(new StreamWriter(filePath, append: false, encoding: encoding))
+        {
+            _encoding = encoding;
         }
         #endregion
 

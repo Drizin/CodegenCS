@@ -10,11 +10,34 @@ namespace CodegenCS
     /// </summary>
     public interface ICodegenContext
     {
-        ICodegenOutputFile this[string relativePath] { get; }
+        /// <summary>
+        /// If your template finds any error you can just append the errors here in this list <br />
+        /// SaveFiles() does not work if there is any error.
+        /// </summary>
         List<string> Errors { get; }
+
         void SaveFiles(string outputFolder);
-        ICodegenOutputFile DefaultOutputFile { get; }
+
+        /// <summary>
+        /// Paths of the Output files (as defined during creation using <see cref="this[string]"/> indexer)
+        /// </summary>
         HashSet<string> OutputFilesPaths { get; }
+
+        /// <summary>
+        /// Output files (created using <see cref="this[string]"/> indexer)
+        /// </summary>
+        IReadOnlyList<ICodegenOutputFile> OutputFiles { get; }
+
+        /// <summary>
+        /// Output files are indexed by their relative path. <br />
+        /// If context doesn't have an OutputFile with this relative path, a new one will automatically be created
+        /// </summary>
+        ICodegenOutputFile this[string relativePath] { get; }
+
+        /// <summary>
+        /// Default Output file if we write a single-file template (<see cref="ICodegenTemplate"/> or <see cref="ICodegenStringTemplate"/>) to a Context (that could potentially manage multiple outputs)
+        /// </summary>
+        ICodegenOutputFile DefaultOutputFile { get; }
 
         /// <summary>
         /// Loads any template by the Type.
@@ -47,17 +70,21 @@ namespace CodegenCS
         DependencyContainer DependencyContainer { get; }
     }
 
+
+
     /// <summary>
     /// IMultiplefiletypeCodegenContext extends <see cref="ICodegenContext"/> by allowing each outputfile
     /// to be classified with a file type (enum <typeparamref name="FT"/> contains all possible types).
     /// Based on the different file types the context may take different actions for saving each file
     /// </summary>
-    public interface IMultipleFiletypeCodegenContext<FT> : ICodegenContext
+    public interface ICodegenContext<FT> : ICodegenContext
         where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 
     {
         new ICodegenOutputFile<FT> this[string relativePath] { get; }
         ICodegenOutputFile<FT> this[string relativePath, FT fileType] { get; }
-    }
+        new IReadOnlyList<ICodegenOutputFile<FT>> OutputFiles { get; }
+        new ICodegenOutputFile<FT> DefaultOutputFile { get; }
+}
 
     /// <summary>
     /// ICodegenContext<typeparamref name="O"/> extends <see cref="ICodegenContext"/> by allowing the the use of a custom implementation of OutputFile (custom writer of type <typeparamref name="O"/>)
@@ -66,22 +93,26 @@ namespace CodegenCS
         where O : ICodegenOutputFile
     {
         new O this[string relativePath] { get; }
+        new IReadOnlyList<O> OutputFiles { get; }
         new O DefaultOutputFile { get; }
     }
-    
+
     /// <summary>
-    /// Most generic interface of ICodegenContext, combining both <see cref="ICustomWriterCodegenContext{O}"/> and <see cref="IMultipleFiletypeCodegenContext{FT}"/>:
+    /// Most generic interface of ICodegenContext, combining both <see cref="ICustomWriterCodegenContext{O}"/> and <see cref="ICodegenContext{FT}"/>:
     /// - Keeps track of multiple output files and define how those outputs are saved.
     /// - Uses a custom implementation of OutputFile (custom writer of type <typeparamref name="O"/>)
     /// - Generates output files of different file types (<typeparamref name="FT"/> is an enum of the possible types)
     /// - The different types are used for something (e.g. the different types may use different actions for being added to the project file)
     /// </summary>
-    public interface ICodegenContext<O, FT> : ICodegenContext, ICustomWriterCodegenContext<O>, IMultipleFiletypeCodegenContext<FT>
+    public interface ICodegenContext<FT, O> : ICodegenContext<FT>, ICustomWriterCodegenContext<O>
         where O : ICodegenOutputFile<FT>
         where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 
     {
-        new O this[string relativePath] { get; /*set;*/ }
+        new O this[string relativePath] { get; }
         new O this[string relativePath, FT fileType] { get; }
+        new IReadOnlyList<O> OutputFiles { get; }
+        new O DefaultOutputFile { get; }
+
     }
     
 }

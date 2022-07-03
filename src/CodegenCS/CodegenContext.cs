@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CodegenCS
 {
@@ -14,80 +12,85 @@ namespace CodegenCS
     public class CodegenContext : ICodegenContext
     {
         #region Members
+        /// <inheritdoc />
+        public List<string> Errors { get; } = new List<string>();
+
         /// <summary>
         /// Output files indexed by their relative paths
         /// </summary>
-        private Dictionary<string, CodegenOutputFile> _outputFiles = new Dictionary<string, CodegenOutputFile>(StringComparer.InvariantCultureIgnoreCase); // key insensitive
+        protected Dictionary<string, ICodegenOutputFile> _outputFiles = new Dictionary<string, ICodegenOutputFile>(StringComparer.InvariantCultureIgnoreCase); // key insensitive
+        // TODO: https://stackoverflow.com/questions/4942624/how-to-convert-dictionarystring-object-to-dictionarystring-string-in-c-sha
 
-        /// <summary>
-        /// Output files
-        /// </summary>
-        public List<CodegenOutputFile> OutputFiles { get { return _outputFiles.Values.ToList(); } }
+        /// <inheritdoc />
+        public IReadOnlyList<ICodegenOutputFile> OutputFiles { get { return _outputFiles.Values.ToList(); } }
 
-        /// <summary>
-        /// Output files, indexed by their relative paths
-        /// </summary>
-        public Dictionary<string, CodegenOutputFile> OutputFilesRelative { get { return _outputFiles; } }
-
-        /// <summary>
-        /// Output files, indexed by their absolute paths
-        /// </summary>
-        public Dictionary<string, CodegenOutputFile> OutputFilesAbsolute(string outputFolder)
-        {
-            outputFolder = new DirectoryInfo(outputFolder).FullName;
-            return _outputFiles.Values.ToDictionary(v => Path.Combine(outputFolder, v.RelativePath), v => v);
-        }
-
-        /// <summary>
-        /// If your template finds any error you can just append the errors here in this list <br />
-        /// SaveFiles() does not work if there is any error.
-        /// </summary>
-        public List<string> Errors { get; } = new List<string>();
-
+        /// <inheritdoc />
         public ICodegenOutputFile DefaultOutputFile { get { return _defaultOutputFile; } }
-        protected CodegenOutputFile _defaultOutputFile;
+        protected ICodegenOutputFile _defaultOutputFile;
+
         public DependencyContainer DependencyContainer { get { return _dependencyContainer; } }
 
-        HashSet<string> ICodegenContext.OutputFilesPaths => new HashSet<string>(_outputFiles.Keys);
+        public HashSet<string> OutputFilesPaths => new HashSet<string>(_outputFiles.Keys);
 
-        protected DependencyContainer _dependencyContainer;
+        protected DependencyContainer _dependencyContainer = new DependencyContainer();
         #endregion
 
         #region ctors
         /// <inheritdocs />
-        public CodegenContext()
-        {
-            _defaultOutputFile = new CodegenOutputFile(null);
-            _defaultOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
-            _defaultOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
 
-            _dependencyContainer = new DependencyContainer();
+        public CodegenContext() : this(new CodegenOutputFile(null))
+        {
+        }
+        protected CodegenContext(ICodegenOutputFile defaultOutputFile)
+        {
+            // Register this context iself in it's own container
             _dependencyContainer.RegisterSingleton<ICodegenContext>(this);
             _dependencyContainer.RegisterSingleton<CodegenContext>(this);
-            _dependencyContainer.RegisterSingleton<ICodegenOutputFile>(() => this.DefaultOutputFile);
-            _dependencyContainer.RegisterSingleton<CodegenOutputFile>(() => this._defaultOutputFile);
-            _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this.DefaultOutputFile);
-            _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this._defaultOutputFile);
 
+            _defaultOutputFile = defaultOutputFile;
+            RegisterDefaultOutputFile();
+        }
+        protected CodegenContext(Func<ICodegenContext, ICodegenOutputFile> defaultOutputFileFactory)
+        {
+            // Register this context iself in it's own container
+            _dependencyContainer.RegisterSingleton<ICodegenContext>(this);
+            _dependencyContainer.RegisterSingleton<CodegenContext>(this);
+
+            _defaultOutputFile = defaultOutputFileFactory(this);
+            RegisterDefaultOutputFile();
+        }
+
+        protected void RegisterDefaultOutputFile()
+        {
+            // Then the defaultOutputFile in it's own container
+            _dependencyContainer.RegisterSingleton<ICodegenOutputFile>(() => _defaultOutputFile);
+            _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => _defaultOutputFile);
+            if (_defaultOutputFile is CodegenOutputFile)
+                _dependencyContainer.RegisterSingleton<CodegenOutputFile>(() => (CodegenOutputFile)_defaultOutputFile);
+            if (_defaultOutputFile is CodegenTextWriter)
+                _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => (CodegenTextWriter)_defaultOutputFile);
+
+            // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context
+            _defaultOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
+            _defaultOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
         }
         #endregion
 
         #region Indexer this[relativeFilePath]
-        /// <summary>
-        /// Output files are indexed by their relative path. <br />
-        /// If context doesn't have an OutputFile with this relative path, a new one will automatically be created
-        /// </summary>
-        /// <param name="relativePath"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public ICodegenOutputFile this[string relativePath]
         {
             get
             {
                 if (!this._outputFiles.ContainsKey(relativePath))
                 {
-                    this._outputFiles[relativePath] = new CodegenOutputFile(relativePath);
-                    this._outputFiles[relativePath].DependencyContainer.RegisterSingleton<ICodegenContext>(this);
-                    this._outputFiles[relativePath].DependencyContainer.RegisterSingleton<CodegenContext>(this);
+                    var newOutputFile = new CodegenOutputFile(relativePath);
+
+                    // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context
+                    newOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
+                    newOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
+
+                    this._outputFiles[relativePath] = newOutputFile;
                 }
                 return this._outputFiles[relativePath];
             }
@@ -132,7 +135,8 @@ namespace CodegenCS
         {
             var files = new DirectoryInfo(outputFolder).GetFiles("*.*", SearchOption.AllDirectories);
             outputFolder = new DirectoryInfo(outputFolder).FullName;
-            var generatedFiles = OutputFilesAbsolute(outputFolder).Keys.Select(p => p.ToLower()).ToList();
+            var outputFilesAbsolutePaths = _outputFiles.Values.ToDictionary(v => Path.Combine(outputFolder, v.RelativePath), v => v);
+            var generatedFiles = outputFilesAbsolutePaths.Keys.Select(p => p.ToLower()).ToList();
             List<string> unknownFiles = new List<string>();
 
             if (!generatedFiles.Any())
@@ -165,6 +169,7 @@ namespace CodegenCS
         {
             return _dependencyContainer.Resolve(type, otherDependencies);
         }
+
         #endregion
 
         #region Templates
@@ -192,85 +197,6 @@ namespace CodegenCS
         #endregion
     }
 
-    public class CustomWriterCodegenContext<O> : CodegenContext, ICustomWriterCodegenContext<O>
-        where O : CodegenOutputFile
-    {
-        #region Members
-        private Dictionary<string, O> _outputFiles = new Dictionary<string, O>(StringComparer.InvariantCultureIgnoreCase); // key insensitive
-        HashSet<string> ICodegenContext.OutputFilesPaths => new HashSet<string>(_outputFiles.Keys);
-        public new List<O> OutputFiles { get { return _outputFiles.Values.ToList(); } }
-        public new Dictionary<string, O> OutputFilesRelative { get { return _outputFiles; } }
-
-        /// <summary>
-        /// Output files, indexed by their absolute paths
-        /// </summary>
-        public new Dictionary<string, O> OutputFilesAbsolute(string outputFolder)
-        {
-            outputFolder = new DirectoryInfo(outputFolder).FullName;
-            return _outputFiles.Values.ToDictionary(v => Path.Combine(outputFolder, v.RelativePath), v => v);
-        }
-
-        public new O DefaultOutputFile { get { return _defaultOutputFile; } }
-        protected new O _defaultOutputFile;
-        protected Func<string, ICodegenContext, O> _outputFileFactory;
-        #endregion
-
-        #region ctors
-        /// <summary>
-        /// Creates new in-memory context.
-        /// </summary>
-        /// <param name="outputFileFactory">Factory to build output files</param>
-        public CustomWriterCodegenContext(Func<string, ICodegenContext, O> outputFileFactory) : base()
-        {
-            _defaultOutputFile = _outputFileFactory(null, this);
-        }
-        #endregion
-
-        #region Indexer this[relativeFilePath]
-        /// <summary>
-        /// Output files are indexed by their relative path. <br />
-        /// If context doesn't have an OutputFile with this relative path, a new one will automatically be created
-        /// </summary>
-        /// <param name="relativePath"></param>
-        /// <returns></returns>
-        public new O this[string relativePath]
-        {
-            get
-            {
-                return (O) base[relativePath];
-            }
-        }
-        #endregion
-    }
-
-    public class MultipleFiletypeCodegenContext<FT> : CodegenContext<CodegenOutputFile<FT>, FT>, IMultipleFiletypeCodegenContext<FT>
-        where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 
-    {
-        #region Members
-        new protected Func<string, FT, ICodegenContext, CodegenOutputFile> _outputFileFactory;
-        #endregion
-
-        #region ctors
-        /// <summary>
-        /// Creates new in-memory context.
-        /// </summary>
-        /// <param name="defaultType">Default Type for files (if file type is not defined)</param>
-        public MultipleFiletypeCodegenContext(FT defaultType) 
-            : base(defaultType, outputFileFactory: (string relativePath, FT fileType, ICodegenContext context) => new CodegenOutputFile<FT>(relativePath, fileType))
-        {
-        }
-
-        /// <summary>
-        /// Creates new in-memory context.
-        /// </summary>
-        /// <param name="getDefaultType">Default Type for files (if file type is not defined)</param>
-        public MultipleFiletypeCodegenContext(Func<string, FT> getDefaultType) 
-            : base(getDefaultType, outputFileFactory: (string relativePath, FT fileType, ICodegenContext context) => new CodegenOutputFile<FT>(relativePath, fileType))
-        {
-        }
-        #endregion
-
-    }
 
     /// <summary>
     /// CodegenContext keeps track of multiple files which can be saved at once in the output folder, <br />
@@ -278,35 +204,30 @@ namespace CodegenCS
     /// </summary>
     /// <typeparam name="O">Class of OutputFiles. Should inherit from CodegenOutputFile</typeparam>
     /// <typeparam name="FT">Enum which defines the Types that each file can have</typeparam>
-    public class CodegenContext<O, FT> : CodegenContext, ICodegenContext<O, FT>
-        where O : CodegenOutputFile<FT>
+    public class CodegenContext<FT, O> : CodegenContext, ICodegenContext<FT, O>
+        where O : ICodegenOutputFile<FT>
         where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 
     {
         #region Members
         /// <summary>
         /// Default Type for new OutputFiles, if it's a fixed value.
         /// </summary>
-        protected FT? _defaultType { get; /*set;*/ } = null;
+        protected FT? _defaultType { get; } = null;
 
         /// <summary>
         /// Default Type for new OutputFiles, if it's a Func
         /// </summary>
-        protected Func<string, FT> _getDefaultType { get; /*set;*/ } = null;
+        protected Func<string, FT> _getDefaultType { get; } = null;
 
-        private Dictionary<string, O> _outputFiles = new Dictionary<string, O>(StringComparer.InvariantCultureIgnoreCase); // key insensitive
-        HashSet<string> ICodegenContext.OutputFilesPaths => new HashSet<string>(_outputFiles.Keys);
-        public new List<O> OutputFiles { get { return _outputFiles.Values.ToList(); } }
-        public new Dictionary<string, O> OutputFilesRelative { get { return _outputFiles; } }
+        IReadOnlyList<ICodegenOutputFile<FT>> ICodegenContext<FT>.OutputFiles => new ReadOnlyCollection<ICodegenOutputFile<FT>>(new List<ICodegenOutputFile<FT>>(_outputFiles.Values.Cast<ICodegenOutputFile<FT>>()));
+        IReadOnlyList<O> ICodegenContext<FT, O>.OutputFiles => new ReadOnlyCollection<O>(new List<O>(_outputFiles.Values.Cast<O>()));
 
-        /// <summary>
-        /// Output files, indexed by their absolute paths
-        /// </summary>
-        public new Dictionary<string, O> OutputFilesAbsolute(string outputFolder)
-        {
-            outputFolder = new DirectoryInfo(outputFolder).FullName;
-            return _outputFiles.Values.ToDictionary(v => Path.Combine(outputFolder, v.RelativePath), v => v);
-        }
         public new O DefaultOutputFile { get { return (O)_defaultOutputFile; } }
+        O ICustomWriterCodegenContext<O>.DefaultOutputFile => (O)_defaultOutputFile;
+        ICodegenOutputFile<FT> ICodegenContext<FT>.DefaultOutputFile => (ICodegenOutputFile<FT>)_defaultOutputFile;
+
+        IReadOnlyList<O> ICustomWriterCodegenContext<O>.OutputFiles => _outputFiles.Values.Cast<O>().ToList();
+
 
         protected Func<string, FT, ICodegenContext, O> _outputFileFactory;
         #endregion
@@ -321,7 +242,7 @@ namespace CodegenCS
         {
             _defaultType = defaultType;
             _outputFileFactory = outputFileFactory;
-            _defaultOutputFile = _outputFileFactory(null, defaultType, this);
+            _defaultOutputFile = outputFileFactory(null, defaultType, this);
         }
 
         /// <summary>
@@ -329,11 +250,10 @@ namespace CodegenCS
         /// </summary>
         /// <param name="getDefaultType">Default Type for files (if file type is not defined)</param>
         /// <param name="outputFileFactory">Factory to build output files</param>
-        public CodegenContext(Func<string, FT> getDefaultType, Func<string, FT, ICodegenContext, O> outputFileFactory) : base()
+        public CodegenContext(Func<string, FT> getDefaultType, Func<string, FT, ICodegenContext, O> outputFileFactory) : base((ctx) => outputFileFactory(null, getDefaultType(null), ctx))
         {
             _getDefaultType = getDefaultType;
             _outputFileFactory = outputFileFactory;
-            _defaultOutputFile = outputFileFactory(null, _getDefaultType(null), this);
         }
         #endregion
 
@@ -366,26 +286,55 @@ namespace CodegenCS
             {
                 if (!this._outputFiles.ContainsKey(relativePath))
                 {
-                    this._outputFiles[relativePath] = _outputFileFactory(relativePath, fileType, this);
-                    this._outputFiles[relativePath].FileType = fileType;
-                    this._outputFiles[relativePath].DependencyContainer.RegisterSingleton<ICodegenContext>(this);
-                    this._outputFiles[relativePath].DependencyContainer.RegisterSingleton<CodegenContext>(this);
+                    var newOutputFile = _outputFileFactory(relativePath, fileType, this);
+
+                    // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context
+                    newOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
+                    newOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
+                    newOutputFile.FileType = fileType;
+
+                    this._outputFiles[relativePath] = newOutputFile;
                 }
-                return this._outputFiles[relativePath];
+                return (O)this._outputFiles[relativePath];
             }
         }
-        #region Explicit IMultiplefiletypeCodegenContext<FT>
-        ICodegenOutputFile<FT> IMultipleFiletypeCodegenContext<FT>.this[string relativePath, FT fileType] { 
-            get => this[relativePath, fileType];
-            //set => this[relativePath, fileType] = (O)value; 
-        }
-        ICodegenOutputFile<FT> IMultipleFiletypeCodegenContext<FT>.this[string relativePath] {
-            get => this[relativePath];
-            //set => this[relativePath] = (O)value;
-        }
+        #region Explicitly Implementing Conflicting Interfaces
+        ICodegenOutputFile<FT> ICodegenContext<FT>.this[string relativePath, FT fileType] => this[relativePath, fileType];
+        ICodegenOutputFile<FT> ICodegenContext<FT>.this[string relativePath] => this[relativePath];
         #endregion
 
         #endregion
     }
-    
+
+
+    public class CodegenContext<FT> : CodegenContext<FT, ICodegenOutputFile<FT>>, ICodegenContext<FT>
+        where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 
+    {
+        #region Members
+        new protected Func<string, FT, ICodegenContext, CodegenOutputFile> _outputFileFactory;
+        #endregion
+
+        #region ctors
+        /// <summary>
+        /// Creates new in-memory context.
+        /// </summary>
+        /// <param name="defaultType">Default Type for files (if file type is not defined)</param>
+        public CodegenContext(FT defaultType)
+            : base(defaultType, outputFileFactory: (string relativePath, FT fileType, ICodegenContext context) => new CodegenOutputFile<FT>(relativePath, fileType))
+        {
+        }
+
+        /// <summary>
+        /// Creates new in-memory context.
+        /// </summary>
+        /// <param name="getDefaultType">Default Type for files (if file type is not defined)</param>
+        public CodegenContext(Func<string, FT> getDefaultType)
+            : base(getDefaultType, outputFileFactory: (string relativePath, FT fileType, ICodegenContext context) => new CodegenOutputFile<FT>(relativePath, fileType))
+        {
+        }
+        #endregion
+
+    }
+
+
 }

@@ -8,7 +8,7 @@ namespace Tests
 {
     public class CodegenContextTests
     {
-        CodegenContext _ctx = null;
+        ICodegenContext _ctx = null;
 
         #region Setup
         [SetUp]
