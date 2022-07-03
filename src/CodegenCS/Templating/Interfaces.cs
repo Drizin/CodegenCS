@@ -56,21 +56,21 @@ namespace CodegenCS
     /// </summary>
     public interface ICodegenStringTemplate : IBaseStringTemplate, IBase0ModelTemplate
     {
-        FormattableString GetTemplate();
+        FormattableString Render();
     }
     /// <summary>
     /// Templates that return a single block of text and require a single model
     /// </summary>
     public interface ICodegenStringTemplate<TModel> : IBaseStringTemplate, IBase1ModelTemplate<TModel>
     {
-        FormattableString GetTemplate(TModel model);
+        FormattableString Render(TModel model);
     }
     /// <summary>
     /// Templates that return a single block of text and require two models
     /// </summary>
     public interface ICodegenStringTemplate<TModel1, TModel2> : IBaseStringTemplate, IBase2ModelTemplate<TModel1, TModel2>
     {
-        FormattableString GetTemplate(TModel1 model1, TModel2 model2);
+        FormattableString Render(TModel1 model1, TModel2 model2);
     }
 
 

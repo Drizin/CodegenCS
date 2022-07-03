@@ -1480,7 +1480,7 @@ namespace CodegenCS
 
         public ICodegenTextWriter RenderTemplate(ICodegenStringTemplate template)
         {
-            Write(() => template.GetTemplate());
+            Write(() => template.Render());
             return this;
         }
         

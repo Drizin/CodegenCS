@@ -185,7 +185,7 @@ namespace CodegenCS
         }
         public ICodegenContext RenderTemplate(ICodegenStringTemplate template)
         {
-            FormattableString formattable = template.GetTemplate();
+            FormattableString formattable = template.Render();
             this.DefaultOutputFile.Write(formattable);
             return this;
         }

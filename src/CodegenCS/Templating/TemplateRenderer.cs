@@ -23,7 +23,7 @@ namespace CodegenCS
             if (typeof(ICodegenStringTemplate).IsAssignableFrom(templ.GetType()))
             {
                 var template = (ICodegenStringTemplate)templ;
-                FormattableString formattable = template.GetTemplate();
+                FormattableString formattable = template.Render();
                 writer.Write(formattable);
                 return;
             }
@@ -46,7 +46,7 @@ namespace CodegenCS
             if (typeof(ICodegenStringTemplate<TModel>).IsAssignableFrom(templ.GetType()))
             {
                 var template = (ICodegenStringTemplate<TModel>)templ;
-                FormattableString formattable = template.GetTemplate(model);
+                FormattableString formattable = template.Render(model);
                 writer.Write(formattable);
                 return;
             }
@@ -70,7 +70,7 @@ namespace CodegenCS
             if (typeof(ICodegenStringTemplate<TModel1, TModel2>).IsAssignableFrom(templ.GetType()))
             {
                 var template = (ICodegenStringTemplate<TModel1, TModel2>)templ;
-                FormattableString formattable = template.GetTemplate(model1, model2);
+                FormattableString formattable = template.Render(model1, model2);
                 writer.Write(formattable);
                 return;
             }
