@@ -896,6 +896,17 @@ namespace CodegenCS
             }
             #endregion
 
+            #region If IEnumerable<T> was wrapped using IEnumerableExtensions.Render (that allow to specify custom EnumerableRenderOptions), unwrap.
+            RenderEnumerableOptions enumerableRenderOptions = this._iEnumerableRenderOptions; // accept from a wrapper and unwrap
+            if (typeof(IInlineIEnumerable).IsAssignableFrom(arg.GetType()))
+            {
+                enumerableRenderOptions = ((IInlineIEnumerable)arg).RenderOptions;
+                arg = ((IInlineIEnumerable)arg).Items;
+                interfaceTypes = arg.GetType().GetInterfaces();
+            }
+            #endregion
+
+
             #region if arg is some Embedded Template (embedded using Template.Load<TemplateType>.Render<TModel>(model) - which creates a lazy-renderable IEmbeddedTemplateWithModel)
             if (typeof(__Hidden_IContextedTemplateWithModelWrapper).IsAssignableFrom(arg.GetType()))
             {
@@ -959,6 +970,15 @@ namespace CodegenCS
                 });
                 return;
             }
+            if (arg as Action != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    Action action = ((Action)arg);
+                    action();
+                });
+                return;
+            }
 
             if (arg as Action<TextWriter> != null)
             {
@@ -973,17 +993,6 @@ namespace CodegenCS
 
             // TODO: maybe instead of accepting IEnumerable<FormattableString>, IEnumerable<string>, IEnumerable<Func<FormattableString>>, IEnumerable<Func<string>>, 
             // we should just remove this and expect users to use extensions like Join() that process each item and add separators (default is NewLine) between the items
-
-            RenderEnumerableOptions enumerableRenderOptions = this._iEnumerableRenderOptions; // accept from a wrapper and unwrap
-
-            // If IEnumerable<T> was wrapped using IEnumerableExtensions.Render (that allow to specify custom EnumerableRenderOptions), unwrap.
-            if (typeof(IInlineIEnumerable).IsAssignableFrom(arg.GetType()))
-            {
-                enumerableRenderOptions = ((IInlineIEnumerable)arg).RenderOptions;
-                arg = ((IInlineIEnumerable)arg).Items;
-                interfaceTypes = arg.GetType().GetInterfaces();
-            }
-
 
             #region if arg is IEnumerable<string> or IEnumerable<Func<string>>
 
