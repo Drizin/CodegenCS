@@ -99,7 +99,7 @@ w.WriteLine($$"""
 
 CodegenTextWriter supports (can understand and render) a large number of object types that can just be interpolated (embedded) within strings, including `FormattableString` (interpolated strings inside another interpolated strings).
 
-`FormattableString` is the .NET class that implements Interpolated Strings (when we write an interpolated string the compiler creates a FormattableString for us), and for code generation `FormattableString` is preferable over strings because it preserves the individual location of each embedded element (more on that below). 
+`FormattableString` is the .NET class that implements Interpolated Strings (when we write an interpolated string the compiler creates a FormattableString for us), and for code generation `FormattableString` is preferable over strings because it preserves the individual location of each embedded element (more details in the FAQ below). 
 
 ```cs
 FormattableString RenderTable(Table table) => $$"""
@@ -131,7 +131,7 @@ void Generate()
 
 ## Read-to-Use Input Models
 
-In the previous example we're using DatabaseSchema from [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema)) - basically this represents the database schema of a MSSQL database or a PostgreSQL database.  
+In the previous example we are using DatabaseSchema from [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) - basically this represents the database schema of a MSSQL database or a PostgreSQL database.  
 This is one of the ready-to-use input models that you can use in your templates.
 
 ## Implicit Control of Indent Level
@@ -456,15 +456,9 @@ generateFile(w);
 As explained above, CodegenTextWriter can render embedded Actions and Functions, but that can get a little ugly when we need to [`pass parameters`](#Action-ICodegenTextWriter-Args).  
 To solve that issue we have some simple **template interfaces** that can be used to make templates easier to use and invoke.  
 
-- There are interfaces for single-file templates (those that get a ICodegenTextWriter and render to it) or multiple-file templates (those that get a ICodegenContext and may render multiple files)
-- Templates can be written using imperative programming (using pure C# to write to ICodegenTextWriter or ICodegenContext) or can be as simple as just returning an interpolated string.
-- Templates can be resolved using Dependency Injection which can inject any required dependency into their constructors
-- There are extensions to Load a template (by the Class Type) and extensions to Invoke that template (providing the required input models if any).
-
-
 ## ICodegenTemplate\<TModel>
 
-The most common template interface is this (gets a model of type TModel and writes output to a ICodegenTextWriter):
+The most common template interface is `ICodegenTemplate<TModel>` - it gets a model (type TModel) and writes output to a ICodegenTextWriter (so it's a "single-file template"):
 ```cs
 interface ICodegenTemplate<TModel>
 {
@@ -551,6 +545,7 @@ static void Main()
         {{ Template.Load<MyPocoTemplate>().Render(tables[1]) }}
         """);
     // ...
+    // Note that the Render() above is mandatory because it's providing the model to the template
 }
 ```
 
@@ -567,13 +562,15 @@ static void Main()
         {{ tables.Select(table => Template.Load<MyPocoTemplate>().Render(table)).Render() }}
         """);
     // ...
+    // Note that the second Render() above is optional - it allows to specify details like the separator 
+    // between the items, but CodegenTextWriter is lenient and will render the items even if you forget the Render()
 }
 ```
 
 ## ICodegenMultifileTemplate\<TModel>
 
-This one is similar to `ICodegenTemplate<TModel>` but instead of receiving a `ICodegenTextWriter` (and writing into a single file) it receives a `ICodegenContext` (and can write to multiple files):
-The most common template interface is this (gets a model of type TModel and writes output to a ICodegenTextWriter):
+This one is similar to `ICodegenTemplate<TModel>` but instead of receiving a `ICodegenTextWriter` (and writing into a single file) it receives a `ICodegenContext` (and therefore can write to multiple files):
+
 ```cs
 interface ICodegenMultifileTemplate<TModel>
 {
@@ -651,20 +648,19 @@ class MyPocoTemplate3 : ICodegenStringTemplate<DatabaseSchema>
 
 ## Templates Summary
 
-So basically when we implement any template interface we get:
+So basically:
 
-- Templates can be loaded (`.LoadTemplate<T>`) and rendered (`.Render(TModel model)`) directly from the ICodegenTextWriter
-- Templates can be interpolated (`Template.Load<T>`) and rendered (`.Render(TModel model)`) directly from any interpolated string
+- There are interfaces for single-file templates (those that get a ICodegenTextWriter and render to it) or multiple-file templates (those that get a ICodegenContext and may render multiple files)
+- There are interfaces for writing the template using imperative programming (using pure C# to write to the received ICodegenTextWriter or ICodegenContext) and simpler interfaces just expect you to return an interpolated string.
+- There is an extension `Load<T>()` to Load any template (by the Class Type `T` - we can load any type that implements templating interfaces). `Load<T>()` has Dependency Injection support (it can inject into the template constructor any required dependency)
+- After a template is loaded there is an extension `Render(TModel model)` (or `Render()`)  to invoke (render) that template (providing the required input models, if any).
+- Templates can be loaded and rendered directly from ICodegenTextWriter or from ICodegenContext using `textWriter.LoadTemplate<T>().Render(TModel model)`
+- Templates can be loaded and rendered directly from interpolated strings (`{{ Template.Load<T>().Render(TModel model) }}`)
 - Everything will be strongly typed, with intellisense/autocomplete and type-checking (e.g. `Render()` will expect a type depending on the template that was loaded)
 - We can embed subtemplates inside other templates, and they can receive/pass models, meaning complex templates can be well organized (instead of a single huge/ugly template)
-- Templates may or may not require input models. 
-- Templates can rely on some Ready to Use Input Models that we have:
-    - [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) represents the database schema of a MSSQL database or a PostgreSQL database, and can be used by templates that generate POCOs or even complete data access layers. [dotnet-codegencs dbschema extract](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs) is a tool that extract the schema of those databases into a JSON file.
-    - [CodegenCS.Models.OpenAPI](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Models.OpenAPI) represents an OpenAPI (Swagger) specification, and can be used by templates that generate REST API clients or servers.
-    - Any other structured data source (that can be read using C#) can be used as an input model (so you can read from JSON, YAML, XML, schema of other database vendors, etc)
-
-
-
+- Templates can rely on some **Ready to Use Input Models** like [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) - this model represents the database schema of a MSSQL database or a PostgreSQL database, and can be used by templates that generate POCOs or even complete data access layers. [dotnet-codegencs dbschema extract](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs) is a tool that extract the schema of those databases into a JSON file.
+- Another input model (under development) is [CodegenCS.Models.OpenAPI](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Models.OpenAPI) - this model represents an OpenAPI (Swagger) specification, and can be used by templates that generate REST API clients or servers.
+- You can use any other structured data source (that can be read using C#) as an input model (so you can read from JSON, YAML, XML, schema of other database vendors, etc)
 
 
 

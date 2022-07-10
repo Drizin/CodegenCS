@@ -134,7 +134,7 @@ If you can't use C# 11 you can still use CodegenCS with the old multiline blocks
 
 CodegenTextWriter supports (can understand and render) a large number of object types that can just be interpolated (embedded) within strings, including `FormattableString` (interpolated strings inside another interpolated strings).
 
-`FormattableString` is the .NET class that implements Interpolated Strings (when we write an interpolated string the compiler creates a FormattableString for us), and for code generation `FormattableString` is preferable over strings because it preserves the individual location of each embedded element (more on that below). 
+`FormattableString` is the .NET class that implements Interpolated Strings (when we write an interpolated string the compiler creates a FormattableString for us), and for code generation `FormattableString` is preferable over strings because it preserves the individual location of each embedded element (more details in the FAQ below). 
 
 ```cs
 FormattableString RenderTable(Table table) => $$"""
@@ -166,7 +166,7 @@ void Generate()
 
 ## Read-to-Use Input Models
 
-In the previous example we're using DatabaseSchema from [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema)) - basically this represents the database schema of a MSSQL database or a PostgreSQL database.  
+In the previous example we are using DatabaseSchema from [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) - basically this represents the database schema of a MSSQL database or a PostgreSQL database.  
 This is one of the ready-to-use input models that you can use in your templates.
 
 ## Implicit Control of Indent Level
@@ -510,20 +510,14 @@ generateFile(w);
 ```
 
 
-# Template Interfaces
+# <a name="TemplateInterfaces"></a>Template Interfaces
 
 As explained above, CodegenTextWriter can render embedded Actions and Functions, but that can get a little ugly when we need to [`pass parameters`](#Action-ICodegenTextWriter-Args).  
 To solve that issue we have some simple **template interfaces** that can be used to make templates easier to use and invoke.  
 
-- There are interfaces for single-file templates (those that get a ICodegenTextWriter and render to it) or multiple-file templates (those that get a ICodegenContext and may render multiple files)
-- Templates can be written using imperative programming (using pure C# to write to ICodegenTextWriter or ICodegenContext) or can be as simple as just returning an interpolated string.
-- Templates can be resolved using Dependency Injection which can inject any required dependency into their constructors
-- There are extensions to Load a template (by the Class Type) and extensions to Invoke that template (providing the required input models if any).
-
-
 ## ICodegenTemplate\<TModel>
 
-The most common template interface is this (gets a model of type TModel and writes output to a ICodegenTextWriter):
+The most common template interface is `ICodegenTemplate<TModel>` - it gets a model (type TModel) and writes output to a ICodegenTextWriter (so it's a "single-file template"):
 ```cs
 interface ICodegenTemplate<TModel>
 {
@@ -610,6 +604,7 @@ static void Main()
         {{ Template.Load<MyPocoTemplate>().Render(tables[1]) }}
         """);
     // ...
+    // Note that the Render() above is mandatory because it's providing the model to the template
 }
 ```
 
@@ -626,13 +621,15 @@ static void Main()
         {{ tables.Select(table => Template.Load<MyPocoTemplate>().Render(table)).Render() }}
         """);
     // ...
+    // Note that the second Render() above is optional - it allows to specify details like the separator 
+    // between the items, but CodegenTextWriter is lenient and will render the items even if you forget the Render()
 }
 ```
 
 ## ICodegenMultifileTemplate\<TModel>
 
-This one is similar to `ICodegenTemplate<TModel>` but instead of receiving a `ICodegenTextWriter` (and writing into a single file) it receives a `ICodegenContext` (and can write to multiple files):
-The most common template interface is this (gets a model of type TModel and writes output to a ICodegenTextWriter):
+This one is similar to `ICodegenTemplate<TModel>` but instead of receiving a `ICodegenTextWriter` (and writing into a single file) it receives a `ICodegenContext` (and therefore can write to multiple files):
+
 ```cs
 interface ICodegenMultifileTemplate<TModel>
 {
@@ -710,20 +707,19 @@ class MyPocoTemplate3 : ICodegenStringTemplate<DatabaseSchema>
 
 ## Templates Summary
 
-So basically when we implement any template interface we get:
+So basically:
 
-- Templates can be loaded (`.LoadTemplate<T>`) and rendered (`.Render(TModel model)`) directly from the ICodegenTextWriter
-- Templates can be interpolated (`Template.Load<T>`) and rendered (`.Render(TModel model)`) directly from any interpolated string
+- There are interfaces for single-file templates (those that get a ICodegenTextWriter and render to it) or multiple-file templates (those that get a ICodegenContext and may render multiple files)
+- There are interfaces for writing the template using imperative programming (using pure C# to write to the received ICodegenTextWriter or ICodegenContext) and simpler interfaces just expect you to return an interpolated string.
+- There is an extension `Load<T>()` to Load any template (by the Class Type `T` - we can load any type that implements templating interfaces). `Load<T>()` has Dependency Injection support (it can inject into the template constructor any required dependency)
+- After a template is loaded there is an extension `Render(TModel model)` (or `Render()`)  to invoke (render) that template (providing the required input models, if any).
+- Templates can be loaded and rendered directly from ICodegenTextWriter or from ICodegenContext using `textWriter.LoadTemplate<T>().Render(TModel model)`
+- Templates can be loaded and rendered directly from interpolated strings (`{{ Template.Load<T>().Render(TModel model) }}`)
 - Everything will be strongly typed, with intellisense/autocomplete and type-checking (e.g. `Render()` will expect a type depending on the template that was loaded)
 - We can embed subtemplates inside other templates, and they can receive/pass models, meaning complex templates can be well organized (instead of a single huge/ugly template)
-- Templates may or may not require input models. 
-- Templates can rely on some Ready to Use Input Models that we have:
-    - [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) represents the database schema of a MSSQL database or a PostgreSQL database, and can be used by templates that generate POCOs or even complete data access layers. [dotnet-codegencs dbschema extract](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs) is a tool that extract the schema of those databases into a JSON file.
-    - [CodegenCS.Models.OpenAPI](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Models.OpenAPI) represents an OpenAPI (Swagger) specification, and can be used by templates that generate REST API clients or servers.
-    - Any other structured data source (that can be read using C#) can be used as an input model (so you can read from JSON, YAML, XML, schema of other database vendors, etc)
-
-
-
+- Templates can rely on some **Ready to Use Input Models** like [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema) - this model represents the database schema of a MSSQL database or a PostgreSQL database, and can be used by templates that generate POCOs or even complete data access layers. [dotnet-codegencs dbschema extract](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs) is a tool that extract the schema of those databases into a JSON file.
+- Another input model (under development) is [CodegenCS.Models.OpenAPI](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Models.OpenAPI) - this model represents an OpenAPI (Swagger) specification, and can be used by templates that generate REST API clients or servers.
+- You can use any other structured data source (that can be read using C#) as an input model (so you can read from JSON, YAML, XML, schema of other database vendors, etc)
 
 
 
@@ -777,7 +773,7 @@ Do we have helpers for nesting files (in Visual Studio)?
 
 
 
-# Deprecated Features (or Not Recommended)
+# Deprecated (or Not Recommended) Features 
 
 ## Writing to ICodegenTextWriter WITHOUT Raw String Literals (Not Recommended)
 
@@ -810,7 +806,8 @@ CodegenTextWriter will automatically adjust multi-line blocks very similar to wh
 - Multiline blocks will automatically strip left-padding whitespace (they will "dock the whole block to the left", limited by the longest line).
 
 
-## <a name="ExplicitIndent"></a>Explicit Indent Level Control (Not recommended - prefer implicit indent control)
+## <a name="ExplicitIndent"></a>Explicit Indent Level Control 
+(Not recommended - prefer implicit indent control)
 
 With the Fluent API (method chaining) we can manually control the indentation:
 
@@ -842,9 +839,11 @@ All the lines written between `IncreaseIndent()` and `DecreaseIndent()` will be 
 By default each indent level will be 4 spaces, which means that `public class ...` will be indented with 4 spaces, and `public {type} {propertyName} { get; set; }` will be indented with 8 spaces.
 
 
-## IDisposable Helpers for Writing Indented Blocks concisely (but yet manually using Fluent API)
+## Explicit Indented Blocks using "With" IDisposable Helpers 
+(Not recommended - prefer using implicit indent control)
 
-We just define what's written before the block starts, and the helper (e.g. `WithCBlock()`) will automatically handle the indentation, the curly braces around the indented block and line-breaks. IDisposable context is used to automatically close the blocks (decrease indent, close braces).
+In the previous example the curly braces and indentation were manually controlled. But CodegenTextWriter has some `With*()` helpers that can automatically handle that for us:  
+We just define what should be written before the block starts and the helper will automatically write the curly braces, the line break, will increase indentation, and when the block ends (IDisposable is disposed) it adds linebreak (if missing), decreases indentation, and write the closing curly braces. The result is much cleaner than previous example:
 
 ```cs
 var w = new CodegenTextWriter();
@@ -852,27 +851,37 @@ using (w.WithCBlock("namespace MyNamespace"))
 {
     using (w.WithCBlock("public class MyClass"))
     {
-    w.WriteLine(@"
-        /// <summary>
-        /// MyMethod does some cool stuff
-        /// </summary>");
-    using (w.WithCBlock("void MyMethod()"))
-    {
         w.WriteLine(@"
-            // Method body...
-            // Method body...");
-    });
+            /// <summary>
+            /// MyMethod does some cool stuff
+            /// </summary>");
+        using (w.WithCBlock("void MyMethod()"))
+        {
+            w.WriteLine(@"
+                // Method body...
+                // Method body...");
+        });
     });
 }
 ```
 
-There's also `WithJavaBlock()` (the starting curly braces go together with the previous line) and `WithPythonBlock()` (python style blocks have colons and indentation but no curly braces):
+Helper above was `WithCBlock()` which indents using [Allman style](https://en.wikipedia.org/wiki/Indentation_style#Allman_style) (braces go on the next line), but there's also `WithJavaBlock()` which is the most common style for Java/Javascript (a variation of [C/C# Kernighan & Ritchie Style](https://en.wikipedia.org/wiki/Indentation_style#K&R_style) where opening brace goes at the end of the previous line before the indented block) and `WithPythonBlock()` (python style blocks have colons and indentation but no curly braces):
 
+```cs
+var w = new CodegenTextWriter();
+// WithPythonBlock will automatically add the colon (:) and do the indentation
+using (_w.WithPythonBlock("if date.today().weekday() == 0"))
+{
+    _w.WriteLine($"""
+        print("Hello!")
+        print("It's great to see you again")
+        print("Happy Monday!")
+        """);
+}
+```
 
-
-## Lambda-Style Helpers for Writing Indented Blocks concisely (but yet manually using Fluent API)
-
-**Using interpolated strings with Indented-blocks Fluent API**
+## Explicit Indented Blocks using "Lambda-Style" Helpers
+(Not recommended - prefer using implicit indent control)
 
 ```cs
 string ns = "myNamespace";
@@ -889,6 +898,8 @@ w.WithCurlyBraces($"namespace {ns}", () =>
   });
 });
 ```
+
+This is pretty much like using the `With*()` helpers - the only difference is that lambda callbacks can be `Action` or `Action<ICodegenTextWriter>` - so if the lambdas are in other method (different scope) they can just "receive" the ICodegenTextWriter (it doesn't have to be "shared" like a public instance).
 
 
 ## <a name="ManuallyInvokingMethods"></a>Manually Invoking Methods (without using interpolation)
@@ -928,8 +939,7 @@ void GenerateFile(ICodegenTextWriter w)
 
 ## <a name="Action-ICodegenTextWriter-Args"></a> Using an Action\<ICodegenTextWriter> to invoke a method that requires arguments
 
-The prefered method of invoking subtemplates and passing arguments is ...
-But it's also possible to wrap any method into an `Action<ICodegenTextWriter>` like this:
+The prefered method of invoking subtemplates and passing arguments is using [`Template Interfaces`](#TemplateInterfaces), but it's also possible to wrap any method into an `Action<ICodegenTextWriter>` like this:
 
 ```cs
 // Regular C# void method being invoked explicitly (wrapped inside a new Action)
