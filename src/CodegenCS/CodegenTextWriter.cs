@@ -10,76 +10,6 @@ using System.Text.RegularExpressions;
 
 namespace CodegenCS
 {
-    public interface ICodegenTextWriter : IDisposable
-    {
-        CodegenTextWriter.MultilineBehaviorType MultilineBehavior { get; set; }
-        CodegenTextWriter.CurlyBracesStyleType CurlyBracesStyle { get; set; }
-        string NewLine { get; set; }
-        Encoding Encoding { get; }
-        void Close();
-        void Flush();
-        string ToString();
-        int IndentLevel { get; }
-        string IndentString { get; set; }
-        ICodegenTextWriter IncreaseIndent();
-        ICodegenTextWriter DecreaseIndent();
-        ICodegenTextWriter EnsureEmptyLine();
-        ICodegenTextWriter EnsureLineBreakBeforeNextWrite();
-        ICodegenTextWriter WithIndent(string beforeBlock, string afterBlock, Action innerBlockAction);
-        ICodegenTextWriter WithIndent(string beforeBlock, string afterBlock, Action<ICodegenTextWriter> innerBlockAction);
-        ICodegenTextWriter WithCurlyBraces(string beforeBlock, Action innerBlockAction);
-        ICodegenTextWriter WithCurlyBraces(string beforeBlock, Action<ICodegenTextWriter> innerBlockAction);
-        ICodegenTextWriter WithPythonBlock(string beforeBlock, Action innerBlockAction);
-        ICodegenTextWriter WithPythonBlock(string beforeBlock, Action<ICodegenTextWriter> innerBlockAction);
-        ICodegenTextWriter WithCBlock(string beforeBlock, Action innerBlockAction);
-        ICodegenTextWriter WithCBlock(string beforeBlock, Action<ICodegenTextWriter> innerBlockAction);
-        ICodegenTextWriter WithJavaBlock(string beforeBlock, Action innerBlockAction);
-        ICodegenTextWriter WithJavaBlock(string beforeBlock, Action<ICodegenTextWriter> innerBlockAction);
-        ICodegenTextWriter Write(FormattableString formattable);
-        ICodegenTextWriter WriteLine(FormattableString formattable);
-        ICodegenTextWriter Write(RawString format, params object[] arguments);
-        ICodegenTextWriter WriteLine(RawString format, params object[] arguments);
-        ICodegenTextWriter Write(object value);
-        ICodegenTextWriter WriteLine(object value);
-        ICodegenTextWriter WriteLine();
-        ICodegenTextWriter Write(RawString value);
-        ICodegenTextWriter WriteLine(RawString value);
-        ICodegenTextWriter Write(Func<RawString> fnString);
-        ICodegenTextWriter WriteLine(Func<RawString> fnString);
-        ICodegenTextWriter Write(Func<FormattableString> fnFormattableString);
-        ICodegenTextWriter WriteLine(Func<FormattableString> fnFormattableString);
-        ICodegenTextWriter Write(char[] buffer);
-        ICodegenTextWriter Write(char[] buffer, int index, int count);
-        ICodegenTextWriter WriteLine(char[] buffer);
-        ICodegenTextWriter WriteLine(char[] buffer, int index, int count);
-        void SaveToFile(string path, bool createFolder = true);
-        string GetContents();
-        DependencyContainer DependencyContainer { get; }
-        IDisposable WithCBlock(string beforeBlock = null); // obsolete
-        IDisposable WithIndent(string beforeBlock = null, string afterBlock = null);
-        
-        /// <summary>
-        /// Loads any template by the Type.
-        /// After loading don't forget to call Render() extensions (<see cref="IContextedTemplateWrapperExtensions.Render(IContextedTemplateWrapper{IBase0ModelTemplate, ICodegenContext})"/>)
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="dependencies">Optional dependencies can be used and will be automatically injected if template constructor requires it</param>
-        /// <returns></returns>
-        IContextedTemplateWrapper<T, ICodegenTextWriter> LoadTemplate<T>(params object[] dependencies) where T : IBaseSinglefileTemplate;
-
-        /// <summary>
-        /// Renders to the <see cref="DefaultOutputFile"/> a <see cref="ICodegenTemplate"/> template that do not need any model.
-        /// If you need a template that takes a model please use <see cref="LoadTemplate{T}(object[])"/> method.
-        /// </summary>
-        ICodegenTextWriter RenderTemplate(ICodegenTemplate template);
-
-        /// <summary>
-        /// Renders to the <see cref="DefaultOutputFile"/> a <see cref="ICodegenStringTemplate"/> template that do not need any model.
-        /// If you need a template that takes a model please use <see cref="LoadTemplate{T}(object[])"/> method.
-        /// </summary>
-        ICodegenTextWriter RenderTemplate(ICodegenStringTemplate template);
-    }
-
     /// <summary>
     /// This text writer has some features to help code-generation tools: <br />
     /// - Will keep track of "Indent Levels", and will write whitespace-indents accordingly to the current level. <br />
@@ -197,16 +127,17 @@ namespace CodegenCS
 
         /// <summary>
         /// This keeps tracks of what was written to the current line.<br /> 
-        /// This includes whitespace which was explicitly written to the TextWrite, but DOES NOT COUNT indent-strings which were automatically generated by this text writer (InnerIndentCurrentLine). <br />
+        /// This includes whitespace which was explicitly or implicitally written, but DOES NOT COUNT indent-strings that were automatically generated by this text writer (InnerIndentCurrentLine). <br />
+        /// In other words, it's the current line written after automatic indentation
         /// </summary>
-
         StringBuilder _currentLine = new StringBuilder();
+
         bool _nextWriteRequiresLineBreak = false;
         bool _dontIndentCurrentLine = false; // when we're in the middle of a line and start an inline block (which could be multiline string), the first line don't need to be indented - only the next ones
         public DependencyContainer DependencyContainer { get { return _dependencyContainer; } internal set { _dependencyContainer = value; } }
         protected DependencyContainer _dependencyContainer = new DependencyContainer();
 
-        protected RenderEnumerableOptions _iEnumerableRenderOptions = RenderEnumerableOptions.LineBreaksWithSpacer;
+        public RenderEnumerableOptions DefaultIEnumerableRenderOptions { get; set; } = RenderEnumerableOptions.LineBreaksWithAutoSpacer;
         #endregion
 
         #region ctors
@@ -320,7 +251,7 @@ namespace CodegenCS
         }
 
         /// <summary>
-        /// Manually Increases indentation level, <br />
+        /// Explicitly Increases indentation level, <br />
         /// so that the next text lines are all indented with an increased level. <br />
         /// If you're using helpers like WithIndent, WithCurlyBraces or WithPythonBlock you don't need to manually control indent level.
         /// </summary>
@@ -339,7 +270,7 @@ namespace CodegenCS
         }
 
         /// <summary>
-        /// Manually Decreases indentation level, <br />
+        /// Explicitly Decreases indentation level, <br />
         /// so that the next text lines are all indented with an decreased level. <br />
         /// If you're using helpers like WithIndent, WithCurlyBraces or WithPythonBlock you don't need to manually control indent level.
         /// </summary>
@@ -355,7 +286,7 @@ namespace CodegenCS
         /// <returns></returns>
         public ICodegenTextWriter EnsureEmptyLine()
         {
-            if (_currentLine.Length > 0)
+            if (_currentLine.Length > 0) // currentLine review
                 WriteLine();
             return this;
         }
@@ -372,19 +303,18 @@ namespace CodegenCS
         }
 
         /// <summary>
-        /// Opens a new indented Block. Will automatically handle increasing/decreasing indent. <br />
+        /// Explicitly opens a new indented Block (prefer using implicit indentation when possible). Will automatically handle increasing/decreasing indent. <br />
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent. <br />
         /// This method will automatically fix "dirty lines" (lines which do not end in a line break).
         /// </summary>
         /// <returns></returns>
-        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return ICodegenTextWriter")]
         public IDisposable WithIndent()
         {
             return new IndentedBlockScope(this);
         }
 
         /// <summary>
-        /// Opens a new indented Block. Will automatically handle increasing/decreasing indent. <br />
+        /// Explicitly opens a new indented Block (prefer using implicit indentation when possible). Will automatically handle increasing/decreasing indent. <br />
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent. <br />
         /// This method will automatically fix "dirty lines" (lines which do not end in a line break).
         /// </summary>
@@ -393,14 +323,13 @@ namespace CodegenCS
         /// If you're closing with a curly brace you'll probably want to add a line-break after that curly brace.
         /// </param>
         /// <returns></returns>
-        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return ICodegenTextWriter")]
         public IDisposable WithIndent(string beforeBlock = null, string afterBlock = null)
         {
             return new IndentedBlockScope(this, AdjustMultilineString(beforeBlock), AdjustMultilineString(afterBlock));
         }
 
         /// <summary>
-        /// Opens a new indented indented Block. Action delegate (lambda) should be used to write contents "inside" the block <br />
+        /// Explicitly opens a new indented indented Block (prefer using implicit indentation when possible). Action delegate (lambda) should be used to write contents "inside" the block <br />
         /// Will automatically handle increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify something to be written BEFORE the indented block starts (before the automatic line break, yet with outer indentation)</param>
@@ -419,7 +348,7 @@ namespace CodegenCS
         }
 
         /// <summary>
-        /// Opens a new indented indented Block. Action delegate (lambda) should be used to write contents "inside" the block <br />
+        /// Explicitly opens a new indented indented Block (prefer using implicit indentation when possible). Action delegate (lambda) should be used to write contents "inside" the block <br />
         /// Will automatically handle increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify something to be written BEFORE the indented block starts (before the automatic line break, yet with outer indentation)</param>
@@ -440,7 +369,6 @@ namespace CodegenCS
         {
             string indent = string.Join("", _levelIndent.Reverse().ToList());
             InnerWriteRaw(indent);
-            _currentLine.Clear();
         }
         #endregion
 
@@ -454,7 +382,7 @@ namespace CodegenCS
         /// <summary>
         /// Returns true if there's no IF/ELSE block open, or if the current block is "active" (should NOT be discarded according to the IF clauses in the stack)
         /// </summary>
-        protected bool IsControlBlockActive 
+        protected bool IsControlBlockActive //TODO: is this hurting performance? we can update a variable when pushing/popping into _controlFlowSymbols
         { 
             get 
             {
@@ -468,13 +396,12 @@ namespace CodegenCS
 
         #region Block-Scope: methods based on IndentedBlockScope(), including language-specific helpers
         /// <summary>
-        /// Opens a new indented Curly-Braces Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
+        /// Explicitly opens a new indented Curly-Braces Block (prefer using implicit indentation when possible). Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
         /// <param name="curlyBracesStyle">How Curly-Braces are written. If not defined will use current CurleBracesStyleType property (default is C-Style, which starts the curly braces in its own line) </param>
         /// <returns></returns>
-        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return ICodegenTextWriter")]
         public IDisposable WithCurlyBraces(string beforeBlock, CurlyBracesStyleType curlyBracesStyle)
         {
             IDisposable innerBlock;
@@ -499,24 +426,22 @@ namespace CodegenCS
             return innerBlock;
         }
         /// <summary>
-        /// Opens a new indented Curly-Braces Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
+        /// Explicitly opens a new indented Curly-Braces Block (prefer using implicit indentation when possible). Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
         /// <returns></returns>
-        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return ICodegenTextWriter")]
         public IDisposable WithCurlyBraces(string beforeBlock) => WithCurlyBraces(beforeBlock: beforeBlock, curlyBracesStyle: this.CurlyBracesStyle);
 
         /// <summary>
-        /// Opens a new indented Curly-Braces Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
+        /// Explicitly opens a new indented Curly-Braces Block (prefer using implicit indentation when possible). Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent. <br />
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
         /// </summary>
         /// <returns></returns>
-        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return ICodegenTextWriter")]
         public IDisposable WithCurlyBraces() => WithCurlyBraces(beforeBlock: null, curlyBracesStyle: this.CurlyBracesStyle);
 
         /// <summary>
-        /// Opens a new indented Curly-Braces Block. Action delegate (lambda) should be used to write contents "inside" the curly-braces block <br />
+        /// Explicitly opens a new indented Curly-Braces Block (prefer using implicit indentation when possible). Action delegate (lambda) should be used to write contents "inside" the curly-braces block <br />
         /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
@@ -535,7 +460,7 @@ namespace CodegenCS
         }
 
         /// <summary>
-        /// Opens a new indented Curly-Braces Block. Action delegate (lambda) should be used to write contents "inside" the curly-braces block <br />
+        /// Explicitly opens a new indented Curly-Braces Block (prefer using implicit indentation when possible). Action delegate (lambda) should be used to write contents "inside" the curly-braces block <br />
         /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
@@ -547,12 +472,11 @@ namespace CodegenCS
         }
 
         /// <summary>
-        /// Opens a new indented Python-Braces Block. Will automatically handle linebreaks, and increasing/decreasing indent. <br />
+        /// Explicitly opens a new indented Python-Braces Block (prefer using implicit indentation when possible). Will automatically handle linebreaks, and increasing/decreasing indent. <br />
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
         /// <returns></returns>
-        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return ICodegenTextWriter")]
         public IDisposable WithPythonBlock(string beforeBlock)
         {
             IDisposable innerBlock = new IndentedBlockScope(this,
@@ -562,7 +486,7 @@ namespace CodegenCS
             return innerBlock;
         }
         /// <summary>
-        /// Opens a new indented Python-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Explicitly opens a new indented Python-style Block (prefer using implicit indentation when possible). Action delegate (lambda) should be used to write contents "inside" the indented block <br />
         /// Will automatically handle linebreaks, and increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts.</param>
@@ -581,7 +505,7 @@ namespace CodegenCS
             return this;
         }
         /// <summary>
-        /// Opens a new indented Python-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Explicitly opens a new indented Python-style Block (prefer using implicit indentation when possible). Action delegate (lambda) should be used to write contents "inside" the indented block <br />
         /// Will automatically handle linebreaks, and increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts.</param>
@@ -595,16 +519,15 @@ namespace CodegenCS
 
 
         /// <summary>
-        /// Opens a new indented C-Style Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
+        /// Explicitly opens a new indented C-Style Block (prefer using implicit indentation when possible). Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the block starts (before curly braces)</param>
         /// <returns></returns>
-        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return ICodegenTextWriter")]
         public IDisposable WithCBlock(string beforeBlock = null) => WithCurlyBraces(beforeBlock, CurlyBracesStyleType.C);
 
         /// <summary>
-        /// Opens a new indented C-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Explicitly opens a new indented C-style Block (prefer using implicit indentation when possible). Action delegate (lambda) should be used to write contents "inside" the indented block <br />
         /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
@@ -622,7 +545,7 @@ namespace CodegenCS
             return this;
         }
         /// <summary>
-        /// Opens a new indented C-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Explicitly opens a new indented C-style Block (prefer using implicit indentation when possible). Action delegate (lambda) should be used to write contents "inside" the indented block <br />
         /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
@@ -635,16 +558,15 @@ namespace CodegenCS
 
 
         /// <summary>
-        /// Opens a new indented Java-Style Block. Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
+        /// Explicitly opens a new indented Java-Style Block (prefer using implicit indentation when possible). Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
         /// Should be disposed (use "using" block) to correctly close braces and decrease indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the block starts (before curly braces)</param>
         /// <returns></returns>
-        [Obsolete("Please prefer the Fluent-API methods, which receive an Action-delegate for writing inside the indented-block and return ICodegenTextWriter")]
         public IDisposable WithJavaBlock(string beforeBlock = null) => WithCurlyBraces(beforeBlock, CurlyBracesStyleType.Java);
 
         /// <summary>
-        /// Opens a new indented Java-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Explicitly opens a new indented Java-style Block (prefer using implicit indentation when possible). Action delegate (lambda) should be used to write contents "inside" the indented block <br />
         /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
@@ -662,7 +584,7 @@ namespace CodegenCS
             return this;
         }
         /// <summary>
-        /// Opens a new indented Java-style Block. Action delegate (lambda) should be used to write contents "inside" the indented block <br />
+        /// Explicitly opens a new indented Java-style Block (prefer using implicit indentation when possible). Action delegate (lambda) should be used to write contents "inside" the indented block <br />
         /// Will automatically handle opening and closing of curly braces, linebreaks, and increasing/decreasing indent.
         /// </summary>
         /// <param name="beforeBlock">Optional - you can specify what is written BEFORE the indented block starts (before curly braces).</param>
@@ -701,6 +623,8 @@ namespace CodegenCS
         protected void InnerWrite(string value)
         {
             if (string.IsNullOrEmpty(value))
+                return;
+            if (!IsControlBlockActive)
                 return;
 
             var matches = _lineBreaksRegex.Matches(value);
@@ -743,7 +667,7 @@ namespace CodegenCS
             if (lastLine.Length > 0 && _currentLine.Length == 0 && !_dontIndentCurrentLine)
                 InnerIndentCurrentLine();
             InnerWriteRaw(lastLine);
-            _currentLine.Clear().Append(lastLine);
+            _currentLine.Append(lastLine);
             _dontIndentCurrentLine = false;
         }
         #endregion
@@ -768,7 +692,7 @@ namespace CodegenCS
                 _dontIndentCurrentLine = true;
                 _currentLine.Clear();
                 inlineAction();
-                _levelIndent.Pop();
+                _levelIndent.Pop(); // TODO: if there were no linebreaks written we should restore currentLine - levelIndent should be a class to keep track of more context
             }
             else
             {
@@ -849,7 +773,7 @@ namespace CodegenCS
                 InnerInlineAction(() =>
                 {
                     string subText = ((string)arg);
-                    InnerWrite(subText);
+                    InnerWrite(AdjustMultilineString(subText));
                 });
                 return;
             }
@@ -858,8 +782,8 @@ namespace CodegenCS
             {
                 InnerInlineAction(() =>
                 {
-                    string exec = ((Func<string>)arg)();
-                    InnerWrite(exec);
+                    string str = ((Func<string>)arg)();
+                    InnerWrite(AdjustMultilineString(str));
                 });
                 return;
             }
@@ -897,12 +821,38 @@ namespace CodegenCS
             #endregion
 
             #region If IEnumerable<T> was wrapped using IEnumerableExtensions.Render (that allow to specify custom EnumerableRenderOptions), unwrap.
-            RenderEnumerableOptions enumerableRenderOptions = this._iEnumerableRenderOptions; // accept from a wrapper and unwrap
+            RenderEnumerableOptions enumerableRenderOptions = this.DefaultIEnumerableRenderOptions; // by default uses the CodegenTextWriter setting, but it may be overriden in the wrapper
             if (typeof(IInlineIEnumerable).IsAssignableFrom(arg.GetType()))
             {
-                enumerableRenderOptions = ((IInlineIEnumerable)arg).RenderOptions;
+                enumerableRenderOptions = ((IInlineIEnumerable)arg).RenderOptions ?? enumerableRenderOptions;
                 arg = ((IInlineIEnumerable)arg).Items;
                 interfaceTypes = arg.GetType().GetInterfaces();
+            }
+            #endregion
+
+            #region if arg is IEnumerable (which includes IEnumerable<T>) - which includes the case where use forgot to call .Render() extension
+
+            if (typeof(System.Collections.IEnumerable).IsAssignableFrom(arg.GetType()))
+            {
+                int previousPos = this._innerWriter.ToString().Length;
+                InnerInlineAction(() =>
+                {
+                    System.Collections.IEnumerable list = (System.Collections.IEnumerable)arg;
+                    bool addMiddleSeparator = false;
+                    bool previousItemWroteMultilines = false;
+                    foreach (var item in list)
+                    {
+                        if (addMiddleSeparator)
+                            WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: false, previousItemWroteMultilines: previousItemWroteMultilines);
+                        InnerWriteFormattableArgument(item, "");
+                        addMiddleSeparator = true;
+                        string previousItem = this._innerWriter.ToString().Substring(previousPos); 
+                        previousItemWroteMultilines = _lineBreaksRegex.Split(previousItem.Trim()).Length > 1; // at least 1 line break inside the rendered item
+                        previousPos = this._innerWriter.ToString().Length;
+                    }
+                    WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: true, previousItemWroteMultilines);
+                });
+                return;
             }
             #endregion
 
@@ -991,95 +941,6 @@ namespace CodegenCS
             }
             #endregion
 
-            // TODO: maybe instead of accepting IEnumerable<FormattableString>, IEnumerable<string>, IEnumerable<Func<FormattableString>>, IEnumerable<Func<string>>, 
-            // we should just remove this and expect users to use extensions like Join() that process each item and add separators (default is NewLine) between the items
-
-            #region if arg is IEnumerable<string> or IEnumerable<Func<string>>
-
-            if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
-                t.IsGenericType &&
-                t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                t.GetGenericArguments()[0].IsAssignableFrom(typeof(string))
-                )) != null)
-            {
-                InnerInlineAction(() =>
-                {
-                    IEnumerable<string> list = (IEnumerable<string>)arg;
-                    for (int j = 0; j < list.Count(); j++)
-                    {
-                        string item = list.ElementAt(j);
-                        InnerWrite(item);
-                        WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: j == list.Count() - 1);
-                    }
-                });
-                return;
-            }
-
-            if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
-                t.IsGenericType &&
-                t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                t.GetGenericArguments()[0].IsGenericType &&
-                t.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<>) &&
-                t.GetGenericArguments()[0].GetGenericArguments()[0].IsAssignableFrom(typeof(string))
-                )) != null)
-            {
-                InnerInlineAction(() =>
-                {
-                    IEnumerable<Func<string>> list = (IEnumerable<Func<string>>)arg;
-                    for (int j = 0; j < list.Count(); j++)
-                    {
-                        Func<string> item = list.ElementAt(j);
-                        InnerWrite(item());
-                        WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: j == list.Count() - 1);
-                    }
-                });
-                return;
-            }
-            #endregion
-
-            #region if arg is IEnumerable<FormattableString> or IEnumerable<Func<FormattableString>>
-            if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
-                t.IsGenericType &&
-                t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                t.GetGenericArguments()[0].IsAssignableFrom(typeof(FormattableString))
-                )) != null)
-            {
-                InnerInlineAction(() =>
-                {
-                    IEnumerable<FormattableString> list = (IEnumerable<FormattableString>)arg;
-                    for (int j = 0; j < list.Count(); j++)
-                    {
-                        FormattableString item = list.ElementAt(j);
-                        InnerWriteFormattable(AdjustMultilineString(item.Format), item.GetArguments());
-                        WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: j == list.Count() - 1);
-                    }
-                });
-                return;
-            }
-            
-            if ((interfaceType = interfaceTypes.SingleOrDefault(t =>
-                t.IsGenericType &&
-                t.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
-                t.GetGenericArguments()[0].IsGenericType &&
-                t.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<>) &&
-                t.GetGenericArguments()[0].GetGenericArguments()[0].IsAssignableFrom(typeof(FormattableString))
-                )) != null)
-            {
-                InnerInlineAction(() =>
-                {
-                    IEnumerable<Func<FormattableString>> list = (IEnumerable<Func<FormattableString>>)arg;
-                    for (int j = 0; j < list.Count(); j++)
-                    {
-                        Func<FormattableString> fnFormattable = list.ElementAt(j);
-                        FormattableString formattable = fnFormattable();
-                        InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
-                        WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: j == list.Count() - 1);
-                    }
-                });
-                return;
-            }
-            #endregion
-
             #region if arg is IControlFlowSymbol
             if (arg is IControlFlowSymbol)
             {
@@ -1117,7 +978,7 @@ namespace CodegenCS
             #endregion
 
         }
-        private void WriteIEnumerableItemSeparator(RenderEnumerableOptions options, bool isLastItem)
+        private void WriteIEnumerableItemSeparator(RenderEnumerableOptions options, bool isLastItem, bool previousItemWroteMultilines)
         {
             var behavior = (isLastItem) ? options.AfterLastItemBehavior : options.BetweenItemsBehavior;
             switch(behavior)
@@ -1130,7 +991,12 @@ namespace CodegenCS
                     break;
                 case ItemsSeparatorBehavior.EnsureFullEmptyLine:
                     EnsureEmptyLine(); // if current line is dirty, add a line break (giving a new empty line)
-                    WriteLine();       // then forcible we add a full empty line
+                    WriteLine();       // then we forcibly add a full empty line
+                    break;
+                case ItemsSeparatorBehavior.EnsureFullEmptyLineAfterMultilineItems:
+                    EnsureEmptyLine(); // if current line is dirty, add a line break (giving a new empty line)
+                    if (previousItemWroteMultilines)
+                        WriteLine();   // if item wrote multiple lines we add a full empty line
                     break;
                 case ItemsSeparatorBehavior.EnsureLineBreakBeforeNextWrite:
                     EnsureLineBreakBeforeNextWrite(); 
@@ -1189,27 +1055,11 @@ namespace CodegenCS
         public ICodegenTextWriter Write(object value)
         {
             // since we use RawString (to prioritize FormattableString overloads), it happens that strings may end up using this object overload.
-            if (value is string)
-                return Write((string)value);
-            if (value is Func<string>)
-                return Write(() => ((Func<string>)value)());
-            if (value is Action)
-            {
-                ((Action)value).Invoke();
-                return this;
-            }
-            if (value is Action<ICodegenTextWriter>)
-            {
-                ((Action<ICodegenTextWriter>)value).Invoke(this);
-                return this;
-            }
-            if (value is Action<CodegenTextWriter>)
-            {
-                ((Action<CodegenTextWriter>)value).Invoke(this);
-                return this;
-            }
+            if (value is RawString)
+                return Write((RawString)value);
 
-            InnerWriteFormattable(AdjustMultilineString(value.ToString()));
+
+            InnerWriteFormattableArgument(value, "");
             return this;
         }
 
@@ -1219,30 +1069,10 @@ namespace CodegenCS
         public ICodegenTextWriter WriteLine(object value)
         {
             // since we use RawString (to prioritize FormattableString overloads), it happens that strings may end up using this object overload.
-            if (value is string)
-                return WriteLine((string)value);
-            if (value is Func<string>)
-                return WriteLine(() => ((Func<string>)value)());
-            if (value is Action)
-            {
-                ((Action)value).Invoke();
-                WriteLine();
-                return this;
-            }
-            if (value is Action<ICodegenTextWriter>)
-            {
-                ((Action<ICodegenTextWriter>)value).Invoke(this);
-                WriteLine();
-                return this;
-            }
-            if (value is Action<CodegenTextWriter>)
-            {
-                ((Action<CodegenTextWriter>)value).Invoke(this);
-                WriteLine();
-                return this;
-            }
+            if (value is RawString)
+                return WriteLine((RawString)value);
 
-            InnerWriteFormattable(AdjustMultilineString(value.ToString()));
+            InnerWriteFormattableArgument(value, "");
             WriteLine();
             return this;
         }
@@ -1400,7 +1230,7 @@ namespace CodegenCS
             {
                 return _innerWriter.ToString() + 
                     (_controlFlowSymbols.Any() ? $" - (warning: there are {_controlFlowSymbols.Count} open IF block(s)" : "");
-            } 
+            }
         }
         #endregion
 

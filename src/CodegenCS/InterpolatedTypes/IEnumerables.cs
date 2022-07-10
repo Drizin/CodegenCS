@@ -12,8 +12,12 @@ namespace CodegenCS
     public class InlineIEnumerable<T> : IInlineIEnumerable
     {
         public IEnumerable<T> Items { get; private set; }
-        public RenderEnumerableOptions RenderOptions { get; private set; }
+        public RenderEnumerableOptions RenderOptions { get; private set; } = null; // if not set will follow ICodegenTextWriter.DefaultIEnumerableRenderOptions
 
+        public InlineIEnumerable(IEnumerable<T> items)
+        {
+            Items = items;
+        }
         public InlineIEnumerable(IEnumerable<T> items, RenderEnumerableOptions renderOptions)
         {
             Items = items;
@@ -36,38 +40,27 @@ namespace CodegenCS
         #region Render() extensions
 
         /// <summary>
-        /// Renders the items by choosing some presets for describing how the items should be separated.
-        /// If you don't specify any options (or if you don't even call this Render() extension) it will be equivalent of calling <see cref="RenderWithLineBreaks{T}(IEnumerable{T}, bool)"/>
-        /// </summary>
-        /// <param name="renderOptions">If you don't specify anything the default option is (<see cref="RenderEnumerableOptionsEnum.LineBreaksWithSpacer"/>), which is good for rendering multiline blocks: 
-        /// - Between the items it ensures a line spacer (a full empty line between the items)
+        /// Renders the items using the default configuration from <see cref="ICodegenTextWriter.DefaultIEnumerableRenderOptions"/> for describing how the items should be separated.
+        /// Default configuration is good for rendering single-line or multiline blocks: 
+        /// - Between the items it ensures a line spacer (a full empty line between the items) if the item has multiple lines, or will just ensure a linebreak if item was a single line
         /// - If the last item does not end with a line break (ends in a dirty line) it ensures that any further write will go to the next line (force a linebreak only if/when required)
-        /// If you don't want line spacers between the items (useful if you're writing single line items) use the <see cref="RenderEnumerableOptionsEnum.LineBreaksWithoutSpacer"/>
+        /// If you don't want line spacers between the items (useful if you're writing single line items) use the <see cref="RenderEnumerableOptions.LineBreaksWithoutSpacer"/>
         /// If you just interpolate the IEnumerable{T} without invoking this Render() extension the items will also be rendered (as if Render() was invoked) using the default options.
-        /// </param>
-        public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, RenderEnumerableOptionsEnum renderOptions = RenderEnumerableOptionsEnum.LineBreaksWithSpacer)
+        /// If you interpolate an IEnumerable without using the Render() extension it will also follow the default configuration from <see cref="ICodegenTextWriter.DefaultIEnumerableRenderOptions"/>
+        /// </summary>
+        public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items)
         {
-            switch (renderOptions)
-            {
-                default:
-                case RenderEnumerableOptionsEnum.LineBreaksWithSpacer:
-                    return new InlineIEnumerable<T>(items, RenderEnumerableOptions.LineBreaksWithSpacer);
-                case RenderEnumerableOptionsEnum.LineBreaksWithoutSpacer:
-                    return new InlineIEnumerable<T>(items, RenderEnumerableOptions.LineBreaksWithoutSpacer);
-                case RenderEnumerableOptionsEnum.MultiLineCSV:
-                    return new InlineIEnumerable<T>(items, RenderEnumerableOptions.MultiLineCSV);
-                case RenderEnumerableOptionsEnum.SingleLineCSV:
-                    return new InlineIEnumerable<T>(items, RenderEnumerableOptions.SingleLineCSV);
-                case RenderEnumerableOptionsEnum.SpacedMultiLineCSV:
-                    return new InlineIEnumerable<T>(items, RenderEnumerableOptions.SpacedMultiLineCSV);
-            }
+            return new InlineIEnumerable<T>(items);
         }
+
 
         /// <summary>
         /// Renders the items by specifying custom rendering options that define how items are separated.
+        /// For presets check the static members of <see cref="RenderEnumerableOptions"/> (e.g. <see cref="RenderEnumerableOptions.LineBreaksWithAutoSpacer"/>, etc)
         /// </summary>
         public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, RenderEnumerableOptions customRenderOptions)
         {
+            
             return new InlineIEnumerable<T>(items, customRenderOptions);
         }
 
@@ -121,23 +114,25 @@ namespace CodegenCS
             AfterLastItemBehavior = singleLine ? ItemsSeparatorBehavior.None : ItemsSeparatorBehavior.EnsureLineBreakBeforeNextWrite,
         };
 
-        public static RenderEnumerableOptions CreateWithLineBreaks(bool lineSpacer) => new RenderEnumerableOptions()
-        {
-            BetweenItemsBehavior = lineSpacer ? ItemsSeparatorBehavior.EnsureFullEmptyLine : ItemsSeparatorBehavior.EnsureLineBreak
-        };
-
         #region Some predefined settings
         /// <summary>
         /// Between the items will ensure that there's a line break (meaning that it will add a linebreak unless the item explicitly wrote a linebreak at the end). (default behavior)
         /// After the last item it won't write anything but will ensure that next write gets a linebreak (default behavior).
         /// </summary>
-        public static RenderEnumerableOptions LineBreaksWithoutSpacer => RenderEnumerableOptions.CreateWithLineBreaks(false);
+        public static RenderEnumerableOptions LineBreaksWithoutSpacer => new RenderEnumerableOptions() { BetweenItemsBehavior = ItemsSeparatorBehavior.EnsureLineBreak };
 
         /// <summary>
-        /// Between the items will ensure that there's a line spacer (a full empty line - good for isolating multiline blocks - this is the default option and the recommendation when items are multiline blocks)
+        /// Between the items will ensure that there's a line spacer (a full empty line - good for isolating multiline blocks)
         /// After the last item it won't write anything but will ensure that next write gets a linebreak (default behavior).
         /// </summary>
-        public static RenderEnumerableOptions LineBreaksWithSpacer => RenderEnumerableOptions.CreateWithLineBreaks(true);
+        public static RenderEnumerableOptions LineBreaksWithSpacer => new RenderEnumerableOptions() { BetweenItemsBehavior = ItemsSeparatorBehavior.EnsureFullEmptyLine };
+
+        /// <summary>
+        /// Between the items will ensure that there's a line spacer (a full empty line) only if the previous item wrote more than a single line, else it will just add ensure a simple linebreak.
+        /// After the last item it won't write anything but will ensure that next write gets a linebreak (default behavior).
+        /// (This is the default option and the recommendation for most cases)
+        /// </summary>
+        public static RenderEnumerableOptions LineBreaksWithAutoSpacer => new RenderEnumerableOptions() { BetweenItemsBehavior = ItemsSeparatorBehavior.EnsureFullEmptyLineAfterMultilineItems };
 
         /// <summary>
         /// Between the items will write commas (no linebreaks).
@@ -160,25 +155,6 @@ namespace CodegenCS
 
         #endregion
     }
-
-    public enum RenderEnumerableOptionsEnum
-    {
-        /// <inheritdoc cref="RenderEnumerableOptions.LineBreaksWithSpacer"/>
-        LineBreaksWithSpacer,
-
-        /// <inheritdoc cref="RenderEnumerableOptions.LineBreaksWithoutSpacer"/>
-        LineBreaksWithoutSpacer,
-
-        /// <inheritdoc cref="RenderEnumerableOptions.SingleLineCSV"/>
-        SingleLineCSV,
-
-        /// <inheritdoc cref="RenderEnumerableOptions.MultiLineCSV"/>
-        MultiLineCSV,
-
-        /// <inheritdoc cref="RenderEnumerableOptions.SpacedMultiLineCSV"/>
-        SpacedMultiLineCSV
-    }
-
 
     #endregion
 
@@ -212,6 +188,11 @@ namespace CodegenCS
         /// E.g. When writing large classes and setting <see cref="RenderEnumerableOptions.BetweenItemsBehavior"/> to <see cref="ItemsSeparatorBehavior.EnsureFullEmptyLine"/> we enforce some isolation between the blocks.
         /// </summary>
         EnsureFullEmptyLine,
+
+        /// <summary>
+        /// Ensures that there's at least a full empty line after the item but only if item wrote more than a single line
+        /// </summary>
+        EnsureFullEmptyLineAfterMultilineItems,
 
 
         /// <summary>

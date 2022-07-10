@@ -21,8 +21,6 @@ class MyDbTemplate : ICodegenMultifileTemplate<DatabaseSchema>
 }
 partial class ICodegenMultifileTemplateTests : BaseTest
 {
-    public ICodegenMultifileTemplateTests() : base(GetCurrentFolder()) { }
-
     [Test]
     public void Test21()
     {
@@ -31,7 +29,7 @@ partial class ICodegenMultifileTemplateTests : BaseTest
 
         context.LoadTemplate<MyDbTemplate>().Render(model);
 
-        AssertContextIsEqualToFolder(context);
+        Assert_That_ContextOutput_IsEqual_To_TestOutputFolder(context);
     }
 }
 
@@ -76,6 +74,6 @@ partial class ICodegenMultifileTemplateTests : BaseTest
         var context = new CodegenContext();
         context.LoadTemplate<MyDbTemplate2>().Render(model);
 
-        AssertContextIsEqualToFolder(context);
+        Assert_That_ContextOutput_IsEqual_To_TestOutputFolder(context);
     }
 }

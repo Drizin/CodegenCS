@@ -8,7 +8,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 
-namespace Tests
+namespace CodegenCS.Tests.POCOTests
 {
     public class POCOTests
     {

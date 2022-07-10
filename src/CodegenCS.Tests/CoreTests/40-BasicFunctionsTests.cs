@@ -3,10 +3,11 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static CodegenCS.Symbols;
 
-namespace Tests
+namespace CodegenCS.Tests.CoreTests
 {
-    public class BasicFunctionsTests
+    internal class BasicFunctionsTests : BaseTest
     {
         CodegenTextWriter _w = null;
 
@@ -18,7 +19,7 @@ namespace Tests
         }
         #endregion
 
-        #region Different types of callbacks that can be used inside of Indented-Blocks or even used outside as regular paramters of Write method
+        #region Different types of callbacks that can be used inside of Indented-Blocks or even used outside as regular parameters of Write method
         [Test]
         public void TestCallback1()
         {
@@ -63,44 +64,8 @@ Hello3
         }
         #endregion
 
-        #region TodoItem[] - recursive list of to-do items
-        public class TodoItem
-        {
-            public string Description { get; private set; }
-            public IList<TodoItem> SubTasks { get; private set; }
-
-            public TodoItem(string description)
-            {
-                Description = description;
-                SubTasks = new List<TodoItem>();
-            }
-        }
-
-        TodoItem[] todoList =
-        {
-            new TodoItem("Get milk"),
-            new TodoItem("Clean the house")
-            {
-                SubTasks =
-                {
-                    new TodoItem("Living room"),
-                    new TodoItem("Bathrooms")
-                    {
-                        SubTasks =
-                        {
-                            new TodoItem("Guest bathroom"),
-                            new TodoItem("Family bathroom")
-                        }
-                    },
-                    new TodoItem("Bedroom")
-                }
-            },
-            new TodoItem("Mow the lawn")
-        };
-        #endregion
-
-        #region Using method which takes a CodegenTextWriter
-        private static void WriteToDoItem(CodegenTextWriter writer, TodoItem item)
+        #region Explicitly invoking a method that takes ICodegenTextWriter
+        private static void WriteToDoItem(ICodegenTextWriter writer, TodoItem item)
         {
             writer.WriteLine($"- {item.Description}");
         }
@@ -138,6 +103,31 @@ Hello3
         public void TestRecursiveFunction()
         {
             WriteToDoList(_w, todoList);
+            string expected = @"- Get milk
+- Clean the house
+    - Living room
+    - Bathrooms
+        - Guest bathroom
+        - Family bathroom
+    - Bedroom
+- Mow the lawn
+";
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+        #endregion
+
+        #region Recursive FormattableString with IIF
+        private FormattableString WriteToDoList(TodoItem item)
+            => $$"""
+                - {{item.Description}}{{IF(item.SubTasks.Any())}}
+                    {{item.SubTasks.Select(item => WriteToDoList(item)).Render()}}{{ENDIF}}
+                """;
+
+        [Test]
+        public void TestRecursiveFunction2()
+        {
+            _w.DefaultIEnumerableRenderOptions = RenderEnumerableOptions.LineBreaksWithoutSpacer; // since this is recursive there's no point in adding spacers .. just use regular linebreaks
+            _w.WriteLine(todoList.Select(item => WriteToDoList(item)));
             string expected = @"- Get milk
 - Clean the house
     - Living room

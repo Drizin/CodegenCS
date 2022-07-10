@@ -29,9 +29,6 @@ class MyPocoTemplate : ICodegenTemplate<Table>
 
 partial class ICodegenTemplateTests : BaseTest
 {
-    public ICodegenTemplateTests() : base(GetCurrentFolder()) { }
-
-
     [Test]
     public void Test01()
     {
@@ -40,7 +37,7 @@ partial class ICodegenTemplateTests : BaseTest
         var writer = new CodegenTextWriter(); // or you can use:  var ctx = new CodegenContext(); var writer = ctx["YourFile.cs"];
         writer.LoadTemplate<MyPocoTemplate>().Render(model.Tables[0]);
 
-        AssertContentIsEqualToFile(writer.GetContents(), @"Users.cs");
+        Assert_That_Content_IsEqual_To_File(writer, @"Users.cs");
     }
 }
 

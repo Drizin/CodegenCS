@@ -18,7 +18,7 @@ namespace CodegenCS
         /// <summary>
         /// Output files indexed by their relative paths
         /// </summary>
-        protected Dictionary<string, ICodegenOutputFile> _outputFiles = new Dictionary<string, ICodegenOutputFile>(StringComparer.InvariantCultureIgnoreCase); // key insensitive
+        protected Dictionary<string, ICodegenOutputFile> _outputFiles = new Dictionary<string, ICodegenOutputFile>(StringComparer.InvariantCultureIgnoreCase); // key insensitive //TODO: support case-sensitive filesystems
         // TODO: https://stackoverflow.com/questions/4942624/how-to-convert-dictionarystring-object-to-dictionarystring-string-in-c-sha
 
         /// <inheritdoc />

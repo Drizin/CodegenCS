@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace CodegenCS.ControlFlow
 {
+    [DebuggerDisplay("[ELSE({IfConditionValue,nq})]")]
     public class ElseSymbol : IControlFlowSymbol
     {
         public bool? IfConditionValue { get; set; }

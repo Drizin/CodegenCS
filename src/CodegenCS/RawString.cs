@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace CodegenCS
@@ -8,8 +9,10 @@ namespace CodegenCS
     /// RawString is just a wrapper around string (with implicit conversion to/from string) which allows us to prioritize methods which use IFormattable (interpolated strings) instead of strings <br />
     /// If you use interpolated strings (which allow to use a wide range of action delegates) you'll end up using the methods overloads which accept IFormattable. <br />
     /// If you just pass a regular string it will be converted to RawString. 
+    /// (In other words, if we had overloads taking plain strings then all interpolated strings would be converted to strings and we would break all the magic)
     /// Based on https://www.damirscorner.com/blog/posts/20180921-FormattableStringAsMethodParameter.html
     /// </summary>
+    [DebuggerDisplay("{Value,nq}")]
     public class RawString
     {
         private string Value { get; }

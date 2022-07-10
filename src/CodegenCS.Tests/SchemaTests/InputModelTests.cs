@@ -11,7 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace Tests
+namespace CodegenCS.Tests.SchemaTests
 {
     public class InputModelTests
     {

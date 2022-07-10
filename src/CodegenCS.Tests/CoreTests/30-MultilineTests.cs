@@ -4,17 +4,65 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Tests
+namespace CodegenCS.Tests.CoreTests
 {
     public class MultilineTests
     {
         CodegenTextWriter _w = null;
+        CodegenTextWriter _w2 = null;
 
         [SetUp]
         public void Setup()
         {
             _w = new CodegenTextWriter();
+            _w2 = new CodegenTextWriter();
         }
+
+
+        [Test]
+        public void TestRawStringLiteralWrite()
+        {
+            string methodName = "MyMethod";
+            _w.Write($$"""
+                public void {{methodName}}()
+                {
+                    // My method...
+                }
+                """);
+            // Raw String Literals will automatically remove left padding, remove first and last empty line
+            string expected = string.Join(Environment.NewLine, new string[]
+            {
+                "public void MyMethod()",
+                "{",
+                "    // My method...",
+                "}",
+            });
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        [Test]
+        public void TestRawStringLiteralWriteLine()
+        {
+            string methodName = "MyMethod";
+            _w.WriteLine($$"""
+                public void {{methodName}}()
+                {
+                    // My method...
+                }
+                """);
+            // Raw String Literals will automatically remove left padding, remove first and last empty line
+            string expected = string.Join(Environment.NewLine, new string[]
+            {
+                "public void MyMethod()",
+                "{",
+                "    // My method...",
+                "}",
+                ""
+            });
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+
 
 
         [Test]
@@ -39,7 +87,28 @@ namespace Tests
         [Test]
         public void TestMultiline2()
         {
-            _w.WriteLine(@"
+            // Using Raw Strings
+            _w.WriteLine("""
+                public void MyMethod1()
+                {
+                    //...
+                }
+                """);
+            if (1 == 1)
+            {
+                if (2 == 2) // the text blocks can be aligned wherever they fit better under the control code
+                    _w.WriteLine("""
+                        public void MyMethod2()
+                        {
+                            //...
+                        }
+                        """);
+            }
+
+
+
+            // Using the legacy MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine
+            _w2.WriteLine(@"
                 public void MyMethod1()
                 {
                     //...
@@ -47,7 +116,7 @@ namespace Tests
             if (1 == 1)
             {
                 if (2 == 2) // the text blocks can be aligned wherever they fit better under the control code
-                    _w.WriteLine(@"
+                    _w2.WriteLine(@"
                         public void MyMethod2()
                         {
                             //...
@@ -66,19 +135,32 @@ public void MyMethod2()
 ";
 
             Assert.AreEqual(expected, _w.GetContents());
+            Assert.AreEqual(expected, _w2.GetContents());
         }
 
 
         [Test]
         public void TestMultiline3()
         {
+            // Using Raw Strings
             _w.IncreaseIndent(); // this can also be set by WithIndent, WithCBlock, WithJavaBlock, etc.. and indent is automatically decreased in the end of the block
-            _w.WriteLine(@"
+            _w.WriteLine("""
+                public void MyMethod1()
+                {
+                    //...
+                }
+                """);
+            _w.DecreaseIndent();
+
+
+            // Using the legacy MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine
+            _w2.IncreaseIndent(); // this can also be set by WithIndent, WithCBlock, WithJavaBlock, etc.. and indent is automatically decreased in the end of the block
+            _w2.WriteLine(@"
                 public void MyMethod1()
                 {
                     //...
                 }");
-            _w.DecreaseIndent();
+            _w2.DecreaseIndent();
 
             string expected =
 @"    public void MyMethod1()
@@ -88,44 +170,83 @@ public void MyMethod2()
 ";
 
             Assert.AreEqual(expected, _w.GetContents());
+            Assert.AreEqual(expected, _w2.GetContents());
         }
 
 
         [Test]
         public void TestMultilineBlock()
         {
+            // Using Raw Strings
             _w
                 .WithCurlyBraces("namespace MyNameSpace", (w) =>
                 {
                     _w.WithCurlyBraces("class MyClass", (w2) =>
                     {
-                        _w.WriteLine(@"
+                        _w.WriteLine("""
                          This is a multi-line block
                          This is a multi-line block
                          This is a multi-line block
                          This is a multi-line block
-                        ");
-                        _w.WriteLine(@"
+
+                         """);
+                        _w.WriteLine("""
                              This is a multi-line block
                              This is a multi-line block
                              This is a multi-line block
                              This is a multi-line block
-                            ");
-                        _w.WriteLine(@"
+
+                             """);
+                        _w.WriteLine("""
                                  This is a multi-line block
                                  This is a multi-line block
                                  This is a multi-line block
                                  This is a multi-line block
-                            ");
-                        _w.WriteLine(@"
+
+                                 """);
+                        _w.WriteLine("""
         This is a multi-line block
         This is a multi-line block
         This is a multi-line block
         This is a multi-line block
-                            ");
+        """);
                     });
                 })
                 ;
+
+
+            // Using the legacy MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine
+            _w2
+                .WithCurlyBraces("namespace MyNameSpace", (w) =>
+                {
+                    _w2.WithCurlyBraces("class MyClass", (w2) =>
+                    {
+                        _w2.WriteLine(@"
+                         This is a multi-line block
+                         This is a multi-line block
+                         This is a multi-line block
+                         This is a multi-line block
+                         ");
+                        _w2.WriteLine(@"
+                             This is a multi-line block
+                             This is a multi-line block
+                             This is a multi-line block
+                             This is a multi-line block
+                             ");
+                        _w2.WriteLine(@"
+                                 This is a multi-line block
+                                 This is a multi-line block
+                                 This is a multi-line block
+                                 This is a multi-line block
+                                 ");
+                        _w2.WriteLine(@"
+        This is a multi-line block
+        This is a multi-line block
+        This is a multi-line block
+        This is a multi-line block");
+                    });
+                });
+
             string expected = @"
 namespace MyNameSpace
 {
@@ -150,10 +271,10 @@ namespace MyNameSpace
         This is a multi-line block
         This is a multi-line block
         This is a multi-line block
-                            
     }
-}";
-            Assert.AreEqual(expected.TrimStart(), _w.GetContents());
+}".TrimStart();
+            Assert.AreEqual(expected, _w.GetContents());
+            Assert.AreEqual(expected, _w2.GetContents());
         }
 
         [Test]

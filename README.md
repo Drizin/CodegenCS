@@ -1,64 +1,57 @@
 [![Nuget](https://img.shields.io/nuget/v/CodegenCS?label=CodegenCS)](https://www.nuget.org/packages/CodegenCS)
 [![Downloads](https://img.shields.io/nuget/dt/CodegenCS.svg)](https://www.nuget.org/packages/CodegenCS)
 
-# CodegenCS
-Toolkit for Code Generation
+CodegenCS is a Class Library and Toolkit for Code Generation
 
-This repository contains the [**CodegenCS core library**](#CodegenCS-Core), and the dotnet command-line tool [**dotnet-codegencs**](#dotnet-codegencs) which contains some [utilities](#dotnet-codegencs-utilities) (like extracting MSSQL/PostgreSQL schemas) and some out-of-the-box [templates](#dotnet-codegencs-templates) (like POCO generator).
- 
 
-# <a name="CodegenCS-Core"></a> CodegenCS ([Core Library](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS))
+# <a name="CodegenCS-Core"></a> CodegenCS Core Library (see [full documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS))
 
-CodegenCS is a class library for code generation using pure C#.  
+CodegenCS is a class library for doing code generation using plain C#.  
 Basically it provides a custom TextWriter tweaked to solve common issues in code generation:
-- Preserves indent (keeps track of current Indent level).  
-  When you write new lines it will automatically indent the line according to current level. 
-- Implicit and explicit control of indentation (implicit control means that we can embed templates inside other templates and their indentation is automatically "captured" by the position where they are embedded)
-- Helpers to write multi-line blocks without having to worry about different indentations for control logic and output code.
+- Preserves indentation (when we write new lines it will automatically indent the line according to current level) - indent can be controlled explicitly or implicitly.
+- Implicit control of indentation means we can embed complex templates inside other templates and their indentation is automatically "captured" by the position where they are embedded
+- Helpers to write multi-line blocks without having to worry about different indentations for control logic and output code
 - Helpers to keep track of multiple files which can be saved at once in the output folder.
+- Supports string interpolation of IEnumerables (items are rendered one by one, and between the items we can have separators like line-breaks or others)
+- Supports string interpolation of Actions, Functions or Templating Interfaces (to break complex templates into smaller parts)
 - **IF / ELSE / ENDIF symbols** that can be embedded within the text strings and allow concise syntax for **Control Blocks**
 
 **Sample usage**:
 
 ```cs
+FormattableString RenderTable(Table table) => $$"""
+    /// <summary>
+    /// POCO for {{ table.TableName }}
+    /// </summary>
+    public class {{ table.TableName }}
+    {
+        // class members...
+        {{ table.Columns.Select(column => $$"""public {{ column.ClrType }} {{ column.ColumnName }} { get; set; }""" ).Render() }}
+    }
+    """;
 var w = new CodegenTextWriter();
 
-Action<CodegenTextWriter> generateMyClass = w => w.Write($$"""
-    void MyClass()
-    {
-        void Method1()
-        {
-            // ...
-        }
-        void Method2()
-        {
-            // ...
-        }
-    }
-    """);
-
+var schema = JsonConvert.DeserializeObject<DatabaseSchema>(File.ReadAllText("AdventureWorks.json"));
 
 w.WriteLine($$"""
-    using System;
-    using System.Collections.Generic;
-    namespace MyNamespace
+    namespace {{myNamespace}}
     {
-        {{ generateMyClass }}
+        {{ schema.Tables.Select(t => RenderTable(t)).Render() }}
     }
     """);
 
-w.SaveToFile("File1.cs"); 
+w.SaveToFile("MyPOCOs.cs"); 
 ```
 
-Want to learn more? Check out the [full documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS) and the [unit tests](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Tests/CoreTests).
+Want to learn more? Check out the [full documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS)
 
-# <a name="dotnet-codegencs"></a> dotnet-codegencs (.NET global tool)
+# <a name="dotnet-codegencs"></a> dotnet-codegencs
 
-**This is a [.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0) global tool which is used as entry-point to launch some embedded utilities and or to run the out-of-the-box templates.**
+This is a **[.NET 5](https://dotnet.microsoft.com/download/dotnet/5.0) global tool** that contains utilities to build and run templates, and also contains some embedded out-of-the-box templates.**
 
 **How to Install**: ```dotnet tool install -g dotnet-codegencs```
 
-**Usage - see all options**: ```codegencs -?``` 
+Usage (see all options): ```codegencs -?``` 
 
 # <a name="dotnet-codegencs-utilities"></a><a name="dotnet-codegencs-extract-dbschema"></a> DbSchema Extractor
 
@@ -128,5 +121,11 @@ Some ideas for new features or templates:
  -->
 
 
+
+# Stargazers over time
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Drizin/CodegenCS&type=Date)](https://star-history.com/#Drizin/CodegenCS&Date)
+
 # License
 MIT License
+

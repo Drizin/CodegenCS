@@ -43,21 +43,27 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 
         #region POCO optional settings
         /// <summary>
-        /// If defined (default is true) POCOs will have override Equals/GetHashCode and equality/inequality operators (== and !=)
+        /// If true (default is true) POCOs will have override Equals/GetHashCode and equality/inequality operators (== and !=)
         /// </summary>
         public bool GenerateEqualsHashCode { get; set; } = true;
 
 
         /// <summary>
-        /// If defined (default is false), POCOs will implement INotifyPropertyChanged (PropertyChanged event), and will expose a HashSet of "Dirty" properties and bool IsDirty
+        /// If true (default is false), POCOs will implement INotifyPropertyChanged (PropertyChanged event), and will expose a HashSet of "Dirty" properties and bool IsDirty
         /// </summary>
         public bool TrackPropertiesChange { get; set; } = false;
 
         /// <summary>
-        /// If defined (default is true) will add [DatabaseGenerated] attributes to identity and computed columns.
+        /// If true (default is true) will add [Key] attributes to primary-key columns.
         /// This is required by FastCRUD and Entity Framework
         /// </summary>
-        public bool AddDatabaseGeneratedAttributes { get; set; } = true;
+        public bool AddColumnAttributeKey { get; set; } = true;
+
+        /// <summary>
+        /// If true (default is true) will add [DatabaseGenerated] attributes to identity and computed columns.
+        /// This is required by FastCRUD and Entity Framework
+        /// </summary>
+        public bool AddColumnAttributeDatabaseGenerated { get; set; } = true;
 
 
         /// <summary>
@@ -94,18 +100,18 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             /// <summary>
             /// If not defined will be the same as <see cref="POCOsNamespace"/>
             /// </summary>
-            public string CrudExtensionsNamespace { get; set; }
+            public string Namespace { get; set; }
 
             /// <summary>
             /// This is the filepath where the template generates CRUD extensions.
             /// By default it's named CRUDExtensions.cs
             /// </summary>
-            public string CrudExtensionsFile { get; set; } = "CRUDExtensions.cs";
+            public string FileName { get; set; } = "CRUDExtensions.cs";
 
             /// <summary>
             /// Class Name
             /// </summary>
-            public string CrudExtensionsClassName { get; set; } = "CRUDExtensions";
+            public string ClassName { get; set; } = "CRUDExtensions";
         }
         #endregion
 
@@ -119,18 +125,18 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             /// <summary>
             /// If not defined will be the same as <see cref="POCOsNamespace"/>
             /// </summary>
-            public string CrudClassNamespace { get; set; }
+            public string Namespace { get; set; }
 
             /// <summary>
             /// This is the filepath where the template generates class with CRUD methods.
             /// By default it's named CRUDMethods.cs
             /// </summary>
-            public string CrudClassFile { get; set; } = "CRUDMethods.cs";
+            public string FileName { get; set; } = "CRUDMethods.cs";
 
             /// <summary>
             /// Class Name
             /// </summary>
-            public string CrudClassName { get; set; } = "CRUDMethods";
+            public string ClassName { get; set; } = "CRUDMethods";
         }
         #endregion
 
@@ -156,12 +162,12 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
         /// <summary>
         /// In-memory context which tracks all generated files, and later saves all files at once
         /// </summary>
-        private CodegenContext _generatorContext { get; set; } = new CodegenContext();
+        private ICodegenContext _generatorContext { get; set; } = new CodegenContext();
 
-        public CodegenContext GeneratorContext { get { return _generatorContext; } }
+        public ICodegenContext GeneratorContext { get { return _generatorContext; } }
 
-        private CodegenOutputFile _dbConnectionCrudExtensions = null;
-        private CodegenOutputFile _dbConnectionCrudClassMethods = null;
+        private ICodegenOutputFile _dbConnectionCrudExtensions = null;
+        private ICodegenOutputFile _dbConnectionCrudClassMethods = null;
 
         /// <summary>
         /// Generates POCOS
@@ -170,7 +176,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
         {
             schema = schema ?? JsonConvert.DeserializeObject<LogicalSchema>(File.ReadAllText(_options.InputJsonSchema));
 
-            CodegenOutputFile writer = null;
+            ICodegenOutputFile writer = null;
             if (_options.SingleFileName != null)
             {
                 writer = _generatorContext[_options.SingleFileName];
@@ -198,7 +204,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 
             if (_options.CRUDExtensionSettings != null)
             {
-                _dbConnectionCrudExtensions = _generatorContext[_options.CRUDExtensionSettings.CrudExtensionsFile];
+                _dbConnectionCrudExtensions = _generatorContext[_options.CRUDExtensionSettings.FileName];
                 _dbConnectionCrudExtensions.WriteLine(@"
                 //------------------------------------------------------------------------------
                 // <auto-generated>
@@ -213,19 +219,19 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
                 using System.Data;
                 using System.Linq;
                 using System.Runtime.CompilerServices;");
-                if (_options.CRUDExtensionSettings.CrudExtensionsNamespace != null && _options.CRUDExtensionSettings.CrudExtensionsNamespace != _options.POCOsNamespace)
+                if (_options.CRUDExtensionSettings.Namespace != null && _options.CRUDExtensionSettings.Namespace != _options.POCOsNamespace)
                     _dbConnectionCrudExtensions.WriteLine($@"using {_options.POCOsNamespace};");
                 _dbConnectionCrudExtensions //TODO: IDisposable Scope 
                     .WriteLine()
-                    .WriteLine($"namespace {_options.CRUDExtensionSettings.CrudExtensionsNamespace ?? _options.POCOsNamespace}").WriteLine("{").IncreaseIndent()
+                    .WriteLine($"namespace {_options.CRUDExtensionSettings.Namespace ?? _options.POCOsNamespace}").WriteLine("{").IncreaseIndent()
                     .WriteLine($"/// <summary>")
                     .WriteLine($"/// CRUD static extensions using Dapper (using static SQL statements)")
                     .WriteLine($"/// </summary>")
-                    .WriteLine($"public static class {_options.CRUDExtensionSettings.CrudExtensionsClassName}").WriteLine("{").IncreaseIndent();
+                    .WriteLine($"public static class {_options.CRUDExtensionSettings.ClassName}").WriteLine("{").IncreaseIndent();
             }
             if (_options.CRUDClassMethodsSettings != null)
             {
-                _dbConnectionCrudClassMethods = _generatorContext[_options.CRUDClassMethodsSettings.CrudClassFile];
+                _dbConnectionCrudClassMethods = _generatorContext[_options.CRUDClassMethodsSettings.FileName];
                 _dbConnectionCrudClassMethods.WriteLine(@"
                 //------------------------------------------------------------------------------
                 // <auto-generated>
@@ -241,15 +247,15 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
                 using System.Data.SqlClient;
                 using System.Linq;
                 using System.Runtime.CompilerServices;");
-                if (_options.CRUDClassMethodsSettings.CrudClassNamespace != null && _options.CRUDClassMethodsSettings.CrudClassNamespace != _options.POCOsNamespace)
-                    _dbConnectionCrudExtensions.WriteLine($@"using {_options.POCOsNamespace};");
+                if (_options.CRUDClassMethodsSettings.Namespace != null && _options.CRUDClassMethodsSettings.Namespace != _options.POCOsNamespace)
+                    _dbConnectionCrudClassMethods.WriteLine($@"using {_options.POCOsNamespace};");
                 _dbConnectionCrudClassMethods
                     .WriteLine()
-                    .WriteLine($"namespace {_options.CRUDClassMethodsSettings.CrudClassNamespace ?? _options.POCOsNamespace}").WriteLine("{").IncreaseIndent()
+                    .WriteLine($"namespace {_options.CRUDClassMethodsSettings.Namespace ?? _options.POCOsNamespace}").WriteLine("{").IncreaseIndent()
                     .WriteLine($"/// <summary>")
                     .WriteLine($"/// CRUD Methods using Dapper (using static SQL statements)")
                     .WriteLine($"/// </summary>")
-                    .WriteLine($"partial class {_options.CRUDClassMethodsSettings.CrudClassName}").WriteLine("{").IncreaseIndent();
+                    .WriteLine($"partial class {_options.CRUDClassMethodsSettings.ClassName}").WriteLine("{").IncreaseIndent();
                 _dbConnectionCrudClassMethods.WriteLine(@"
                     #region SQL/Dapper
                     IDbConnection CreateConnection()
@@ -350,7 +356,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
         {
             WriteLog($"Generating {table.TableName}...");
 
-            CodegenOutputFile writer = null;
+            ICodegenOutputFile writer = null;
             if (_options.SingleFileName != null)
             {
                 writer = _generatorContext[_options.SingleFileName];
@@ -481,17 +487,17 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             }
         }
 
-        private void GenerateProperty(CodegenOutputFile writer, Table table, Column column)
+        private void GenerateProperty(ICodegenOutputFile writer, Table table, Column column)
         {
             string propertyName = GetPropertyNameForDatabaseColumn(table, column.ColumnName);
             string privateVariable = $"_{propertyName.Substring(0, 1).ToLower()}{propertyName.Substring(1)}";
             if (_options.TrackPropertiesChange)
                 writer.WriteLine($"private {GetTypeDefinitionForDatabaseColumn(table, column) ?? ""} {privateVariable};");
-            if (column.IsPrimaryKeyMember)
+            if (column.IsPrimaryKeyMember && _options.AddColumnAttributeKey)
                 writer.WriteLine("[Key]");
-            if (column.IsIdentity && _options.AddDatabaseGeneratedAttributes)
+            if (column.IsIdentity && _options.AddColumnAttributeDatabaseGenerated)
                 writer.WriteLine("[DatabaseGenerated(DatabaseGeneratedOption.Identity)]");
-            else if (column.IsComputed && _options.AddDatabaseGeneratedAttributes)
+            else if (column.IsComputed && _options.AddColumnAttributeDatabaseGenerated)
                 writer.WriteLine("[DatabaseGenerated(DatabaseGeneratedOption.Computed)]");
 
             // We'll decorate [Column("Name")] only if column name doesn't match property name
@@ -508,7 +514,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
                 writer.WriteLine($"public {GetTypeDefinitionForDatabaseColumn(table, column) ?? ""} {propertyName} {{ get; set; }}");
         }
 
-        private void GenerateActiveRecordSave(CodegenOutputFile writer, Table table)
+        private void GenerateActiveRecordSave(ICodegenOutputFile writer, Table table)
         {
             writer.WithCBlock("public void Save()", () =>
             {
@@ -522,15 +528,15 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
                     Update();");
             });
         }
-        private void GenerateCrudExtensionsSave(CodegenOutputFile writer, Table table)
+        private void GenerateCrudExtensionsSave(ICodegenOutputFile writer, Table table)
         {
             GenerateCrudSave(writer, table, "public static ", "IDbConnection", "conn");
         }
-        private void GenerateCrudClassMethodsSave(CodegenOutputFile writer, Table table)
+        private void GenerateCrudClassMethodsSave(ICodegenOutputFile writer, Table table)
         {
             GenerateCrudSave(writer, table, "public virtual ");
         }
-        private void GenerateCrudSave(CodegenOutputFile writer, Table table, string modifier, string extendedType = null, string extendedTypeIdentifier = null)
+        private void GenerateCrudSave(ICodegenOutputFile writer, Table table, string modifier, string extendedType = null, string extendedTypeIdentifier = null)
         {
             writer.WriteLine(@"
             /// <summary>
@@ -549,7 +555,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             });
         }
 
-        private void GenerateActiveRecordInsert(CodegenOutputFile writer, Table table)
+        private void GenerateActiveRecordInsert(ICodegenOutputFile writer, Table table)
         {
             writer.WithCBlock("public void Insert()", () =>
             {
@@ -581,15 +587,15 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
                 });
             });
         }
-        private void GenerateCrudExtensionsInsert(CodegenOutputFile writer, Table table)
+        private void GenerateCrudExtensionsInsert(ICodegenOutputFile writer, Table table)
         {
             GenerateCrudInsert(writer, table, "public static ", "IDbConnection", "conn");
         }
-        private void GenerateCrudClassMethodsInsert(CodegenOutputFile writer, Table table)
+        private void GenerateCrudClassMethodsInsert(ICodegenOutputFile writer, Table table)
         {
             GenerateCrudInsert(writer, table, "public virtual ");
         }
-        private void GenerateCrudInsert(CodegenOutputFile writer, Table table, string modifier, string extendedType = null, string extendedTypeIdentifier = null)
+        private void GenerateCrudInsert(ICodegenOutputFile writer, Table table, string modifier, string extendedType = null, string extendedTypeIdentifier = null)
         {
             writer.WriteLine(@"
             /// <summary>
@@ -626,7 +632,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             });
         }
 
-        private void GenerateActiveRecordUpdate(CodegenOutputFile writer, Table table)
+        private void GenerateActiveRecordUpdate(ICodegenOutputFile writer, Table table)
         {
             writer.WithCBlock("public void Update()", () =>
             {
@@ -654,15 +660,15 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
                 });
             });
         }
-        private void GenerateCrudExtensionsUpdate(CodegenOutputFile writer, Table table)
+        private void GenerateCrudExtensionsUpdate(ICodegenOutputFile writer, Table table)
         {
             GenerateCrudUpdate(writer, table, "public static ", "IDbConnection", "conn");
         }
-        private void GenerateCrudClassMethodsUpdate(CodegenOutputFile writer, Table table)
+        private void GenerateCrudClassMethodsUpdate(ICodegenOutputFile writer, Table table)
         {
             GenerateCrudUpdate(writer, table, "public virtual ");
         }
-        private void GenerateCrudUpdate(CodegenOutputFile writer, Table table, string modifier, string extendedType = null, string extendedTypeIdentifier = null)
+        private void GenerateCrudUpdate(ICodegenOutputFile writer, Table table, string modifier, string extendedType = null, string extendedTypeIdentifier = null)
         {
             writer.WriteLine(@"
             /// <summary>
@@ -695,7 +701,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 
         }
 
-        private void GenerateEquals(CodegenOutputFile writer, Table table)
+        private void GenerateEquals(ICodegenOutputFile writer, Table table)
         {
             //TODO: GenerateIEquatable, which is a little faster for Generic collections - and our Equals(object other) can reuse this IEquatable<T>.Equals(T other) 
             writer.WithCBlock("public override bool Equals(object obj)", () =>
@@ -728,7 +734,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
                 writer.WriteLine("return true;");
             });
         }
-        private void GenerateGetHashCode(CodegenOutputFile writer, Table table)
+        private void GenerateGetHashCode(ICodegenOutputFile writer, Table table)
         {
             writer.WithCBlock("public override int GetHashCode()", () =>
             {
@@ -749,7 +755,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
                 });
             });
         }
-        private void GenerateInequalityOperatorOverloads(CodegenOutputFile writer, Table table)
+        private void GenerateInequalityOperatorOverloads(ICodegenOutputFile writer, Table table)
         {
             string entityClassName = GetClassNameForTable(table);
             writer.WriteLine($@"

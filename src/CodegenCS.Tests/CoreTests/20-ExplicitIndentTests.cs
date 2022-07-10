@@ -4,9 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Tests
+namespace CodegenCS.Tests.CoreTests
 {
-    public class LanguageIndentTests
+    /// <summary>
+    /// Explicit Indentation is NOT recommended - prefer using Implicit Indentation
+    /// </summary>
+    public class ExplicitIndentTests
     {
         CodegenTextWriter _w = null;
 

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Tests
+namespace CodegenCS.Tests.DotNet
 {
     public class MSBuildProjectEditorTests
     {

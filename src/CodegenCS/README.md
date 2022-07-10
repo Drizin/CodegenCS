@@ -1,17 +1,22 @@
+[![Nuget](https://img.shields.io/nuget/v/CodegenCS?label=CodegenCS)](https://www.nuget.org/packages/CodegenCS)
+[![Downloads](https://img.shields.io/nuget/dt/CodegenCS.svg)](https://www.nuget.org/packages/CodegenCS)
 
 # CodegenCS (Core Library)
 
 CodegenCS Core Library is a Class Library for Code Generation that allows us to generate code using plain C#.  
+
 By using plain C# we can render our outputs using plain strings (and string interpolation) and using well-established and well-known C# constructs (invoking methods, passing parameters, embedding strings, looping, formatting, etc) - no need to learn a new syntax.  
+
 On top of that our templates can leverage .NET Framework and .NET libraries for anything that they need (e.g. reading input models from JSON file, or reading directly the the schema from a database, or reading the YAML specs of a REST API).  
+
 CodegenCS is written in C# and templates are developed using plain C# - but the templates can write any text-based output (not only C# code - you can write Javascript, Python, Java, HTML, SQL Scripts, CSHTML, XML, Terraform files, or anything else)
 
 
 This page is about the **CodegenCS Core Library**:
 - If you are **writing a template** (code generator) and want to learn more about CodegenCS features, this is the right place
-- If you just want to **compile and run templates** check out [dotnet-codegencs](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs) (`dotnet-codegencs template build` and `dotnet-codegencs template run`)
-- If you just want to **reverse-engineer a database schema** check out [dotnet-codegencs](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs) (`dotnet-codegencs dbschema extract`)
-- If you just want to **browse available templates** (POCO Generators, DAL generators, etc) check out...
+- If you just want to **compile and run templates** check out [`dotnet-codegencs template build`](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs) and [`dotnet-codegencs template run`](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs)
+- If you just want to **reverse-engineer a database schema** check out [`dotnet-codegencs dbschema extract`](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs)
+- If you just want to **browse available templates** (POCO Generators, DAL generators, etc) check out [Templates](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/)
 - If you just want to **download the Visual Studio Extension** check out... (Pending)  
 
 For a general overview of all CodegenCS components and tools check out the [Main Page](https://github.com/Drizin/CodegenCS/).
@@ -28,7 +33,9 @@ But for a better development/debugging experience (IDE with intellisense) you sh
 - Import namespace: `using CodegenCS`
 - Start using like examples below (or check out more examples in [unit tests](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.Tests)).
 
-# ICodegenTextWriter and ICodegenContext
+# Basics
+
+## CodegenTextWriter / ICodegenTextWriter
 
 **`CodegenTextWriter`** is the heart of CodegenCS Library. Basically it's a custom TextWriter (a **TextWriter on steroids**) created to solve common code generation issues (indent control, linebreaks control, mixed-indentation issue):
 
@@ -42,15 +49,30 @@ But for a better development/debugging experience (IDE with intellisense) you sh
 - This same magic (that we've been doing for years) now can also be done by using the new C# 11 [**"Raw String Literals"**](https://github.com/dotnet/csharplang/blob/main/proposals/raw-string-literal.md) - with the advantage that raw string literals let us render regular single-curly-braces without escaping (much easier to write C#/Java/C blocks) and for interpolated expressions we can use double-mustaches
 - Supports string interpolation of IEnumerables (items are rendered one by one, and between the items we can have separators like line-breaks or any other - it's all configurable using the `.Render()` extension over `IEnumerable<T>`)
 - Supports Control Symbols like IF-ENDIF / IF-ELSE-ENDIF / IIF (Immediate IF) - it's a concise syntax for conditional blocks
-- Supports string interpolation of Actions or Functions (but you'll probably prefer to use Templating interfaces - see below)
+- Supports string interpolation of Actions, Functions or Templating interfaces (prefered)
 
-**Creating a CodegenTextWriter, writing lines, saving to file**
+**Writing lines to a CodegenTextWriter and saving to file**
 
 ```cs
 var w = new CodegenTextWriter();
 w.WriteLine("Line1");
 w.SaveToFile("File1.cs");
 ```
+
+**Fluent API**
+
+Most public methods (like `Write()`, `WriteLine()`, `IncreaseIndent()`, etc) return the object itself (`ICodegenTextWriter`), which mean that it's possible to write line-by-line (or block-by-block) using a chained methods (Fluent API):
+
+```cs
+var w = new CodegenTextWriter();
+w
+  .WriteLine($"public void {myMethodName}()")
+  .WriteLine("{")
+  .WriteLine("    // My method...")
+  .WriteLine("}");
+```
+
+## CodegenContext / ICodegenContext
 
 **`CodegenContext`** is a Context class that can manage multiple output files (keeps everything in-memory until the files are saved to disk).  
 
@@ -69,7 +91,7 @@ ctx.SaveFiles(outputFolder);
 
 There's a specialized version ([`DotnetCodegenContext`](#DotnetCodegenContext)) that contains helpers to manipulate csproj files (like adding the generated files to the csproj, or nesting under a parent file, etc)
 
-# Multi-line Blocks, Interpolated Strings, and Raw String Literals
+## **Raw String Literals** to write Multi-line Blocks and Interpolated Strings
 
 C# 11 (currently in preview) has a new feature called [**"Raw String Literals"**](https://github.com/dotnet/csharplang/blob/main/proposals/raw-string-literal.md) that helps a lot both for writing multi-line blocks and for writing regular curly-braces when we're using string interpolation.
 
@@ -85,7 +107,7 @@ w.WriteLine($$"""
     """);
 ```
   
-**Raw Strings make Multiline Blocks much easier:**
+**How Raw Strings make Multiline Blocks much easier:**
 
 If the raw string is a **multiline block starting and ending with empty lines** (whitespace allowed) then this multiline block is processed with some cool behavior:
 - First line and last lines are removed (as well as the respective linebreaks). By having the "real" block surrounded by empty lines it means that the first "real line" will **always** be aligned with the subsequent lines.
@@ -108,12 +130,11 @@ CodegenCS has been historically doing something very similar (stripping left-pad
 If you can't use C# 11 you can still use CodegenCS with the old multiline blocks behavior.
 
 
+## Embedding FormattableStrings (or other types) inside other Interpolated Strings
 
-# Implicit Control of Indent Level
+CodegenTextWriter supports (can understand and render) a large number of object types that can just be interpolated (embedded) within strings, including `FormattableString` (interpolated strings inside another interpolated strings).
 
-As previously explained, CodegenTextWriter can understand (render) many different object types interpolated in Interpolated strings while **keeping cursor position** of embedded arguments.
-
-`FormattableString` is the .NET class that implements Interpolated Strings (when we write an interpolated string the compiler creates a FormattableString for us) and for code generation it's better than strings because it preserves the individual location of each embedded element. CodegenTextWriter can render `FormattableString` (interpolated strings) inside another interpolated strings:
+`FormattableString` is the .NET class that implements Interpolated Strings (when we write an interpolated string the compiler creates a FormattableString for us), and for code generation `FormattableString` is preferable over strings because it preserves the individual location of each embedded element (more on that below). 
 
 ```cs
 FormattableString RenderTable(Table table) => $$"""
@@ -142,13 +163,69 @@ void Generate()
         """);
 }
 ```
-In this example above we're using DatabaseSchema from [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema)) - basically this represents the database schema of a MSSQL database or a PostgreSQL database.  
-The `WriteLine` block (using a raw string) will be "left-trimmed", which means that `namespace ...` will start at "line 0, column 0" and the `RenderTable(usersTable)` will start at "line 2, column 4" (after 4 spaces).  
 
-The `RenderTable()` function return a `FormattableString` with multiple lines, but due to our **implicit indent control** what happens is that all lines rendered by that method (interpolated inside an outer string) will all be padded with 4 spaces.  
-In other words, even though the inner block has multiple lines all those lines are written in the same position (column 4) where the first line started. As if the inner block was "pasted like a rectangle".  
-When the `RenderTable()` function renders the line written `// class members...` (which starts 4 spaces ahead of this inner block), the result is that this line will be 8 spaces ahead of the outer block.  
-The type of indent (be it 4 spaces, 1 tab, or any number of spaces or tabs) is automatically captured by the text writer and replicated for the inner blocks.
+## Read-to-Use Input Models
+
+In the previous example we're using DatabaseSchema from [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema)) - basically this represents the database schema of a MSSQL database or a PostgreSQL database.  
+This is one of the ready-to-use input models that you can use in your templates.
+
+## Implicit Control of Indent Level
+
+CodegenTextWriter supports [`Explicit Indent Control`](#ExplicitIndent), but the preferred method is to implicitly control the indentation by using string interpolation and by positioning the interpolated expressions in the right place (adding whitespace before interpolated expressions).  
+In the previous example (repeated below for clarity) there's the `WriteLine` block (which as explaid above will be "left-trimmed" since it's a raw string), which means that `namespace ...` will start at `column 0` (no leading whitespace).  
+There's also the inner method `RenderTable(Table table)` which returns a multiline block (which is also a raw string and therefore its leading whitespace will also be left-trimmed, so no leading whitespace either).  
+
+```cs
+FormattableString RenderTable(Table table) => $$"""
+            /// <summary>
+            /// POCO for {{ table.TableName }}
+            /// </summary>
+            public class {{ table.TableName }}
+            {
+                // class members...
+            }
+            """;
+//...
+w.WriteLine($$"""
+    namespace {{myNamespace}}
+    {
+        {{ RenderTable(usersTable) }}
+        {{ RenderTable(productsTable) }}
+    }
+    """);
+```
+
+IF we were just using a regular .NET text writer to write interpolated strings, the first line returned by `RenderTable(Table table)` would start at `column 4` but all subsequent lines would would go back to `column 0` and would be aligned with the `namespace` keyword:
+
+```cs
+namespace MyNamespace
+{
+    /// <summary>
+/// POCO for User
+/// </summary>
+public class User
+{
+    // class members...
+}
+    /// <summary>
+/// POCO for Product
+/// </summary>
+public class Product
+{
+    // class members...
+}
+}
+```
+
+**The magic of Implicit Indent Control:**
+- `RenderTable(usersTable)` and `RenderTable(productsTable)` are interpolated after 4 spaces, so CodegenTextWriter will **automatically capture** that they start at `column 4` and that the leading whitespace consists of 4 spaces
+  (It could be a tab, or any number of spaces/tabs/etc)
+- Whenever the inner block (the interpolated expression) spans into multiple lines those lines will all be indented correctly (**we preserve the indentation** of subsequent lines).
+- To sum, each line will be padded with 4 spaces. As if the inner expression was "pasted like a rectangle" ("preserving cursor position").  
+- Any number of levels work. When `RenderTable()` renders more indentation (e.g. the line that says `// class members...`) the result is that this line will be 8 spaces ahead of the outer block.  
+
+To sum, CodegenTextWriter can understand different object types interpolated in Interpolated strings while **keeping cursor position** of embedded arguments.
+
 
 Implicit indent control also works for other indented languages that don't use curly-braces (e.g. Python):
 
@@ -168,11 +245,14 @@ w.WriteLine($$"""
         {{ HappyMonday }}
     """);
 ```
+Indented blocks can have any number of spaces - CodegenTextWriter doesn't care - it will just preserve whatever indent-whitespace you use.
 
+## Embedding IEnumerable\<T>
 
-# Embedding IEnumerable\<T>
+One common task in code generators is to repeat a block (or a template or even an inline expression) for all items in a collection.  
 
-If we just interpolate an IEnumerable<T> each item will be rendered (whatever type it is - be it a string, FormattableString, Func<string>, etc.) and between the items the text writer will add a separator (which by default is a linebreak):
+CodegenTextWriter supports the interpolation of `IEnumerable<T>` - it's much easier than explicitly doing a `foreach` and writing each element individually (e.g. `writer.Write(element)`).  
+When CodegenTextWriter finds an interpolated `IEnumerable<T>` it will render all items one by one (whatever type they are - they can be string, FormattableString, Func<string>, etc.) and between the items it will add a separator (which by default is a linebreak):
 
 ```cs
 void RenderGroceryList()
@@ -236,10 +316,9 @@ void Generate()
         }
         """);
 }
-
 ```
 
-The `Render()` extension allows to customize the line separators and has some presets (e.g. `Render(RenderEnumerableOptionsEnum.SingleLineCSV)` will make the items be separated by `", "`):
+The `Render()` extension allows to customize the line separators and has some presets (e.g. `Render(RenderEnumerableOptions.SingleLineCSV)` will make the items be separated by `", "`):
 
 ```cs
 void RenderGroceryList()
@@ -248,7 +327,7 @@ void RenderGroceryList()
 
     var w = new CodegenTextWriter();
     w.WriteLine($$"""
-        I have to buy: {{ groceries.Render(RenderEnumerableOptionsEnum.SingleLineCSV) }}
+        I have to buy: {{ groceries.Render(RenderEnumerableOptions.SingleLineCSV) }}
         """);
     // Result is:
     // I have to buy: Milk, Eggs, Diet Coke
@@ -257,7 +336,7 @@ void RenderGroceryList()
 
 
 
-# Control-Flow Symbols
+## Control-Flow Symbols
 
 
 **IF-ENDIF statements**
@@ -344,9 +423,9 @@ w.WriteLine($$"""
 
 
 
-# Embedding Subtemplates (Breaking Complex Templates into Subtemplates)
+# Breaking Large Templates into Smaller Blocks
 
-Embedding subtemplates inside outer templates is very elegant and it's the prefered method when we don't need complex control logic. If you need complex control logic please check "Explicitly Invoking Subtemplates" later in this document, else just use the techniques shown below.
+Embedding subtemplates inside outer templates (using string interpolation and implicit Indent) is very elegant and it's the prefered method (unless you need complex control logic, in which case you'd have to [`manually invoke methods`](#ManuallyInvokingMethods)).
 
 ## Embedding a `FormattableString`
 
@@ -373,25 +452,52 @@ void Generate()
 }
 ```
 
-If for any reason you need lazy evaluation you can also use `Func<FormattableString>`. Other options are `string` or `Func<string>` (but the FAQ gives some reasons to prefer `FormattableString` instead of plain `string`).
+If for any reason you need lazy evaluation you can also use `Func<FormattableString>`. Other options are `string` or `Func<string>` (but our [FAQ](#FAQ) explains why you should prefer `FormattableString` over plain `string`).
 
 ## Embedding Action\<ICodegenTextWriter>
 
 **Embedding (interpolating) an `Action<ICodegenTextWriter>`**
 
-If you need a little more flexibility you can embed an `Action<ICodegenTextWriter>` (ICodegenTextWriter will be automatically passed to the action) or `Action` (if your action can write to the text writer without getting it as an argument).  
-Actions will behave like `Func<FormattableString>` in the sense that they will be evaluated "on demand" (only by the moment that we are rendering the full template).
+If you need a little more flexibility you can embed an `Action<ICodegenTextWriter>` and ICodegenTextWriter will be automatically passed to the action.  
 
 
 ```cs
-Action<CodegenTextWriter> generateClass = w => w.Write($@"
+Action<ICodegenTextWriter> GenerateClass = w => {
+    w.Write($@"
+        void MyClass()
+        {{
+            void Method1() { /* ... */ }
+            void Method2() { /* ... */ }
+        }}");
+};
+
+Action<ICodegenTextWriter> GenerateFile = w => w.WriteLine($$"""
+    using System;
+    using System.Collections.Generic;
+    namespace {{ ns }}
+    {
+        {{ GenerateClass }}
+    }
+    """);
+
+var w = new CodegenTextWriter();
+GenerateFile(w);
+```
+
+If your action can write to the text writer without getting it as an argument (e.g. writer could be a static variable) you can also use `Action`.  
+`Action<ICodegenTextWriter>` and `Action` behave like `Func<FormattableString>` in the sense that they will be evaluated "on demand" (only by the moment that we are rendering the full template).
+
+```cs
+public static CodegenTextWriter w = new CodegenTextWriter();
+
+Action generateClass = () => w.Write($@"
     void MyClass()
     {{
         void Method1() { /* ... */ }
         void Method2() { /* ... */ }
     }}");
 
-Action<ICodegenTextWriter> generateFile = w => w.WriteLine($$"""
+Action generateFile = ()) => w.WriteLine($$"""
     using System;
     using System.Collections.Generic;
     namespace {{ ns }}
@@ -400,73 +506,13 @@ Action<ICodegenTextWriter> generateFile = w => w.WriteLine($$"""
     }
     """);
 
-var w = new CodegenTextWriter();
-w.Write(generateFile);
-```
-
-## Using an Action\<ICodegenTextWriter> to invoke a method that requires arguments
-
-If your method (or Action) takes more parameters (other than `ICodegenTextWriter`) you can just convert it (wrap) into an `Action<ICodegenTextWriter>` like this:
-
-```cs
-// Regular C# void method being invoked explicitly (wrapped inside a new Action)
-void generateClass(ICodegenTextWriter w, string className)
-{
-  w.Write($$"""
-    public class {{ className }}()
-    {
-        void Method1() { /* ... */ }
-        void Method2() { /* ... */ }
-    }
-    """);
-}
-
-Action<ICodegenTextWriter> generateFile = w => w.WriteLine($$"""
-    using System;
-    using System.Collections.Generic;
-    namespace {{ ns }}
-    {
-        {{ new Action<ICodegenTextWriter>(w => generateClass(w, "ClassName1")) }}
-        {{ new Action<ICodegenTextWriter>(w => generateClass(w, "ClassName2")) }}
-    }
-    """);
-
-// Write/WriteLine are like interpolated strings: they understand many object types 
-// (in this example an Action<ICodegenTextWriter>)
-w.Write(generateFile);
-```
-
-Or like this:
-
-```cs
-// Similar to previous, but the function itself will get the parameters and return a wrapper Action
-Action<ICodegenTextWriter> generateClass(string className) = new Action<ICodegenTextWriter>(w => w.Write($$"""
-    public class {{ className }}()
-    {
-        void Method1() { /* ... */ }
-        void Method2() { /* ... */ }
-    }
-    """);
-
-Action<ICodegenTextWriter> generateFile = w => w.WriteLine($$"""
-    using System;
-    using System.Collections.Generic;
-    namespace {{ ns }}
-    {
-        {{ generateClass("ClassName1")) }}
-        {{ generateClass("ClassName2")) }}
-    }
-    """);
-
-// Write/WriteLine are like interpolated strings: they understand many object types 
-// (in this example an Action<ICodegenTextWriter>)
-w.Write(generateFile);
+generateFile(w);
 ```
 
 
 # Template Interfaces
 
-As explained above, CodegenTextWriter can render embedded Actions and Functions, but that can be ugly and tricky (specially when we need to pass parameters).  
+As explained above, CodegenTextWriter can render embedded Actions and Functions, but that can get a little ugly when we need to [`pass parameters`](#Action-ICodegenTextWriter-Args).  
 To solve that issue we have some simple **template interfaces** that can be used to make templates easier to use and invoke.  
 
 - There are interfaces for single-file templates (those that get a ICodegenTextWriter and render to it) or multiple-file templates (those that get a ICodegenContext and may render multiple files)
@@ -664,7 +710,7 @@ class MyPocoTemplate3 : ICodegenStringTemplate<DatabaseSchema>
 
 ## Templates Summary
 
-So basically when we implementing any template interface we get:
+So basically when we implement any template interface we get:
 
 - Templates can be loaded (`.LoadTemplate<T>`) and rendered (`.Render(TModel model)`) directly from the ICodegenTextWriter
 - Templates can be interpolated (`Template.Load<T>`) and rendered (`.Render(TModel model)`) directly from any interpolated string
@@ -735,36 +781,38 @@ Do we have helpers for nesting files (in Visual Studio)?
 
 ## Writing to ICodegenTextWriter WITHOUT Raw String Literals (Not Recommended)
 
-You really SHOULD be using Raw String Literals, but if you can't use it you can still use the old methods:
+The prefered method of writing interpolated strings or multiline blocks is using Raw String Literals, but if you can't use it you can still use regular string interpolation and verbatim string literals:
 
 **Writing interpolated strings** (line by line) using `$`:
 
 ```cs
 var w = new CodegenTextWriter();
-w.WriteLine($"public void {MyMethodName}()");
+w.WriteLine($"public void {myMethodName}()");
 w.WriteLine("{");
 w.WriteLine("    // My method...");
 w.WriteLine("}");
 ```
 
-**Writing a multiline block** (using interpolated strings `$@`):
+**Writing a multiline block with interpolated strings** (using) `$@`):
+
 
 ```cs
 var w = new CodegenTextWriter();
 w.WriteLine($@"
-    public void {MyMethodName}()
+    public void {myMethodName}()
     {{
         // My method...
     }}");
 ```
+
 CodegenTextWriter will automatically adjust multi-line blocks very similar to what raw strings do:
 - Multiline blocks will automatically ignore (strip) an empty line at the beginning.
 - Multiline blocks will automatically strip left-padding whitespace (they will "dock the whole block to the left", limited by the longest line).
 
 
-## Fluent API and Explicit Indent Level Control (Not recommended - prefer multiline blocks, implicit indent control and embedded templates)
+## <a name="ExplicitIndent"></a>Explicit Indent Level Control (Not recommended - prefer implicit indent control)
 
-We can write to CodegenTextWriter using a Fluent API (method chaining) where we can manually manage the scoping-curly-braces and indentation:
+With the Fluent API (method chaining) we can manually control the indentation:
 
 ```cs
 void RenderTable(ICodegenTextWriter w, Table table)
@@ -796,12 +844,7 @@ By default each indent level will be 4 spaces, which means that `public class ..
 
 ## IDisposable Helpers for Writing Indented Blocks concisely (but yet manually using Fluent API)
 
-- Helpers to concisely write indented blocks (C-style, Java-style or Python-style) using a Fluent API
-  (IDisposable context will automatically close blocks)
-
-**We can start an Indented Blocks using the IDisposable Syntax ("using writer.WithXBlock")**
-
-We just define what's written before the block starts, and the helper (e.g. `WithCBlock()`) will automatically handle the curly braces and line-breaks.  
+We just define what's written before the block starts, and the helper (e.g. `WithCBlock()`) will automatically handle the indentation, the curly braces around the indented block and line-breaks. IDisposable context is used to automatically close the blocks (decrease indent, close braces).
 
 ```cs
 var w = new CodegenTextWriter();
@@ -815,10 +858,9 @@ using (w.WithCBlock("namespace MyNamespace"))
         /// </summary>");
     using (w.WithCBlock("void MyMethod()"))
     {
-        // The first empty line and the spaces to the right are all removed
         w.WriteLine(@"
-        // Method body...
-        // Method body...");
+            // Method body...
+            // Method body...");
     });
     });
 }
@@ -849,9 +891,9 @@ w.WithCurlyBraces($"namespace {ns}", () =>
 ```
 
 
-## Explicitly Invoking Subtemplates 
+## <a name="ManuallyInvokingMethods"></a>Manually Invoking Methods (without using interpolation)
 
-**Explicit invoking C# methods that write to the CodegenTextWriter**  
+**Manually invoking C# methods that write to the CodegenTextWriter**  (Not recommended - prefer implicit indent control and embedded templates)
 
 One obvious way of breaking complex templates into smaller blocks is to explicit invoke one method from another and pass around CodegenTextWriter and the required models:
 
@@ -884,6 +926,61 @@ void GenerateFile(ICodegenTextWriter w)
 
 
 
+## <a name="Action-ICodegenTextWriter-Args"></a> Using an Action\<ICodegenTextWriter> to invoke a method that requires arguments
+
+The prefered method of invoking subtemplates and passing arguments is ...
+But it's also possible to wrap any method into an `Action<ICodegenTextWriter>` like this:
+
+```cs
+// Regular C# void method being invoked explicitly (wrapped inside a new Action)
+void GenerateClass(ICodegenTextWriter w, string className)
+{
+  w.Write($$"""
+    public class {{ className }}()
+    {
+        void Method1() { /* ... */ }
+        void Method2() { /* ... */ }
+    }
+    """);
+}
+
+Action<ICodegenTextWriter> GenerateFile = w => w.WriteLine($$"""
+    using System;
+    using System.Collections.Generic;
+    namespace {{ ns }}
+    {
+        {{ new Action<ICodegenTextWriter>(w => GenerateClass(w, "ClassName1")) }}
+        {{ new Action<ICodegenTextWriter>(w => GenerateClass(w, "ClassName2")) }}
+    }
+    """);
+
+GenerateFile(w);
+```
+
+Or like this:
+
+```cs
+// Similar to previous, but the function itself will get the parameters and return a wrapper Action
+Action<ICodegenTextWriter> GenerateClass(string className) = new Action<ICodegenTextWriter>(w => w.Write($$"""
+    public class {{ className }}()
+    {
+        void Method1() { /* ... */ }
+        void Method2() { /* ... */ }
+    }
+    """);
+
+Action<ICodegenTextWriter> GenerateFile = w => w.WriteLine($$"""
+    using System;
+    using System.Collections.Generic;
+    namespace {{ ns }}
+    {
+        {{ GenerateClass("ClassName1")) }}
+        {{ GenerateClass("ClassName2")) }}
+    }
+    """);
+
+GenerateFile(w);
+```
 
 
 
@@ -915,7 +1012,8 @@ void GenerateFile(ICodegenTextWriter w)
 
 
 
-# FAQ
+
+# <a name="FAQ"></a>FAQ
 
 ## Why write templates in C# instead of T4, Mustache, Razor Engine, etc?
 

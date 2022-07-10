@@ -42,24 +42,24 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 
         #region POCO optional settings
         /// <summary>
-        /// If defined (default is true) POCOs will have override Equals/GetHashCode and equality/inequality operators (== and !=)
+        /// If true (default is true) POCOs will have override Equals/GetHashCode and equality/inequality operators (== and !=)
         /// </summary>
         public bool GenerateEqualsHashCode { get; set; } = true;
 
 
         /// <summary>
-        /// If defined (default is false), POCOs will implement INotifyPropertyChanged (PropertyChanged event), and will expose a HashSet of "Dirty" properties and bool IsDirty
+        /// If true (default is false), POCOs will implement INotifyPropertyChanged (PropertyChanged event), and will expose a HashSet of "Dirty" properties and bool IsDirty
         /// </summary>
         public bool TrackPropertiesChange { get; set; } = false;
 
         /// <summary>
-        /// If defined (default is true) will add [Key] attributes to primary-key columns.
+        /// If true (default is true) will add [Key] attributes to primary-key columns.
         /// This is required by FastCRUD and Entity Framework
         /// </summary>
         public bool AddColumnAttributeKey { get; set; } = true;
 
         /// <summary>
-        /// If defined (default is true) will add [DatabaseGenerated] attributes to identity and computed columns.
+        /// If true (default is true) will add [DatabaseGenerated] attributes to identity and computed columns.
         /// This is required by FastCRUD and Entity Framework
         /// </summary>
         public bool AddColumnAttributeDatabaseGenerated { get; set; } = true;
@@ -336,21 +336,21 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
         {
             #region Adding SimplePOCOGenerator.csx
             var mainProgram = new CodegenTextWriter();
-            mainProgram.WriteLine($@"
+            mainProgram.WriteLine($$"""
                 class Program
-                {{
+                {
                     static void Main()
-                    {{
-                        //var options = new CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGeneratorOptions(inputJsonSchema: @""{_options.InputJsonSchema}"");
+                    {
+                        //var options = new CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGeneratorOptions(inputJsonSchema: @""{{_options.InputJsonSchema}}"");
                         var options = Newtonsoft.Json.JsonConvert.DeserializeObject<CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGeneratorOptions>(@""
-                            {Newtonsoft.Json.JsonConvert.SerializeObject(_options, Newtonsoft.Json.Formatting.Indented).Replace("\"", "\"\"")}
+                            {{Newtonsoft.Json.JsonConvert.SerializeObject(_options, Newtonsoft.Json.Formatting.Indented).Replace("\"", "\"\"")}}
                         "");
                         var generator = new CodegenCS.DbSchema.Templates.SimplePOCOGenerator.SimplePOCOGenerator(options);
                         generator.Generate();
                         generator.Save();
-                    }}
-                }}
-            ");
+                    }
+                }
+            """);
             // Export CS template (for customization)
             // Save with CSX extension so that it doesn't interfere with other existing CSPROJs (which by default include *.cs)
             GeneratorContext[typeof(SimplePOCOGenerator).Name + ".csx"].WriteLine(

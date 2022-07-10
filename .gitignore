@@ -332,3 +332,5 @@ ASALocalRun/
 .mfractor/
 /src/CodegenCS/CodegenCS.xml
 /src/CodegenCS.DbSchema/CodegenCS.DbSchema.xml
+
+/src/packages-local
