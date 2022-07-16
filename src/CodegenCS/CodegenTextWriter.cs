@@ -368,7 +368,8 @@ namespace CodegenCS
         protected void InnerIndentCurrentLine()
         {
             string indent = string.Join("", _levelIndent.Reverse().ToList());
-            InnerWriteRaw(indent);
+            if (!string.IsNullOrEmpty(indent))
+                InnerWriteRaw(indent);
         }
         #endregion
 
@@ -604,10 +605,10 @@ namespace CodegenCS
         /// </summary>
         protected void InnerWriteRaw(string value)
         {
-            if (IsControlBlockActive)
+            if (IsControlBlockActive && !string.IsNullOrEmpty(value))
             {
                 _innerWriter.Write(value);
-                //System.Diagnostics.Debug.Write(value);
+                OnWritten(value);
             }
         }
         #endregion
@@ -1329,13 +1330,21 @@ namespace CodegenCS
         }
         #endregion
 
+        #region Events
+        public event EventHandler<WrittenEventArgs> Written;
+        protected virtual void OnWritten(string writtenValue)
+        {
+            Written?.Invoke(this, new WrittenEventArgs(writtenValue));
+        }
+        #endregion
+
         #region Utils
-        static bool IsInstanceOfGenericType(Type genericType, object instance)
+        protected bool IsInstanceOfGenericType(Type genericType, object instance)
         {
             Type type = instance.GetType();
             return IsAssignableToGenericType(type, genericType);
         }
-        public static bool IsAssignableToGenericType(Type givenType, Type genericType)
+        protected bool IsAssignableToGenericType(Type givenType, Type genericType)
         {
             var interfaceTypes = givenType.GetInterfaces();
 

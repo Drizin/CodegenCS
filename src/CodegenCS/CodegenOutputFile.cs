@@ -7,20 +7,38 @@ namespace CodegenCS
     /// </summary>
     public class CodegenOutputFile : CodegenTextWriter, ICodegenOutputFile
     {
+        private string _relativePath;
+
         /// <summary>
-        /// Relative path of the output file (relative to the outputFolder)
+        /// Relative path of the output file (relative to the outputFolder).
+        /// For the <see cref="ICodegenContext.DefaultOutputFile"/> it will be initially empty
         /// </summary>
-        public string RelativePath { get; }
+        public string RelativePath { 
+            get => _relativePath; 
+            set 
+            {
+                if (_relativePath != value)
+                    _context?.OnOutputFileRenamed(_relativePath, value);  
+                _relativePath = value; 
+            } 
+        }
+
+        protected ICodegenContext _context { get; set; }
 
         /// <summary>
         /// Creates a new OutputFile, with a relative path
         /// </summary>
         /// <param name="relativePath"></param>
-        public CodegenOutputFile(string relativePath) : base()
+        internal CodegenOutputFile(string relativePath) : base()
         {
-            this.RelativePath = relativePath;
+            _relativePath = relativePath;
             _dependencyContainer.RegisterSingleton<ICodegenOutputFile>(() => this);
             _dependencyContainer.RegisterSingleton<CodegenOutputFile>(() => this);
+        }
+
+        public void SetContext(ICodegenContext context)
+        {
+            _context = context;
         }
     }
 

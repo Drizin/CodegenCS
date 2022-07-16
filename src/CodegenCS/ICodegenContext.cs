@@ -16,7 +16,12 @@ namespace CodegenCS
         /// </summary>
         List<string> Errors { get; }
 
-        void SaveFiles(string outputFolder);
+        /// <summary>
+        /// Saves all files in the outputFolder. <br />
+        /// According to the RelativePath of each file they may be saved in different folders
+        /// </summary>
+        /// <param name="outputFolder">Can be absolute or relative</param>
+        int SaveFiles(string outputFolder);
 
         /// <summary>
         /// Paths of the Output files (as defined during creation using <see cref="this[string]"/> indexer)
@@ -27,6 +32,12 @@ namespace CodegenCS
         /// Output files (created using <see cref="this[string]"/> indexer)
         /// </summary>
         IReadOnlyList<ICodegenOutputFile> OutputFiles { get; }
+
+        /// <summary>
+        /// When a <see cref="ICodegenOutputFile"/> is renamed it should notify the <see cref="ICodegenContext"/> by calling this method.
+        /// </summary>
+        /// <returns>True if context could successfuly find and rename the file</returns>
+        bool OnOutputFileRenamed(string oldRelativePath, string newRelativePath);
 
         /// <summary>
         /// Output files are indexed by their relative path. <br />

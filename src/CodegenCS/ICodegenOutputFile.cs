@@ -6,7 +6,8 @@ namespace CodegenCS
 {
     public interface ICodegenOutputFile : ICodegenTextWriter
     {
-        string RelativePath { get; }
+        void SetContext(ICodegenContext Context);
+        string RelativePath { get; set; }
     }
     public interface ICodegenOutputFile<FT> : ICodegenOutputFile
         where FT : struct, IComparable, IConvertible, IFormattable // FT should be enum. 

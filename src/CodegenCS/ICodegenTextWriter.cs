@@ -73,6 +73,16 @@ namespace CodegenCS
         /// If you need a template that takes a model please use <see cref="LoadTemplate{T}(object[])"/> method.
         /// </summary>
         ICodegenTextWriter RenderTemplate(ICodegenStringTemplate template);
+
+        event EventHandler<WrittenEventArgs> Written;
+    }
+    public class WrittenEventArgs : EventArgs
+    {
+        public string WrittenValue { get; protected set; }
+        public WrittenEventArgs(string writtenValue) : base()
+        {
+            WrittenValue = writtenValue;
+        }
     }
 
 }
