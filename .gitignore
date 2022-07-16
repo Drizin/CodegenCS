@@ -334,3 +334,4 @@ ASALocalRun/
 /src/CodegenCS.DbSchema/CodegenCS.DbSchema.xml
 
 /src/packages-local
+/src/release.snk

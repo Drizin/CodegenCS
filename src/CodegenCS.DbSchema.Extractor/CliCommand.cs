@@ -21,7 +21,7 @@ namespace CodegenCS.DbSchema.Extractor
             {
                 try
                 {
-                    return Enum.Parse<ExtractWizard.DbTypeEnum>(argResult.Tokens[0].Value, ignoreCase: true);
+                    return (ExtractWizard.DbTypeEnum)Enum.Parse(typeof(ExtractWizard.DbTypeEnum), argResult.Tokens[0].Value, ignoreCase: true);
                 }
                 catch (Exception ex)
                 {

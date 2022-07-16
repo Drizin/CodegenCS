@@ -39,7 +39,7 @@ namespace CodegenCS.DbSchema.Extractor
                 string chosen = Console.ReadLine();
                 int chosenInt;
                 if (int.TryParse(chosen, out chosenInt) && chosenInt >= 1 && chosenInt <= dbTypes.Length)
-                    DbType = Enum.Parse<DbTypeEnum>(dbTypes[chosenInt - 1]);
+                    DbType = (DbTypeEnum)Enum.Parse(typeof(DbTypeEnum), dbTypes[chosenInt - 1]);
             }
             Console.WriteLine($"Database Type is {DbType}");
             Console.WriteLine($"");

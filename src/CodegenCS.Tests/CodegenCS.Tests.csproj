@@ -2,24 +2,34 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-
     <IsPackable>false</IsPackable>
-
     <Company>Rick Drizin</Company>
-
     <Copyright>Rick Drizin</Copyright>
-
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-
     <PackageProjectUrl>https://github.com/Drizin/CodegenCS/</PackageProjectUrl>
-
-	<LangVersion>preview</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <PropertyGroup>
+        <SignAssembly>True</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\debug.snk</AssemblyOriginatorKeyFile>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <SignAssembly>True</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\release.snk</AssemblyOriginatorKeyFile>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
 
   <ItemGroup>
     <Compile Remove="**\*-TestsOutput\**" />
-	<Content Include="**\*-TestsOutput\**" />
-  </ItemGroup>	
+    <Content Include="**\*-TestsOutput\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="nunit" Version="3.10.1" />
@@ -31,20 +41,20 @@
     <ProjectReference Include="..\CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj" />
   </ItemGroup>
 
-	<Choose>
-		<When Condition="'$(Configuration)' == 'Debug'">
-			<ItemGroup>
-				<ProjectReference Include="..\CodegenCS\CodegenCS.csproj" />
-				<ProjectReference Include="..\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
-			</ItemGroup>
-		</When>
-		<Otherwise>
-			<ItemGroup>
-				<PackageReference Include="CodegenCS" Version="1.1.*" />
-				<PackageReference Include="CodegenCS.DbSchema" Version="1.1.*" />
-			</ItemGroup>
-		</Otherwise>
-	</Choose>
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <ItemGroup>
+        <ProjectReference Include="..\CodegenCS\CodegenCS.csproj" />
+        <ProjectReference Include="..\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="CodegenCS" Version="2.*" />
+        <PackageReference Include="CodegenCS.DbSchema" Version="2.*" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
 
 
 </Project>
