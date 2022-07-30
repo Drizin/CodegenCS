@@ -2,6 +2,7 @@
 using System.CommandLine.Parsing;
 using System.IO;
 using System.Linq;
+using Console = InterpolatedColorConsole.ColoredConsole;
 
 namespace CodegenCS.DbSchema.Extractor
 {
@@ -19,9 +20,7 @@ namespace CodegenCS.DbSchema.Extractor
             catch (Exception ex)
             {
                 // Should never happen. Most exceptions during Invoke() should be handled by middleware ExceptionHandler
-                var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Unhandled exception: " + ex.GetBaseException().ToString());
-                Console.ForegroundColor = previousColor;
+                Console.WriteLineError(ConsoleColor.Red, "Unhandled exception: " + ex.GetBaseException().ToString());
                 return -1;
             }
         }

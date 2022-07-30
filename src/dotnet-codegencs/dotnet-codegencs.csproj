@@ -11,7 +11,7 @@
     <Description>Command line tool to extract schema from MSSQL/PostgreSQL database into json files, and templates to generate POCO classes.</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>1.1.2</Version>
+    <Version>1.1.3</Version>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>codegencs</ToolCommandName>
     <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
@@ -19,6 +19,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <!-- Include symbol files (*.pdb) in the main .nupkg -->
     <PackageReadmeFile>NuGetReadMe.md</PackageReadmeFile>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <Choose>
@@ -44,7 +45,9 @@
 
   <ItemGroup>
     <None Include="NuGetReadMe.md" Pack="true" PackagePath="\"/>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
+		<PackageReference Include="InterpolatedColorConsole" Version="1.0.2" />
+		<PackageReference Include="System.CommandLine" Version="2.0.0-dev" />
+		<PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-dev" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -71,9 +74,5 @@
     </Otherwise>
   </Choose>
 
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\RunStandaloneCode.csproj" />
-  </ItemGroup>
 
 </Project>

@@ -11,8 +11,8 @@
     <description>Command line tool to extract schema from MSSQL/PostgreSQL database into json files, and templates to generate POCO classes.</description>
     <copyright>Copyright Rick Drizin 2019</copyright>
     <dependencies>
-		<dependency id="CodegenCS" version="[1.1.0" include="All" />
-		<dependency id="CodegenCS.DbSchema" version="[1.1.0" include="All" />
+		<dependency id="CodegenCS" version="[2.0.0" include="All" />
+		<dependency id="CodegenCS.DbSchema" version="[2.0.0" include="All" />
 		<dependency id="NJsonSchema" version="[10.0.0" include="All" />
 		<dependency id="Npgsql" version="[5.0.0" include="All" />
 		<dependency id="System.Data.SqlClient" version="[4.8.2" include="All" />

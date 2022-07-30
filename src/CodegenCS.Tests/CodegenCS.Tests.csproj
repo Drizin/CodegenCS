@@ -29,6 +29,9 @@
   <ItemGroup>
     <Compile Remove="**\*-TestsOutput\**" />
     <Content Include="**\*-TestsOutput\**" />
+	  <Compile Include="..\CodegenCS.DbSchema.Templates\SimplePOCOGenerator\SampleOutput\*.cs">
+		  <Link>POCOTests\GeneratedPOCOs\%(Filename)%(Extension)</Link>
+	  </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -39,6 +42,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="TemplateBuilderTests\" />
   </ItemGroup>
 
   <Choose>

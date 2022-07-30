@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Console = InterpolatedColorConsole.ColoredConsole;
 
 namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
 {
@@ -29,13 +31,13 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             command.AddOption(new Option<bool>(new[] { "--KeyAttribute", "-k" }, getDefaultValue: () => Defaults.AddColumnAttributeKey, description: "Adds [Key] attributes to primary-key columns"));
             command.AddOption(new Option<bool>(new[] { "--DatabaseGeneratedAttribute", "-d" }, getDefaultValue: () => Defaults.AddColumnAttributeDatabaseGenerated, description: "Adds [DatabaseGenerated(DatabaseGeneratedOption.Identity)] attributes to identity (auto-number) columns or [DatabaseGenerated(DatabaseGeneratedOption.Computed)] to other types of computed columns"));
 
-            command.AddOption(new Option(new[] { "--CrudActiveRecord", "-a" }, description: "\nGenerates CRUD inside each POCO (Active Record pattern)"));
+            command.AddOption(new Option<bool>(new[] { "--CrudActiveRecord", "-a" }, description: "Generates CRUD inside each POCO (Active Record pattern)"));
             command.AddOption(new Option<string>(new[] { "--ActiveRecordIDbConnectionFactoryFile" }, getDefaultValue: () => Defaults.ActiveRecordSettings.ActiveRecordIDbConnectionFactoryFile, description: "Filepath where the template generates a sample factory") { Arity = ArgumentArity.ExactlyOne, ArgumentHelpName = "File.cs", IsHidden = true });
 
-            command.AddOption(optionCrudExtensionMethods = new Option<string>(new[] { "--CrudExtensionMethods", "-e" }, description: $"\nGenerates a static class with CRUD extension-methods for all POCOs.\nYou can specify a fully qualified namespace+class (e.g. \"MyNamespace.POCOs.Extensions.CRUDExtensions\") or just a class name (e.g. \"CRUDExtensions\") in which case will be in the same namespace as POCOs. [default: {Defaults.CRUDExtensionSettings.ClassName}]") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "ClassName" });
+            command.AddOption(optionCrudExtensionMethods = new Option<string>(new[] { "--CrudExtensionMethods", "-e" }, description: $"Generates a static class with CRUD extension-methods for all POCOs.\nYou can specify a fully qualified namespace+class (e.g. \"MyNamespace.POCOs.Extensions.CRUDExtensions\") or just a class name (e.g. \"CRUDExtensions\") in which case will be in the same namespace as POCOs. [default: {Defaults.CRUDExtensionSettings.ClassName}]\n") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "ClassName" });
             command.AddOption(new Option<string>(new[] { "--CrudExtensionMethodsFile" }, description: $"If previous option is used, the file will be created in TargetFolder (with the POCOs) and named based on the ClassName (e.g. \"CRUDExtensions.cs\"). \nThis option allows to specify a different file name and/or folder.\n(e.g. \"CRUD.cs\", or \"Extensions\\ \", or \"Extensions\\CRUDExtensions.cs\")") { Arity = ArgumentArity.ExactlyOne, ArgumentHelpName = "File.cs" });
 
-            command.AddOption(optionCrudClassMethods = new Option<string>(new[] { "--CrudClassMethods", "-c" }, description: $"\nGenerates a single class with CRUD instance methods for all POCOs.\nYou can specify a fully qualified namespace+class (e.g. \"MyNamespace.DAL.Repository\") or just a class name (e.g. \"Repository\") in which case will be in the same namespace as POCOs. [default: {Defaults.CRUDClassMethodsSettings.ClassName}]") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "ClassName" });
+            command.AddOption(optionCrudClassMethods = new Option<string>(new[] { "--CrudClassMethods", "-c" }, description: $"Generates a single class with CRUD instance methods for all POCOs.\nYou can specify a fully qualified namespace+class (e.g. \"MyNamespace.DAL.Repository\") or just a class name (e.g. \"Repository\") in which case will be in the same namespace as POCOs. [default: {Defaults.CRUDClassMethodsSettings.ClassName}]\n") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "ClassName" });
             command.AddOption(new Option<string>(new[] { "--CrudClassMethodsFile" }, description: $"If previous option is used, the file will be created in TargetFolder (with the POCOs) and named based on the ClassName (e.g. \"CRUDMethods.cs\"). \nThis option allows to specify a different file name and/or folder.\n(e.g. \"CRUD.cs\", or \"DAL\\ \", or \"DAL\\MyRepository.cs\")") { Arity = ArgumentArity.ExactlyOne, ArgumentHelpName = "File.cs" });
 
             command.Handler = CommandHandler.Create<ParseResult, SimplePOCOGeneratorArgs>(HandleCommand);
@@ -52,20 +54,19 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             if (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--debug")) { Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(options, Newtonsoft.Json.Formatting.Indented)); }
             SimplePOCOGeneratorConsoleHelper.GetOptions(options); // if mandatory args were not provided, ask in Console
 
-            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Executing '{typeof(SimplePOCOGenerator).Name}' template...");
-            Console.ForegroundColor = previousColor;
+            Console.WriteLine(ConsoleColor.Green, $"Executing '{typeof(SimplePOCOGenerator).Name}' template...");
 
             var generator = new SimplePOCOGenerator(options);
             generator.Generate();
             generator.AddCSX();
             generator.Save();
 
-            previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Finished executing '{typeof(SimplePOCOGenerator).Name}' template.");
-            Console.WriteLine($"A copy of the original template (with the options used) was saved as '{typeof(SimplePOCOGenerator).Name}.csx'.");
-            Console.WriteLine($"To customize the template outputs you can modify the csx file and regenerate using 'codegencs run {typeof(SimplePOCOGenerator).Name}.csx'.");
-            Console.ForegroundColor = previousColor;
+            using (Console.WithColor(ConsoleColor.Green))
+            {
+                Console.WriteLine($"Finished executing '{typeof(SimplePOCOGenerator).Name}' template.");
+                Console.WriteLine($"A copy of the original template (with the options used) was saved as '{typeof(SimplePOCOGenerator).Name}.csx'.");
+                Console.WriteLine($"To customize the template outputs you can modify the csx file and regenerate using 'codegencs run {typeof(SimplePOCOGenerator).Name}.csx'.");
+            }
 
             return 0;
         }

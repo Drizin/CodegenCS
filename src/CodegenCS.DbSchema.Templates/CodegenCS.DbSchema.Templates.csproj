@@ -44,14 +44,15 @@
   <ItemGroup>
     <EmbeddedResource Include="SimplePOCOGenerator\SimplePOCOGenerator.cs" />
     <EmbeddedResource Include="EFCoreGenerator\EFCoreGenerator.cs" />
-    <!--<Compile Remove="**\SampleOutput\**" />-->
-    <Compile Remove="EFCoreGenerator\SampleOutput\**" />
+	<Compile Remove="**\SampleOutput\**" />
   </ItemGroup>
 
   <ItemGroup>
+	<PackageReference Include="InterpolatedColorConsole" Version="1.0.2" />
     <PackageReference Include="Dapper.StrongName" Version="2.0.123" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-dev" />
+	<PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-dev" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">

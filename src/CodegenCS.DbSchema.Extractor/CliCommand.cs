@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Builder;
+using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Reflection;
 using System.Text;
+using Console = InterpolatedColorConsole.ColoredConsole;
 
 namespace CodegenCS.DbSchema.Extractor
 {
@@ -48,9 +49,7 @@ namespace CodegenCS.DbSchema.Extractor
 
         static int HandleCommand(ParseResult parseResult, DbSchemaExtractorArgs cliArgs)
         {
-            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Executing '{typeof(ExtractWizard).Name}' template...");
-            Console.ForegroundColor = previousColor;
+            Console.WriteLine(ConsoleColor.Green, $"Executing '{typeof(ExtractWizard).Name}' template...");
 
             var wizard = new ExtractWizard();
             wizard.DbType = cliArgs.DbType;
@@ -59,9 +58,7 @@ namespace CodegenCS.DbSchema.Extractor
 
             wizard.Run(); // if mandatory args were not provided, will ask in Console
 
-            previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Finished executing '{typeof(ExtractWizard).Name}' template.");
-            Console.ForegroundColor = previousColor;
+            Console.WriteLine(ConsoleColor.Green, $"Finished executing '{typeof(ExtractWizard).Name}' template.");
 
             return 0;
         }
@@ -81,7 +78,7 @@ namespace CodegenCS.DbSchema.Extractor
 
         public static System.CommandLine.Parsing.Parser Instance { get; } = new CommandLineBuilder(ConfigureCommandLine(GetCommand(commandName: System.AppDomain.CurrentDomain.FriendlyName)))
             .UseExceptionHandler(ExceptionHandler, 1)
-            .UseVersionOption(1)
+            .UseVersionOption()
 
             //.UseHelpBuilder(context => new MyHelpBuilder(context.Console)) 
             .UseHelp()
@@ -91,7 +88,7 @@ namespace CodegenCS.DbSchema.Extractor
 
             .UseVersionOption()
             .UseParseDirective()
-            .UseDebugDirective()
+            //.UseDebugDirective()
             .UseSuggestDirective()
             .UseParseErrorReporting()
 
@@ -103,10 +100,8 @@ namespace CodegenCS.DbSchema.Extractor
             {
                 exception = exception.InnerException;
             }
-            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Red;
-            context.Console.Error.WriteLine("Unhandled exception: " + exception.ToString());
+            Console.WriteLineError(ConsoleColor.Red, "Unhandled exception: " + exception.ToString());
             //context.ParseResult.ShowHelp();
-            Console.ForegroundColor = previousColor;
             context.ExitCode = 999;
         }
 

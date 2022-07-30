@@ -8,6 +8,7 @@ using SimplePOCOGenerator = CodegenCS.DbSchema.Templates.SimplePOCOGenerator;
 using EFCoreGenerator = CodegenCS.DbSchema.Templates.EFCoreGenerator;
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using Console = InterpolatedColorConsole.ColoredConsole;
 
 namespace CodegenCS.DotNetTool
 {
@@ -17,6 +18,16 @@ namespace CodegenCS.DotNetTool
         {
             try
             {
+
+                Console.WriteLine(ConsoleColor.Blue, $"""
+                       ______          __                      ___________
+                      / ____/___  ____/ /__  ____ ____  ____  / ____/ ___/
+                     / /   / __ \/ __  / _ \/ __ `/ _ \/ __ \/ /    \__ \ 
+                    / /___/ /_/ / /_/ /  __/ /_/ /  __/ / / / /___ ___/ / 
+                    \____/\____/\__,_/\___/\__, /\___/_/ /_/\____//____/  
+                                          /____/                    
+                    """);
+
                 var parser = CliCommandParser.Instance;
                 var parseResult = parser.Parse(args);
 
@@ -25,9 +36,7 @@ namespace CodegenCS.DotNetTool
             catch (Exception ex)
             {
                 // Should never happen. Most exceptions during Invoke() should be handled by middleware ExceptionHandler
-                var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Unhandled exception: "  + ex.GetBaseException().ToString());
-                Console.ForegroundColor = previousColor;
+                Console.WriteLineError(ConsoleColor.Red, "Unhandled exception: " + ex.GetBaseException().ToString());
                 return -1;
             }
         }

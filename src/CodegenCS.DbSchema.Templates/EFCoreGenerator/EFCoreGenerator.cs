@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using Console = InterpolatedColorConsole.ColoredConsole;
 
 namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
 {
@@ -455,9 +456,7 @@ namespace CodegenCS.DbSchema.Templates.EFCoreGenerator
             if (_options.TargetFolder != null)
                 _generatorContext.SaveFiles(outputFolder: _options.TargetFolder);
 
-            var previousColor = Console.ForegroundColor; Console.ForegroundColor = ConsoleColor.White;
-            WriteLog("Success!");
-            Console.ForegroundColor = previousColor;
+            Console.WriteLine(ConsoleColor.White, "Success!");
         }
 
         string GetFileNameForTable(Table table)
