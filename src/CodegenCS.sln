@@ -19,6 +19,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.TemplateBuilder",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.TemplateLauncher", "CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj", "{82DF9B4A-88AB-4A98-AF7C-DE21FDCDA13B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VSExtensions", "VSExtensions", "{05433D5A-DACD-4DB2-8498-B325DAF4972D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunTemplate", "VSExtensions\RunTemplate\RunTemplate.csproj", "{2901BAEA-168E-45FB-8714-4299D605F789}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F23C0124-9B89-4AD5-98BB-64E4732D665E}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -62,9 +66,16 @@ Global
 		{82DF9B4A-88AB-4A98-AF7C-DE21FDCDA13B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82DF9B4A-88AB-4A98-AF7C-DE21FDCDA13B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82DF9B4A-88AB-4A98-AF7C-DE21FDCDA13B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2901BAEA-168E-45FB-8714-4299D605F789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2901BAEA-168E-45FB-8714-4299D605F789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2901BAEA-168E-45FB-8714-4299D605F789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2901BAEA-168E-45FB-8714-4299D605F789}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2901BAEA-168E-45FB-8714-4299D605F789} = {05433D5A-DACD-4DB2-8498-B325DAF4972D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AB589EF0-8B1A-4791-A8B5-F3ED178AF34F}
