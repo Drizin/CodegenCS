@@ -48,10 +48,11 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
         static int HandleCommand(ParseResult parseResult, SimplePOCOGeneratorArgs cliArgs)
         {
             //TODO: HasOption(string) doesn't work in the lib - we have to check manually
-            if (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--debug")) { Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(cliArgs, Newtonsoft.Json.Formatting.Indented)); }
+            bool verboseMode = (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--verbose"));
+            if (verboseMode){ Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(cliArgs, Newtonsoft.Json.Formatting.Indented)); }
 
             var options = cliArgs.ToOptions(parseResult);
-            if (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--debug")) { Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(options, Newtonsoft.Json.Formatting.Indented)); }
+            if (verboseMode) { Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(options, Newtonsoft.Json.Formatting.Indented)); }
             SimplePOCOGeneratorConsoleHelper.GetOptions(options); // if mandatory args were not provided, ask in Console
 
             Console.WriteLine(ConsoleColor.Green, $"Executing '{typeof(SimplePOCOGenerator).Name}' template...");

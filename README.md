@@ -59,11 +59,11 @@ This is a command-line tool which extracts the schema of a MSSQL or PostgreSQL d
 
 **Sample usage**:
 
-```codegencs extract-dbschema postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
+```dotnet-codegencs extract-dbschema postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
 
-```codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json```
+```dotnet-codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json```
 
-```codegencs extract-dbschema mssql "Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
+```dotnet-codegencs extract-dbschema mssql "Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
 
 # <a name="dotnet-codegencs-templates"></a><a name="dotnet-codegencs-simplepocogenerator"></a> Template: Simple POCO Generator
 
@@ -71,9 +71,9 @@ This is a template that generates POCO classes from a JSON schema extracted with
 
 **Sample usage**:
 
-```codegencs simplepocogenerator AdventureWorks.json --Namespace=MyProject.POCOs```
+```dotnet-codegencs simplepocogenerator AdventureWorks.json --Namespace=MyProject.POCOs```
 
-```codegencs simplepocogenerator AdventureWorks.json --Namespace=MyProject.POCOs --TargetFolder=OutputFolder --SingleFile=POCOs.generated.cs --CrudExtensions --CrudClassMethods```
+```dotnet-codegencs simplepocogenerator AdventureWorks.json --Namespace=MyProject.POCOs --TargetFolder=OutputFolder --SingleFile=POCOs.generated.cs --CrudExtensions --CrudClassMethods```
 
 **To see all available options use** ```codegencs simplepocogenerator -?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/)
 
@@ -86,7 +86,7 @@ This is a template (still in beta) that generates EntityFrameworkCore Entities a
 
 Sample usage:
 
-```codegencs efcoregenerator AdventureWorks.json --TargetFolder=OutputFolder --Namespace=MyProject.POCOs --DbContextName=AdventureWorksDbContext``` -->
+```dotnet-codegencs efcoregenerator AdventureWorks.json --TargetFolder=OutputFolder --Namespace=MyProject.POCOs --DbContextName=AdventureWorksDbContext``` -->
 
 
 <!-- # Contributing

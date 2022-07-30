@@ -6,11 +6,11 @@ This is a dotnet tool (command-line tool) that extracts the schema of a MSSQL or
 
 Sample usage:
 
-```codegencs extract-dbschema postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
+```dotnet-codegencs extract-dbschema postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
 
-```codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json```
+```dotnet-codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json```
 
-```codegencs extract-dbschema mssql "Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
+```dotnet-codegencs extract-dbschema mssql "Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
 
 **Simple POCO Generator**
 
@@ -18,11 +18,11 @@ This is a template that generates POCO classes from a JSON schema extracted with
 
 Sample usage:
 
-```codegencs simplepocogenerator AdventureWorks.json --TargetFolder=OutputFolder --Namespace=MyProject.POCOs```
+```dotnet-codegencs simplepocogenerator AdventureWorks.json --TargetFolder=OutputFolder --Namespace=MyProject.POCOs```
 
-```codegencs simplepocogenerator AdventureWorks.json --TargetFolder=. --Namespace=MyProject.POCOs --SingleFile=POCOs.generated.cs --CrudExtensions```
+```dotnet-codegencs simplepocogenerator AdventureWorks.json --TargetFolder=. --Namespace=MyProject.POCOs --SingleFile=POCOs.generated.cs --CrudExtensions```
 
-```codegencs simplepocogenerator AdventureWorks.json --TargetFolder=. --Namespace=MyProject.POCOs --CrudClassMethods```
+```dotnet-codegencs simplepocogenerator AdventureWorks.json --TargetFolder=. --Namespace=MyProject.POCOs --CrudClassMethods```
 
 For more templates or for more information check out the [main project](https://github.com/Drizin/CodegenCS) documentation.
 

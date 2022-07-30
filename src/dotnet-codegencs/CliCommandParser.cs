@@ -22,17 +22,21 @@ namespace CodegenCS.DotNetTool
     {
         public static readonly RootCommand RootCommand = new RootCommand();
 
+        private static readonly Command BuildTemplateCommand = CodegenCS.TemplateBuilder.CliCommand.GetCommand();
+        private static readonly Command RunTemplateCommand = CodegenCS.TemplateLauncher.CliCommand.GetCommand();
         private static readonly Command SimplePOCOGeneratorCommand = SimplePOCOGenerator.CliCommand.GetCommand();
         private static readonly Command EFCoreGeneratorCommand = EFCoreGenerator.CliCommand.GetCommand();
         private static readonly Command DbSchemaExtractorCommand = CodegenCS.DbSchema.Extractor.CliCommand.GetCommand();
 
         private static readonly Option HelpOption = new Option<bool>(new[] { "--help", "-?" }, "\nShow Help"); // default lib will also track "-h" 
-        private static readonly Option DebugOption = new Option<bool>(new[] { "--debug" }, "Debug mode") { }; // verbose output, detailed exceptions
+        private static readonly Option VerboseOption = new Option<bool>(new[] { "--verbose", "--debug" }, getDefaultValue: () => false, "Verbose mode") { }; // verbose output, detailed exceptions
 
         private static Command ConfigureCommandLine(Command rootCommand)
         {
             var templateCommands = new Command("template");
             rootCommand.AddCommand(templateCommands);
+            templateCommands.AddCommand(BuildTemplateCommand);
+            templateCommands.AddCommand(RunTemplateCommand);
 
             rootCommand.AddCommand(SimplePOCOGeneratorCommand);
             rootCommand.AddCommand(EFCoreGeneratorCommand);
@@ -40,7 +44,7 @@ namespace CodegenCS.DotNetTool
 
             // Add options
             rootCommand.AddGlobalOption(HelpOption);
-            rootCommand.AddGlobalOption(DebugOption);
+            rootCommand.AddGlobalOption(VerboseOption);
 
             return rootCommand;
         }
@@ -79,7 +83,7 @@ namespace CodegenCS.DotNetTool
             {
                 exception = exception.InnerException;
             }
-            if (context.ParseResult.HasOption(DebugOption))
+            if (context.ParseResult.HasOption(VerboseOption))
                 Console.WriteLineError(ConsoleColor.Red, "Unhandled exception: " + exception.ToString());
             else
                 Console.WriteLineError(ConsoleColor.Red, "Unhandled exception: " + exception.Message);

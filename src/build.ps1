@@ -88,6 +88,27 @@ if ($configuration -eq "Release")
            /p:SymbolPackageFormat=snupkg                                        `
            /verbosity:minimal                                                   `
            /p:ContinuousIntegrationBuild=true
+           
+dotnet restore CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj
+& $msbuild ".\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj" `
+           /t:Restore /t:Build                                                  `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
+           /p:Configuration=$configuration                                      `
+           /p:IncludeSymbols=true                                               `
+           /p:SymbolPackageFormat=snupkg                                        `
+           /verbosity:minimal                                                   `
+           /p:ContinuousIntegrationBuild=true
+
+dotnet restore CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj
+& $msbuild ".\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" `
+           /t:Restore /t:Build                                                  `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
+           /p:Configuration=$configuration                                      `
+           /p:IncludeSymbols=true                                               `
+           /p:SymbolPackageFormat=snupkg                                        `
+           /verbosity:minimal                                                   `
+           /p:ContinuousIntegrationBuild=true
+
 
 
 # dotnet-codegencs (DotnetTool nupkg/snupkg)
@@ -106,7 +127,7 @@ if ($configuration -eq "Release")
 # uninstall/reinstall global tool from local dotnet-codegencs.*.nupkg:
 dotnet tool uninstall -g dotnet-codegencs
 dotnet tool install --global --add-source .\packages-local --no-cache dotnet-codegencs
-codegencs --version
+dotnet-codegencs --version
 
 
 # Unit tests
