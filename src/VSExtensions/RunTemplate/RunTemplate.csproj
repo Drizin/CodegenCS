@@ -68,6 +68,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RunTemplateCommand.cs" />
     <Compile Include="RunTemplatePackage.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -89,7 +90,11 @@
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.2.2186" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\RunTemplateCommand.png" />
     <Content Include="Resources\RunTemplatePackage.ico" />
+    <VSCTCompile Include="RunTemplatePackage.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VSPackage.resx">

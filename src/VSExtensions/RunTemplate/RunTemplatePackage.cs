@@ -1,7 +1,16 @@
-﻿using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.Win32;
 using System;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace RunTemplate
@@ -25,12 +34,25 @@ namespace RunTemplate
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(RunTemplatePackage.PackageGuidString)]
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+    [ProvideMenuResource("Menus.ctmenu", 1)]
     public sealed class RunTemplatePackage : AsyncPackage
     {
         /// <summary>
         /// RunTemplatePackage GUID string.
         /// </summary>
-        public const string PackageGuidString = "571681f0-9ff5-4eac-a8a4-75952c1d65f8";
+        public const string PackageGuidString = "ceeb4c60-193a-4506-b4e6-773ef8940f1a";
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RunTemplatePackage"/> class.
+        /// </summary>
+        public RunTemplatePackage()
+        {
+            // Inside this method you can place any initialization code that does not require
+            // any Visual Studio service because at this point the package object is created but
+            // not sited yet inside Visual Studio environment. The place to do all the other
+            // initialization is the Initialize method.
+        }
 
         #region Package Members
 
@@ -46,6 +68,7 @@ namespace RunTemplate
             // When initialized asynchronously, the current thread may be a background thread at this point.
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await RunTemplateCommand.InitializeAsync(this);
         }
 
         #endregion
