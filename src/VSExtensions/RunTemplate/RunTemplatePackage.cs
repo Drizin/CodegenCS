@@ -2,7 +2,9 @@
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextTemplating.VSHost;
 using Microsoft.Win32;
+using RunTemplate.CustomToolGenerator;
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
@@ -36,6 +38,8 @@ namespace RunTemplate
     [Guid(RunTemplatePackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
+    [InstalledProductRegistration("CodegenCS Code Generator - Custom Tool", "Executes a CodegenCS Template from Visual Studio", "1.0")] // this is just for package
+    [ProvideCodeGenerator(typeof(RunTemplateCustomTool), nameof(RunTemplateCustomTool.CustomToolName), "Executes a CodegenCS Template from Visual Studio", true)]
     public sealed class RunTemplatePackage : AsyncPackage
     {
         /// <summary>
