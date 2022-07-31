@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CodegenCS
 {
     /// <summary>
     /// CodegenTextWriter with added properties that describe Outputfile location (RelativePath)
     /// </summary>
+    [DebuggerDisplay("{RelativePath,nq}")]
     public class CodegenOutputFile : CodegenTextWriter, ICodegenOutputFile
     {
         private string _relativePath;

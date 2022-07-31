@@ -19,11 +19,11 @@ This utility can be invoked using [codegencs command-line tool](https://github.c
 
 **Sample usage**:
 
-```codegencs extract-dbschema postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
+```dotnet-codegencs extract-dbschema postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
 
-```codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json```
+```dotnet-codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json```
 
-```codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
+```dotnet-codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
 
 If you need to modify this utility (or port it to another database provider), please check [DbSchema.Extractor source code](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor). 
 
@@ -31,13 +31,13 @@ If you need to modify this utility (or port it to another database provider), pl
 
 There are many [CodegenCS templates](https://github.com/Drizin/CodegenCS#dotnet-codegencs-templates) available - they will read this JSON schema and will generate code based on your Database Schema.  
 
-A very basic template (to generate [simple POCOs](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)) can be invoked using [codegencs command-line tool](https://github.com/Drizin/CodegenCS#dotnet-codegencs-simplepocogenerator).
+A very basic template (to generate [simple POCOs](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)) can be invoked using [dotnet-codegencs command-line tool](https://github.com/Drizin/CodegenCS#dotnet-codegencs-simplepocogenerator).
 
 **Sample usage**:
 
-```codegencs simplepocogenerator AdventureWorks.json --Namespace=MyProject.POCOs```
+```dotnet-codegencs simplepocogenerator AdventureWorks.json --Namespace=MyProject.POCOs```
 
-For more options use ```codegencs simplepocogenerator -?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)
+For more options use ```dotnet-codegencs simplepocogenerator -?``` or check out [Simple POCO documentation](https://github.com/Drizin/CodegenCS/tree/master/src/CodegenCS.DbSchema.Templates/SimplePOCOGenerator)
 
 # Usage (alternative method using Powershell)
 

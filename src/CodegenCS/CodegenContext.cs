@@ -22,13 +22,7 @@ namespace CodegenCS
         // TODO: https://stackoverflow.com/questions/4942624/how-to-convert-dictionarystring-object-to-dictionarystring-string-in-c-sha
 
         /// <inheritdoc />
-        public IReadOnlyList<ICodegenOutputFile> OutputFiles
-        { 
-            get 
-            { 
-                return _outputFiles.Values.ToList(); 
-            }
-        }
+        public IReadOnlyList<ICodegenOutputFile> OutputFiles => new ReadOnlyCollection<ICodegenOutputFile>(_outputFiles.Values.ToList());
 
         public virtual bool OnOutputFileRenamed(string oldRelativePath, string newRelativePath)
         {
@@ -46,6 +40,7 @@ namespace CodegenCS
         public ICodegenOutputFile DefaultOutputFile { get { return _defaultOutputFile; } }
         protected bool _defaultOutputFileIsInContext = false;
         protected ICodegenOutputFile _defaultOutputFile;
+        protected Func<string, ICodegenContext, ICodegenOutputFile> _outputFileFactory;
 
         public DependencyContainer DependencyContainer { get { return _dependencyContainer; } }
 
@@ -56,33 +51,53 @@ namespace CodegenCS
 
         #region ctors
         /// <inheritdocs />
-
-        public CodegenContext() : this(new CodegenOutputFile(string.Empty))
+        /// <param name="defaultOutputFileName">Filename for DefaultOutput</param>
+        public CodegenContext(string defaultOutputFileName = "") 
+            : this(
+                    outputFileFactory: (string relativePath, ICodegenContext ctx) => new CodegenOutputFile(relativePath),
+                    defaultOutputFileName: defaultOutputFileName
+                  )
         {
         }
-        protected CodegenContext(ICodegenOutputFile defaultOutputFile)
+
+        /// <inheritdocs />
+        /// <param name="defaultOutputFileName">Filename for DefaultOutput</param>
+        /// <param name="outputFileFactory">Factory to build new Output Files (created through <see cref="this[string]"/> indexer)</param>
+        public CodegenContext(Func<string, ICodegenContext, ICodegenOutputFile> outputFileFactory, string defaultOutputFileName = "")
         {
-            defaultOutputFile.SetContext(this);
+            _outputFileFactory = outputFileFactory;
+
             // Register this context iself in it's own container
             _dependencyContainer.RegisterSingleton<ICodegenContext>(this);
             _dependencyContainer.RegisterSingleton<CodegenContext>(this);
 
-            _defaultOutputFile = defaultOutputFile;
-            RegisterDefaultOutputFile();
-        }
-        protected CodegenContext(Func<ICodegenContext, ICodegenOutputFile> defaultOutputFileFactory)
-        {
-            // Register this context iself in it's own container
-            _dependencyContainer.RegisterSingleton<ICodegenContext>(this);
-            _dependencyContainer.RegisterSingleton<CodegenContext>(this);
+            string relativePath = defaultOutputFileName;
 
-            _defaultOutputFile = defaultOutputFileFactory(this);
+            var newOutputFile = _outputFileFactory(relativePath, this);
+
+            // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context (into ICodegenOutputFile dependency container)
+            newOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
+            newOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
+            newOutputFile.SetContext(this);
+
+            //this._outputFiles[relativePath] = newOutputFile; 
+            // The defaultOutputFile is added to the list of OutputFiles only at the first write:
+            _defaultOutputFile = newOutputFile;
+            _defaultOutputFile.Written += (s, e) =>
+            {
+                if (!_defaultOutputFileIsInContext)
+                {
+                    _outputFiles.Add(_defaultOutputFile.RelativePath, _defaultOutputFile);
+                    _defaultOutputFileIsInContext = true;
+                }
+            };
+
             RegisterDefaultOutputFile();
         }
 
         protected void RegisterDefaultOutputFile()
         {
-            // Then the defaultOutputFile in it's own container
+            // Register the defaultOutputFile in ICodegenContext dependency container
             _dependencyContainer.RegisterSingleton<ICodegenOutputFile>(() => _defaultOutputFile);
             _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => _defaultOutputFile);
             if (_defaultOutputFile is CodegenOutputFile)
@@ -90,18 +105,6 @@ namespace CodegenCS
             if (_defaultOutputFile is CodegenTextWriter)
                 _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => (CodegenTextWriter)_defaultOutputFile);
 
-            // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context
-            _defaultOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
-            _defaultOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
-
-            _defaultOutputFile.Written += (s, e) => 
-            { 
-                if (!_defaultOutputFileIsInContext) 
-                {
-                    _outputFiles.Add(_defaultOutputFile.RelativePath, _defaultOutputFile);
-                    _defaultOutputFileIsInContext = true;
-                } 
-            };
         }
         #endregion
 
@@ -113,9 +116,9 @@ namespace CodegenCS
             {
                 if (!this._outputFiles.ContainsKey(relativePath))
                 {
-                    var newOutputFile = new CodegenOutputFile(relativePath);
+                    var newOutputFile = _outputFileFactory(relativePath, this);
 
-                    // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context
+                    // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context (into ICodegenOutputFile dependency container)
                     newOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
                     newOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
                     newOutputFile.SetContext(this);
@@ -241,44 +244,31 @@ namespace CodegenCS
     {
         #region Members
         /// <summary>
-        /// Default Type for new OutputFiles, if it's a fixed value.
-        /// </summary>
-        protected FT? _defaultType { get; } = null;
-
-        /// <summary>
-        /// Default Type for new OutputFiles, if it's a Func
+        /// Func to get the Default Type for new OutputFiles
         /// </summary>
         protected Func<string, FT> _getDefaultType { get; } = null;
 
-        IReadOnlyList<ICodegenOutputFile<FT>> ICodegenContext<FT>.OutputFiles
-        {
-            get
-            {
-                return new ReadOnlyCollection<ICodegenOutputFile<FT>>(new List<ICodegenOutputFile<FT>>(_outputFiles.Values.Cast<ICodegenOutputFile<FT>>()));
-            }
-        }
+        #region ICodegenContext<FT, O> Implementation (this is the default implementation, meaning it will hide base class)
+        public new IReadOnlyList<O> OutputFiles => ((ICodegenContext<FT, O>)this).OutputFiles;
+        IReadOnlyList<O> ICodegenContext<FT, O>.OutputFiles => new ReadOnlyCollection<O>(new List<O>(_outputFiles.Values.Cast<O>()));
+        public new O DefaultOutputFile => ((ICodegenContext<FT, O>)this).DefaultOutputFile;
+        O ICodegenContext<FT, O>.DefaultOutputFile => (O)_defaultOutputFile;
+        #endregion
 
-        IReadOnlyList<O> ICodegenContext<FT, O>.OutputFiles
-        {
-            get
-            {
-                return new ReadOnlyCollection<O>(new List<O>(_outputFiles.Values.Cast<O>()));
-            }
-        }
-
-        public new O DefaultOutputFile { get { return (O)_defaultOutputFile; } }
-        O ICustomWriterCodegenContext<O>.DefaultOutputFile => (O)_defaultOutputFile;
+        #region ICodegenContext<FT> Implementation (Conflicting interface)
+        IReadOnlyList<ICodegenOutputFile<FT>> ICodegenContext<FT>.OutputFiles => new ReadOnlyCollection<ICodegenOutputFile<FT>>(new List<ICodegenOutputFile<FT>>(_outputFiles.Values.Cast<ICodegenOutputFile<FT>>()));
         ICodegenOutputFile<FT> ICodegenContext<FT>.DefaultOutputFile => (ICodegenOutputFile<FT>)_defaultOutputFile;
+        #endregion
+        
+        #region ICustomWriterCodegenContext<O> (Conflicting Interface)
+        IReadOnlyList<O> ICustomWriterCodegenContext<O>.OutputFiles => new ReadOnlyCollection<O>(_outputFiles.Values.Cast<O>().ToList());
+        O ICustomWriterCodegenContext<O>.DefaultOutputFile => (O)_defaultOutputFile;
+        #endregion
 
-        IReadOnlyList<O> ICustomWriterCodegenContext<O>.OutputFiles 
-        {
-            get
-            {
-                return _outputFiles.Values.Cast<O>().ToList();
-            }
-        }
 
-        protected Func<string, FT, ICodegenContext, O> _outputFileFactory;
+
+
+        protected new Func<string, FT, ICodegenContext, O> _outputFileFactory;
         #endregion
 
         #region ctors
@@ -286,10 +276,15 @@ namespace CodegenCS
         /// Creates new in-memory context.
         /// </summary>
         /// <param name="defaultType">Default Type for files (if file type is not defined)</param>
-        /// <param name="outputFileFactory">Factory to build output files</param>
-        public CodegenContext(FT defaultType, Func<string, FT, ICodegenContext, O> outputFileFactory) : base()
+        /// <param name="outputFileFactory">Factory to build new Output Files (created through <see cref="this[string]"/> indexer)</param>
+        /// <param name="defaultOutputFileName">Filename for DefaultOutput</param>
+        public CodegenContext(FT defaultType, Func<string, FT, ICodegenContext, O> outputFileFactory, string defaultOutputFileName = "")
+            : this(
+                      getDefaultType: (relativePath) => defaultType,
+                      outputFileFactory: outputFileFactory,
+                      defaultOutputFileName: defaultOutputFileName
+                  )
         {
-            _defaultType = defaultType;
             _outputFileFactory = outputFileFactory;
             _defaultOutputFile = outputFileFactory(null, defaultType, this);
         }
@@ -298,8 +293,13 @@ namespace CodegenCS
         /// Creates new in-memory context.
         /// </summary>
         /// <param name="getDefaultType">Default Type for files (if file type is not defined)</param>
-        /// <param name="outputFileFactory">Factory to build output files</param>
-        public CodegenContext(Func<string, FT> getDefaultType, Func<string, FT, ICodegenContext, O> outputFileFactory) : base((ctx) => outputFileFactory(null, getDefaultType(null), ctx))
+        /// <param name="outputFileFactory">Factory to build new Output Files (created through <see cref="this[string]"/> indexer)</param>
+        /// <param name="defaultOutputFileName">Filename for DefaultOutput</param>
+        public CodegenContext(Func<string, FT> getDefaultType, Func<string, FT, ICodegenContext, O> outputFileFactory, string defaultOutputFileName = "") 
+            : base(
+                      outputFileFactory: (string relativePath, ICodegenContext ctx) => outputFileFactory(relativePath, getDefaultType(relativePath), ctx),
+                      defaultOutputFileName: defaultOutputFileName
+                  )
         {
             _getDefaultType = getDefaultType;
             _outputFileFactory = outputFileFactory;
@@ -317,7 +317,7 @@ namespace CodegenCS
         {
             get
             {
-                FT type = _defaultType ?? _getDefaultType(relativePath);
+                FT type = _getDefaultType(relativePath);
                 return this[relativePath, type];
             }
         }
@@ -337,20 +337,22 @@ namespace CodegenCS
                 {
                     var newOutputFile = _outputFileFactory(relativePath, fileType, this);
 
-                    // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context
+                    // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context (into ICodegenOutputFile dependency container)
                     newOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
                     newOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
-                    newOutputFile.FileType = fileType;
                     newOutputFile.SetContext(this);
+                    newOutputFile.FileType = fileType;
 
                     this._outputFiles[relativePath] = newOutputFile;
                 }
                 return (O)this._outputFiles[relativePath];
             }
         }
-        #region Explicitly Implementing Conflicting Interfaces
+        #region ICodegenContext<FT> and ICustomWriterCodegenContext<O> implementation
         ICodegenOutputFile<FT> ICodegenContext<FT>.this[string relativePath, FT fileType] => this[relativePath, fileType];
         ICodegenOutputFile<FT> ICodegenContext<FT>.this[string relativePath] => this[relativePath];
+
+        O ICustomWriterCodegenContext<O>.this[string relativePath] => this[relativePath];
         #endregion
 
         #endregion
@@ -361,7 +363,7 @@ namespace CodegenCS
             bool renamed = base.OnOutputFileRenamed(oldRelativePath, newRelativePath);
             if (renamed)
             {
-                FT type = _defaultType ?? _getDefaultType(newRelativePath);
+                FT type = _getDefaultType(newRelativePath);
                 this[newRelativePath].FileType = type;
             }
             return renamed;

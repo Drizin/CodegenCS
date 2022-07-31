@@ -25,19 +25,19 @@ To use this template you first need to run [codegencs extract-dbschema](https://
 
 **Sample usage**:
 
-```codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
+```dotnet-codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
 
 ## 3. Generate the POCOs
 
 **Sample usage**:
 
-```codegencs simplepocogenerator AdventureWorks.json --TargetFolder=OutputFolder --Namespace=MyProject.POCOs```
+```dotnet-codegencs simplepocogenerator AdventureWorks.json --TargetFolder=OutputFolder --Namespace=MyProject.POCOs```
 
-```codegencs simplepocogenerator AdventureWorks.json --TargetFolder=. --Namespace=MyProject.POCOs --SingleFile --CrudExtensionMethods```
+```dotnet-codegencs simplepocogenerator AdventureWorks.json --TargetFolder=. --Namespace=MyProject.POCOs --SingleFile --CrudExtensionMethods```
 
-```codegencs simplepocogenerator AdventureWorks.json --TargetFolder=. --Namespace=MyProject.POCOs --CrudClassMethods```
+```dotnet-codegencs simplepocogenerator AdventureWorks.json --TargetFolder=. --Namespace=MyProject.POCOs --CrudClassMethods```
 
-**To see all available options use** ```codegencs simplepocogenerator -?```
+**To see all available options use** ```dotnet-codegencs simplepocogenerator -?```
 
 # <a name="customizing"></a>Customizing the Templates
 

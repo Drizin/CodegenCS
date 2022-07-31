@@ -355,7 +355,7 @@ namespace CodegenCS.DbSchema.Templates.SimplePOCOGenerator
             // Export CS template (for customization)
             // Save with CSX extension so that it doesn't interfere with other existing CSPROJs (which by default include *.cs)
             GeneratorContext[typeof(SimplePOCOGenerator).Name + ".csx"].WriteLine(
-                $"//This file is supposed to be launched using: codegencs run {typeof(SimplePOCOGenerator).Name}.csx" + Environment.NewLine
+                $"//This file is supposed to be launched using: dotnet-codegencs run {typeof(SimplePOCOGenerator).Name}.csx" + Environment.NewLine
                 + new StreamReader(typeof(SimplePOCOGenerator).Assembly.GetManifestResourceStream(typeof(SimplePOCOGenerator).FullName + ".cs")).ReadToEnd() + Environment.NewLine
                 + mainProgram.ToString()
             );
