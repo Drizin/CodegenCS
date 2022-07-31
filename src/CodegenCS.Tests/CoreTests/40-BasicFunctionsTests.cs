@@ -165,6 +165,71 @@ I have a LOT of things to do today:
 
             Assert.AreEqual(expected, _w.GetContents());
         }
+
+        [Test]
+        public void TestIEnumerable3()
+        {
+            string[] cols = new string[] { "AddressLine1", "AddressLine2", "City" };
+
+            _w.Write($$"""
+            INSERT INTO [Person].[Address]
+            (
+                {{cols.Select(col => "[" + col + "]").Render(RenderEnumerableOptions.MultiLineCSV)}}
+            )
+            VALUES
+            (
+                {{cols.Select(col => "@" + col).Render(RenderEnumerableOptions.MultiLineCSV)}}
+            )
+            """);
+
+            string expected = """
+                INSERT INTO [Person].[Address]
+                (
+                    [AddressLine1],
+                    [AddressLine2],
+                    [City]
+                )
+                VALUES
+                (
+                    @AddressLine1,
+                    @AddressLine2,
+                    @City
+                )
+                """;
+
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        private void CustomRender(ICodegenTextWriter writer, string column)
+        {
+            writer.Write("[" + column + "]");
+        }
+
+        [Test]
+        public void TestIEnumerable4()
+        {
+            string[] cols = new string[] { "AddressLine1", "AddressLine2", "City" };
+
+            _w.Write($$"""
+            INSERT INTO [Person].[Address]
+            (
+                {{cols.Render(col => CustomRender(_w, col), RenderEnumerableOptions.MultiLineCSV)}}
+            )
+            """);
+
+            string expected = """
+                INSERT INTO [Person].[Address]
+                (
+                    [AddressLine1],
+                    [AddressLine2],
+                    [City]
+                )
+                """;
+
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+
         #endregion
 
 

@@ -1,5 +1,7 @@
 ﻿using CodegenCS.___InternalInterfaces___;
+using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace CodegenCS
 {
@@ -13,6 +15,9 @@ namespace CodegenCS
     {
         public IEnumerable<T> Items { get; private set; }
         public RenderEnumerableOptions RenderOptions { get; private set; } = null; // if not set will follow ICodegenTextWriter.DefaultIEnumerableRenderOptions
+
+        public Action<T> ItemAction { get; internal set; }
+        public object ItemActionInstance { get; internal set; }
 
         public InlineIEnumerable(IEnumerable<T> items)
         {
@@ -53,15 +58,39 @@ namespace CodegenCS
             return new InlineIEnumerable<T>(items);
         }
 
-
         /// <summary>
         /// Renders the items by specifying custom rendering options that define how items are separated.
         /// For presets check the static members of <see cref="RenderEnumerableOptions"/> (e.g. <see cref="RenderEnumerableOptions.LineBreaksWithAutoSpacer"/>, etc)
         /// </summary>
         public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, RenderEnumerableOptions customRenderOptions)
         {
-            
             return new InlineIEnumerable<T>(items, customRenderOptions);
+        }
+
+
+        /// <summary>
+        /// Like <see cref="Render{FormattableString}(IEnumerable{FormattableString})"/> but instead of rendering the items "as is" it will render the items by running an Action.
+        /// </summary>
+        public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, Expression<Action<T>> action)
+        {
+            //https://stackoverflow.com/questions/5409580/action-delegate-how-to-get-the-instance-that-call-the-method
+            MethodCallExpression call = (MethodCallExpression)action.Body;
+            LambdaExpression targetOnly = Expression.Lambda(call.Object, null);
+            Delegate compiled = targetOnly.Compile();
+            object instance = compiled.DynamicInvoke(null);
+            return new InlineIEnumerable<T>(items) { ItemAction = action.Compile(), ItemActionInstance = instance };
+        }
+
+
+        /// <summary>
+        /// Like <see cref="Render{T}(IEnumerable{T}, RenderEnumerableOptions)"/> but instead of rendering the items "as is" it will render the items by running an Action.
+        public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, Expression<Action<T>> action, RenderEnumerableOptions customRenderOptions)
+        {
+            MethodCallExpression call = (MethodCallExpression)action.Body;
+            LambdaExpression targetOnly = Expression.Lambda(call.Object, null);
+            Delegate compiled = targetOnly.Compile();
+            object instance = compiled.DynamicInvoke(null);
+            return new InlineIEnumerable<T>(items, customRenderOptions) { ItemAction = action.Compile(), ItemActionInstance = instance };
         }
 
 
@@ -107,11 +136,11 @@ namespace CodegenCS
         {
         }
 
-        public static RenderEnumerableOptions CreateWithCustomSeparator(string customSeparator, bool singleLine = false) => new RenderEnumerableOptions()
+        public static RenderEnumerableOptions CreateWithCustomSeparator(string customSeparator, bool enforceLineBreakAfterLastItem = true) => new RenderEnumerableOptions()
         {
             CustomSeparator = customSeparator,
             BetweenItemsBehavior = ItemsSeparatorBehavior.WriteCustomSeparator,
-            AfterLastItemBehavior = singleLine ? ItemsSeparatorBehavior.None : ItemsSeparatorBehavior.EnsureLineBreakBeforeNextWrite,
+            AfterLastItemBehavior = enforceLineBreakAfterLastItem ? ItemsSeparatorBehavior.EnsureLineBreakBeforeNextWrite : ItemsSeparatorBehavior.None,
         };
 
         #region Some predefined settings
@@ -138,7 +167,7 @@ namespace CodegenCS
         /// Between the items will write commas (no linebreaks).
         /// After the last item won't write anything (no linebreaks or anything).
         /// </summary>
-        public static RenderEnumerableOptions SingleLineCSV => RenderEnumerableOptions.CreateWithCustomSeparator(", ", singleLine: true);
+        public static RenderEnumerableOptions SingleLineCSV => RenderEnumerableOptions.CreateWithCustomSeparator(", ", enforceLineBreakAfterLastItem: true);
 
         /// <summary>
         /// Between the items will write a comma and linebreak. 

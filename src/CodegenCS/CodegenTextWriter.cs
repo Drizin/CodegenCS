@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -611,6 +612,18 @@ namespace CodegenCS
                 OnWritten(value);
             }
         }
+        
+        /// <summary>
+        /// Writes a new line
+        /// </summary>
+        /// <param name="newLine">Allows any newLine character (\r, \r\n, \n). If not defined will use default <see cref="NewLine"/> property </param>
+        protected void InnerWriteNewLine(string newLine = null)
+        {
+            InnerWriteRaw(newLine ?? this.NewLine);
+            _currentLine.Clear();
+            _nextWriteRequiresLineBreak = false;
+            _dontIndentCurrentLine = false;
+        }
         #endregion
 
         #region InnerWrite(string value): this is the "heart" of the indentation-control. It writes line by line, and writes the indent strings before each new line
@@ -650,12 +663,9 @@ namespace CodegenCS
 
                 InnerWriteRaw(line);
                 if (_normalizeLineEndings)
-                    InnerWriteRaw(NewLine);
+                    InnerWriteNewLine(); // will normalize to writer this.NewLine
                 else
-                    InnerWriteRaw(lineBreak);
-                _nextWriteRequiresLineBreak = false;
-                _currentLine.Clear();
-                _dontIndentCurrentLine = false;
+                    InnerWriteNewLine(lineBreak);
             }
             string lastLine = value.Substring(lastPos);
 
@@ -823,8 +833,14 @@ namespace CodegenCS
 
             #region If IEnumerable<T> was wrapped using IEnumerableExtensions.Render (that allow to specify custom EnumerableRenderOptions), unwrap.
             RenderEnumerableOptions enumerableRenderOptions = this.DefaultIEnumerableRenderOptions; // by default uses the CodegenTextWriter setting, but it may be overriden in the wrapper
+            Delegate ienumerableAction = null;
             if (typeof(IInlineIEnumerable).IsAssignableFrom(arg.GetType()))
             {
+                if (IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerable<>)))
+                {
+                    ienumerableAction = (Delegate)((PropertyInfo)arg.GetType().GetMember("ItemAction").Single()).GetValue(arg);
+                }
+
                 enumerableRenderOptions = ((IInlineIEnumerable)arg).RenderOptions ?? enumerableRenderOptions;
                 arg = ((IInlineIEnumerable)arg).Items;
                 interfaceTypes = arg.GetType().GetInterfaces();
@@ -845,7 +861,16 @@ namespace CodegenCS
                     {
                         if (addMiddleSeparator)
                             WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: false, previousItemWroteMultilines: previousItemWroteMultilines);
-                        InnerWriteFormattableArgument(item, "");
+
+                        if (ienumerableAction != null) // if there's a specific action to be executed for each item
+                        {
+                            ienumerableAction.DynamicInvoke(item); 
+                            //TODO: use Invoke (much faster than DynamicInvoke). We have Action<T> and we have the caller instance from the Expression<Action<T>>
+                        }
+                        else
+                        {
+                            InnerWriteFormattableArgument(item, "");
+                        }
                         addMiddleSeparator = true;
                         string previousItem = this._innerWriter.ToString().Substring(previousPos); 
                         previousItemWroteMultilines = _lineBreaksRegex.Split(previousItem.Trim()).Length > 1; // at least 1 line break inside the rendered item
@@ -1003,7 +1028,7 @@ namespace CodegenCS
                     EnsureLineBreakBeforeNextWrite(); 
                     break;
                 case ItemsSeparatorBehavior.WriteCustomSeparator:
-                    InnerWriteRaw(options.CustomSeparator); 
+                    InnerWrite(options.CustomSeparator);
                     break;
                 case ItemsSeparatorBehavior.None:
                     break;
@@ -1059,7 +1084,6 @@ namespace CodegenCS
             if (value is RawString)
                 return Write((RawString)value);
 
-
             InnerWriteFormattableArgument(value, "");
             return this;
         }
@@ -1085,9 +1109,7 @@ namespace CodegenCS
         /// </summary>
         public ICodegenTextWriter WriteLine()
         {
-            InnerWriteRaw(this.NewLine);
-            _currentLine.Clear();
-            _nextWriteRequiresLineBreak = false;
+            InnerWriteNewLine();
             return this;
         }
 

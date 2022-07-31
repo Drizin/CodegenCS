@@ -37,6 +37,16 @@ namespace CodegenCS
             return falsePart;
         }
 
+        /// <summary>
+        /// Immediate IF: Returns one of two objects, depending on the evaluation of an expression.
+        /// </summary>
+        public static Func<FormattableString> IIF(bool condition, Func<FormattableString> truePart, Func<FormattableString> falsePart = null)
+        {
+            if (condition)
+                return truePart;
+            return falsePart;
+        }
+
         //TODO: Add something like $"{TWS}" (trim whitespace) that would behave like Jinja templates:
         //https://stackoverflow.com/questions/45719062/jinja-docx-template-avoiding-new-line-in-nested-for
         //https://ttl255.com/jinja2-tutorial-part-3-whitespace-control/
