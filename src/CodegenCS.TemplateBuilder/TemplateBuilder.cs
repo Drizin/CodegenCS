@@ -1,96 +1,93 @@
-﻿using CodegenCS.___InternalInterfaces___;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Console = InterpolatedColorConsole.ColoredConsole;
 using static InterpolatedColorConsole.Symbols;
-using System.CommandLine.Parsing;
+using System.Threading.Tasks;
+using CodegenCS.Utils;
 
 namespace CodegenCS.TemplateBuilder
 {
     public class TemplateBuilder
     {
+        protected ILogger _logger;
+        protected TemplateBuilderArgs _args;
         protected FileInfo[] inputFiles;
 
-        public TemplateBuilder()
+        public TemplateBuilder(ILogger logger, TemplateBuilderArgs args)
         {
+            _logger = logger;
+            _args = args;
         }
 
-        public class RunCommandArgs
+        /// <summary>
+        /// Template Builder options.
+        /// </summary>
+        public class TemplateBuilderArgs
         {
+            /// <summary>
+            /// Path(s) for input CS file(s) that will be compiled
+            /// </summary>
             public string[] Template { get; set; }
+
+            /// <summary>
+            /// Path for output DLL (Folder and/or Filename)
+            /// If folder is not provided then dll is saved in current folder
+            /// If filename is not provided then dll is named like the first template input file 
+            /// (e.g.MyTemplate.cs will be compiled into MyTemplate.dll)
+            /// </summary>
             public string Output { get; set; }
+
+            public bool VerboseMode { get; set; }
         }
 
-        public int HandleCommand(ParseResult parseResult, RunCommandArgs cliArgs)
+        public async Task<int> ExecuteAsync()
         {
-            bool debugMode = (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--debug"));
-
-            inputFiles = new FileInfo[cliArgs.Template.Length];
-            for (int i=0; i < cliArgs.Template.Length; i++)
+            inputFiles = new FileInfo[_args.Template.Length];
+            for (int i=0; i < _args.Template.Length; i++)
             {
-                if (!((inputFiles[i] = new FileInfo(cliArgs.Template[i])).Exists || (inputFiles[i] = new FileInfo(cliArgs.Template[i] + ".cs")).Exists || (inputFiles[i] = new FileInfo(cliArgs.Template[i] + ".csx")).Exists))
+                if (!((inputFiles[i] = new FileInfo(_args.Template[i])).Exists || (inputFiles[i] = new FileInfo(_args.Template[i] + ".cs")).Exists || (inputFiles[i] = new FileInfo(_args.Template[i] + ".csx")).Exists))
                 {
-                    Console.WriteLineError(ConsoleColor.Red, $"Cannot find find Template Script {cliArgs.Template}");
+                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Cannot find Template Script {ConsoleColor.Yellow}'{_args.Template[i]}'{PREVIOUS_COLOR}");
                     return -1;
                 }
             }
 
             string outputFolder = Directory.GetCurrentDirectory();
             string outputFileName = Path.GetFileNameWithoutExtension(inputFiles[0].Name) + ".dll";
-            if (!string.IsNullOrWhiteSpace(cliArgs.Output))
+            if (!string.IsNullOrWhiteSpace(_args.Output))
             {
-                if (cliArgs.Output.Contains(Path.DirectorySeparatorChar) && cliArgs.Output.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                    outputFolder = Path.GetFullPath(cliArgs.Output);
-                else if (cliArgs.Output.Contains(Path.DirectorySeparatorChar) && !cliArgs.Output.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                    outputFolder = new FileInfo(Path.GetFullPath(cliArgs.Output)).Directory.FullName;
-                if (!cliArgs.Output.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                    outputFileName = Path.GetFileNameWithoutExtension(new FileInfo(Path.GetFullPath(cliArgs.Output)).Name) + ".dll";
+                if (_args.Output.Contains(Path.DirectorySeparatorChar) && _args.Output.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                    outputFolder = Path.GetFullPath(_args.Output);
+                else if (_args.Output.Contains(Path.DirectorySeparatorChar) && !_args.Output.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                    outputFolder = new FileInfo(Path.GetFullPath(_args.Output)).Directory.FullName;
+                if (!_args.Output.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                    outputFileName = Path.GetFileNameWithoutExtension(_args.Output) + ".dll";
             }
 
-            using (var consoleContext = Console.WithColor(ConsoleColor.Cyan))
+            await _logger.WriteLineAsync(ConsoleColor.Green, $"Building {ConsoleColor.Yellow}'{string.Join(", ", inputFiles.Select(inp => inp.Name))}'{PREVIOUS_COLOR}...");
+
+
+            if (_args.VerboseMode)
+                await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Cyan}Microsoft.CodeAnalysis.CSharp.dll{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{typeof(CSharpParseOptions).Assembly.GetName().Version}{PREVIOUS_COLOR}");
+
+            var compiler = new RoslynCompiler(_logger);
+
+            var sources = inputFiles.Select(inp => inp.FullName).ToArray();
+
+            var targetFile = Path.Combine(outputFolder, outputFileName);
+
+            bool success = await compiler.Compile(sources, targetFile);
+
+            if (!success)
             {
-                System.Console.CancelKeyPress += (s, e) =>
-                {
-                    Console.WriteLineError(ConsoleColor.Red, $"Stopping 'dotnet template build...'");
-                    consoleContext.RestorePreviousColor();
-                    //Environment.Exit(-1); CancelKeyPress will do it automatically since we didn't set e.Cancel to true
-                    Console.ResetColor();
-                };
-
-                Console.WriteLine(ConsoleColor.Green, $"Building {ConsoleColor.Yellow}'{string.Join(", ", inputFiles.Select(inp => inp.Name))}'{PREVIOUS_COLOR}...");
-
-
-                if (debugMode)
-                    Console.WriteLine(ConsoleColor.DarkGray, $"{ConsoleColor.Cyan}Microsoft.CodeAnalysis.CSharp.dll{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{typeof(CSharpParseOptions).Assembly.GetName().Version}{PREVIOUS_COLOR}");
-
-                var compiler = new RoslynCompiler();
-
-                var sources = inputFiles.Select(inp => inp.FullName).ToArray();
-
-                var targetFile = Path.Combine(outputFolder, outputFileName);
-
-                bool success = compiler.Compile(sources, targetFile);
-
-                if (!success)
-                {
-                    Console.WriteLineError(ConsoleColor.Red, $"Error while building '{string.Join(", ", inputFiles.Select(inp => inp.Name))}'.");
-                    return -1;
-                }
-
-                Console.WriteLine(ConsoleColor.Green, $"\nSuccessfully built template into {ConsoleColor.White}'{targetFile}'{PREVIOUS_COLOR}.");
-                return 0;
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Error while building '{string.Join(", ", inputFiles.Select(inp => inp.Name))}'.");
+                return -1;
             }
+
+            await _logger.WriteLineAsync(ConsoleColor.Green, $"\nSuccessfully built template into {ConsoleColor.White}'{targetFile}'{PREVIOUS_COLOR}.");
+            return 0;
 
         }
        

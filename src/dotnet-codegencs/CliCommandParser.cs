@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Binding;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using SimplePOCOGenerator = CodegenCS.DbSchema.Templates.SimplePOCOGenerator;
 using EFCoreGenerator = CodegenCS.DbSchema.Templates.EFCoreGenerator;
 using System.CommandLine.Help;
@@ -22,11 +19,11 @@ namespace CodegenCS.DotNetTool
     {
         public static readonly RootCommand RootCommand = new RootCommand();
 
-        private static readonly Command BuildTemplateCommand = CodegenCS.TemplateBuilder.CliCommand.GetCommand();
-        private static readonly Command RunTemplateCommand = CodegenCS.TemplateLauncher.CliCommand.GetCommand();
+        private static readonly Command BuildTemplateCommand = Commands.TemplateBuildCommand.GetCommand();
+        private static readonly Command RunTemplateCommand = Commands.TemplateRunCommand.GetCommand();
         private static readonly Command SimplePOCOGeneratorCommand = SimplePOCOGenerator.CliCommand.GetCommand();
         private static readonly Command EFCoreGeneratorCommand = EFCoreGenerator.CliCommand.GetCommand();
-        private static readonly Command DbSchemaExtractorCommand = CodegenCS.DbSchema.Extractor.CliCommand.GetCommand();
+        private static readonly Command DbSchemaExtractorCommand = DbSchema.Extractor.CliCommand.GetCommand();
 
         private static readonly Option HelpOption = new Option<bool>(new[] { "--help", "-?" }, "\nShow Help"); // default lib will also track "-h" 
         private static readonly Option VerboseOption = new Option<bool>(new[] { "--verbose", "--debug" }, getDefaultValue: () => false, "Verbose mode") { }; // verbose output, detailed exceptions
@@ -35,8 +32,8 @@ namespace CodegenCS.DotNetTool
         {
             var templateCommands = new Command("template");
             rootCommand.AddCommand(templateCommands);
-            templateCommands.AddCommand(BuildTemplateCommand);
             templateCommands.AddCommand(RunTemplateCommand);
+            templateCommands.AddCommand(BuildTemplateCommand);
 
             rootCommand.AddCommand(SimplePOCOGeneratorCommand);
             rootCommand.AddCommand(EFCoreGeneratorCommand);

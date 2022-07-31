@@ -1,13 +1,12 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using CodegenCS.Utils;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using Console = InterpolatedColorConsole.ColoredConsole;
 
 namespace CodegenCS.TemplateBuilder
 {
@@ -18,9 +17,11 @@ namespace CodegenCS.TemplateBuilder
         protected readonly CSharpCompilationOptions _compilationOptions;        
         protected readonly CSharpParseOptions _parseOptions;
         protected readonly string _dotNetCoreDir;
+        protected ILogger _logger;
 
-        public RoslynCompiler()
+        public RoslynCompiler(ILogger logger)
         {
+            _logger = logger;
             var privateCoreLib = typeof(object).GetTypeInfo().Assembly.Location;
             _dotNetCoreDir = Path.GetDirectoryName(privateCoreLib);
 
@@ -51,7 +52,7 @@ namespace CodegenCS.TemplateBuilder
             _namespaces.Add("System.Collections");
             _namespaces.Add("System.Collections.Generic");
             _namespaces.Add("System.Collections.Concurrent");
-            AddAssembly(MetadataReference.CreateFromFile(Assembly.Load("System.Collections").Location));
+            AddAssembly("System.Collections.dll"); //AddAssembly(MetadataReference.CreateFromFile(Assembly.Load("System.Collections").Location));
             AddAssembly("System.Collections.Concurrent.dll");
             AddAssembly("System.Collections.NonGeneric.dll");
             #endregion
@@ -80,6 +81,7 @@ namespace CodegenCS.TemplateBuilder
             AddAssembly("System.Reflection.dll");
             _namespaces.Add("System.Reflection");
 
+            AddAssembly(typeof(System.Text.RegularExpressions.Regex)); // .net framework
             AddAssembly("System.Text.RegularExpressions.dll");
             _namespaces.Add("System.Text.RegularExpressions");
 
@@ -178,7 +180,7 @@ namespace CodegenCS.TemplateBuilder
         #endregion
 
         #region Compile
-        public bool Compile(string[] sources, string targetFile)
+        public async Task<bool> Compile(string[] sources, string targetFile)
         {
             var syntaxTrees = sources.Select(source => CSharpSyntaxTree.ParseText(File.ReadAllText(source), _parseOptions)).ToList();
             // ParseText really better? https://stackoverflow.com/questions/16338131/using-roslyn-to-parse-transform-generate-code-am-i-aiming-too-high-or-too-low
@@ -194,33 +196,33 @@ namespace CodegenCS.TemplateBuilder
             {
                 var emitResult = compilation.Emit(dllStream/*, pdbStream*/);
 
-                Action<Diagnostic> writeDiag = (diag) =>
+                Action<ConsoleColor, Diagnostic> writeError = async (color, diag) =>
                 {
                     var lineStart = diag.Location.GetLineSpan().StartLinePosition.Line;
                     var lineEnd = diag.Location.GetLineSpan().EndLinePosition.Line;
-                    Console.WriteLine($"{diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
+                    await _logger.WriteLineErrorAsync($"  {color}{diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
                 };
-
                 var errors = emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
                 if (errors.Any())
                 {
-                    using (Console.WithColor(ConsoleColor.Red))
-                    {
-                        Console.WriteLine("Errors: ");
-                        foreach (var error in errors)
-                            writeDiag(error);
-                    }
+                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Errors: ");
+                    foreach (var error in errors)
+                        writeError(ConsoleColor.Red, error);
                 }
+
+                Action<ConsoleColor, Diagnostic> writeWarning = async (color, diag) =>
+                {
+                    var lineStart = diag.Location.GetLineSpan().StartLinePosition.Line;
+                    var lineEnd = diag.Location.GetLineSpan().EndLinePosition.Line;
+                    await _logger.WriteLineAsync($"  {color}{diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
+                };
 
                 var warnings = emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Warning);
                 if (warnings.Any())
                 {
-                    using (Console.WithColor(ConsoleColor.Yellow))
-                    {
-                        Console.WriteLine("Warnings: ");
-                        foreach (var warning in warnings)
-                            writeDiag(warning);
-                    }
+                    await _logger.WriteLineAsync(ConsoleColor.Yellow, $"Warnings: ");
+                    foreach (var warning in warnings)
+                        writeWarning(ConsoleColor.Yellow, warning);
                 }
 
                 if (!emitResult.Success)

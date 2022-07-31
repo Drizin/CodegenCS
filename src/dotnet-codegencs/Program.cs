@@ -34,11 +34,13 @@ namespace CodegenCS.DotNetTool
                 var parser = CliCommandParser.Instance;
                 var parseResult = parser.Parse(args);
 
-                bool debugMode = (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--verbose"));
-                if (debugMode)
-                    Console.WriteLine(ConsoleColor.DarkGray, "Debug mode on...");
+                bool verboseMode = (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--verbose"));
+                if (verboseMode)
+                    Console.WriteLine(ConsoleColor.DarkGray, "Verbose mode is on...");
 
-                return parseResult.Invoke(); //return CommandParser.RootCommand.Invoke(args);
+                var invoke = parseResult.InvokeAsync();
+                invoke.Wait();
+                return invoke.Result;
             }
             catch (Exception ex)
             {
