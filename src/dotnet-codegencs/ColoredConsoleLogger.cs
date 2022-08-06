@@ -21,7 +21,7 @@ namespace CodegenCS.DotNetTool
 
         public Task WriteLineAsync(RawString value)
         {
-            Console.WriteLine($"{value}");
+            Console.WriteLine($"{value.ToString()}");
             return Task.CompletedTask;
         }
 
@@ -39,13 +39,13 @@ namespace CodegenCS.DotNetTool
 
         public Task WriteLineAsync(ConsoleColor foregroundColor, RawString value)
         {
-            Console.WriteLine(foregroundColor, $"{value}");
+            Console.WriteLine(foregroundColor, $"{value.ToString()}");
             return Task.CompletedTask;
         }
 
         public Task WriteLineAsync(ConsoleColor foregroundColor, ConsoleColor backgroundColor, RawString value)
         {
-            Console.WriteLine(foregroundColor, backgroundColor, $"{value}");
+            Console.WriteLine(foregroundColor, backgroundColor, $"{value.ToString()}");
             return Task.CompletedTask;
         }
 
@@ -63,7 +63,7 @@ namespace CodegenCS.DotNetTool
 
         public Task WriteLineErrorAsync(RawString value)
         {
-            Console.WriteLineError($"{value}");
+            Console.WriteLineError($"{value.ToString()}");
             return Task.CompletedTask;
         }
 
@@ -81,13 +81,13 @@ namespace CodegenCS.DotNetTool
 
         public Task WriteLineErrorAsync(ConsoleColor foregroundColor, RawString value)
         {
-            Console.WriteLineError(foregroundColor, $"{value}");
+            Console.WriteLineError(foregroundColor, $"{value.ToString()}");
             return Task.CompletedTask;
         }
 
         public Task WriteLineErrorAsync(ConsoleColor foregroundColor, ConsoleColor backgroundColor, RawString value)
         {
-            Console.WriteLineError(foregroundColor, backgroundColor, $"{value}");
+            Console.WriteLineError(foregroundColor, backgroundColor, $"{value.ToString()}");
             return Task.CompletedTask;
         }
     }

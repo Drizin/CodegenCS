@@ -1,12 +1,13 @@
 ﻿using CodegenCS.___InternalInterfaces___;
-using CodegenCS.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using static InterpolatedColorConsole.Symbols;
+using System.Threading.Tasks;
+using CodegenCS.Utils;
+using System.CommandLine;
 
 namespace CodegenCS.TemplateLauncher
 {
@@ -125,41 +126,52 @@ namespace CodegenCS.TemplateLauncher
             Type foundInterface = null;
             Type iBaseXModelTemplate = null;
             Type iTypeTemplate = null;
+
+            if (entryPointClass != null)
+            {
+                for (int i = 0; i < interfacesPriority.Length && foundInterface == null; i++)
+                {
+                    if (IsAssignableToType(entryPointClass, interfacesPriority[i]))
+                    {
+                        foundInterface = interfacesPriority[i];
+                    }
+                }
+            }
+
             for (int i = 0; i < interfacesPriority.Length && entryPointClass == null; i++)
             {
                 if ((types2 = types.Where(t => IsAssignableToType(t, interfacesPriority[i]))).Count() == 1)
                 {
                     entryPointClass = types2.Single();
                     foundInterface = interfacesPriority[i];
-
-                    if (IsAssignableToType(entryPointClass, typeof(IBase1ModelTemplate<>)))
-                        iBaseXModelTemplate = typeof(IBase1ModelTemplate<>);
-                    else if (IsAssignableToType(entryPointClass, typeof(IBase2ModelTemplate<,>)))
-                        iBaseXModelTemplate = typeof(IBase2ModelTemplate<,>);
-                    else if (IsAssignableToType(entryPointClass, typeof(IBase0ModelTemplate)))
-                        iBaseXModelTemplate = typeof(IBase0ModelTemplate);
-                    else
-                        throw new NotImplementedException();
-
-                    if (IsAssignableToType(entryPointClass, typeof(IBaseMultifileTemplate)))
-                        iTypeTemplate = typeof(IBaseMultifileTemplate);
-                    else if (IsAssignableToType(entryPointClass, typeof(IBaseSinglefileTemplate)))
-                        iTypeTemplate = typeof(IBaseSinglefileTemplate);
-                    else if (IsAssignableToType(entryPointClass, typeof(IBaseStringTemplate)))
-                        iTypeTemplate = typeof(IBaseStringTemplate);
-                    else
-                        throw new NotImplementedException();
-                    break;
                 }
             }
 
             //TODO: [System.Runtime.InteropServices.DllImportAttribute]
 
-            if (entryPointClass == null)
+            if (entryPointClass == null || foundInterface == null)
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not find template entry-point in '{templateFile.Name}'.");
                 return -1;
             }
+
+            if (IsAssignableToType(foundInterface, typeof(IBase1ModelTemplate<>)))
+                iBaseXModelTemplate = typeof(IBase1ModelTemplate<>);
+            else if (IsAssignableToType(foundInterface, typeof(IBase2ModelTemplate<,>)))
+                iBaseXModelTemplate = typeof(IBase2ModelTemplate<,>);
+            else if (IsAssignableToType(foundInterface, typeof(IBase0ModelTemplate)))
+                iBaseXModelTemplate = typeof(IBase0ModelTemplate);
+            else
+                throw new NotImplementedException();
+
+            if (IsAssignableToType(foundInterface, typeof(IBaseMultifileTemplate)))
+                iTypeTemplate = typeof(IBaseMultifileTemplate);
+            else if (IsAssignableToType(foundInterface, typeof(IBaseSinglefileTemplate)))
+                iTypeTemplate = typeof(IBaseSinglefileTemplate);
+            else if (IsAssignableToType(foundInterface, typeof(IBaseStringTemplate)))
+                iTypeTemplate = typeof(IBaseStringTemplate);
+            else
+                throw new NotImplementedException();
 
             MethodInfo entryPointMethod = foundInterface.GetMethod("Render", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public);
 
@@ -205,10 +217,15 @@ namespace CodegenCS.TemplateLauncher
                 }
             }
 
-
-            var instance = Activator.CreateInstance(entryPointClass);
-
             _ctx.DefaultOutputFile.RelativePath = defaultOutputFile;
+
+            var dependencyContainer = new DependencyContainer();
+            dependencyContainer.RegisterSingleton<ILogger>(_logger);
+            dependencyContainer.RegisterSingleton<ICodegenContext>(_ctx);
+            dependencyContainer.RegisterSingleton<ICodegenOutputFile>(_ctx.DefaultOutputFile);
+            dependencyContainer.RegisterSingleton<ICodegenTextWriter>(_ctx.DefaultOutputFile);
+
+            var instance = dependencyContainer.Resolve(entryPointClass);
 
             if (iTypeTemplate == typeof(IBaseMultifileTemplate)) // pass ICodegenContext
             {

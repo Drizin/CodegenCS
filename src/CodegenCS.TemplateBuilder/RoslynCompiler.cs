@@ -193,8 +193,9 @@ namespace CodegenCS.TemplateBuilder
                 _compilationOptions);
 
             using (var dllStream = new MemoryStream())
+            using (var pdbStream = new MemoryStream())
             {
-                var emitResult = compilation.Emit(dllStream/*, pdbStream*/);
+                var emitResult = compilation.Emit(dllStream, pdbStream);
 
                 Action<ConsoleColor, Diagnostic> writeError = async (color, diag) =>
                 {
@@ -231,6 +232,7 @@ namespace CodegenCS.TemplateBuilder
                 }
 
                 dllStream.Seek(0, SeekOrigin.Begin);
+                pdbStream.Seek(0, SeekOrigin.Begin);
 
                 if (!new FileInfo(targetFile).Directory.Exists)
                     new FileInfo(targetFile).Directory.Create();
@@ -238,6 +240,12 @@ namespace CodegenCS.TemplateBuilder
                 using (FileStream fs = new FileStream(targetFile, FileMode.OpenOrCreate))
                 {
                     dllStream.CopyTo(fs);
+                    fs.Flush();
+                }
+                var targetPdb = targetFile.Substring(0, targetFile.Length - 4) + ".pdb";
+                using (FileStream fs = new FileStream(targetPdb, FileMode.OpenOrCreate))
+                {
+                    pdbStream.CopyTo(fs);
                     fs.Flush();
                 }
                 return true;

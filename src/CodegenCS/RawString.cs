@@ -36,5 +36,10 @@ namespace CodegenCS
         /// Implicit conversion
         /// </summary>
         public static implicit operator string(RawString raw) => raw.Value;
+
+        public override string ToString()
+        {
+            return this.Value;
+        }
     }
 }
