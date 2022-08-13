@@ -5,6 +5,7 @@ using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading.Tasks;
 using Console = InterpolatedColorConsole.ColoredConsole;
+using static InterpolatedColorConsole.Symbols;
 
 namespace CodegenCS.DotNetTool.Commands
 {
@@ -44,7 +45,7 @@ namespace CodegenCS.DotNetTool.Commands
             {
                 System.Console.CancelKeyPress += (s, e) =>
                 {
-                    Console.WriteLineError(ConsoleColor.Red, $"Stopping 'dotnet template build...'");
+                    Console.WriteLineError(ConsoleColor.Red, $"Stopping {ConsoleColor.Yellow}'dotnet template build'{PREVIOUS_COLOR}...");
                     consoleContext.RestorePreviousColor();
                     //Environment.Exit(-1); CancelKeyPress will do it automatically since we didn't set e.Cancel to true
                 };

@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Console = InterpolatedColorConsole.ColoredConsole;
 using static InterpolatedColorConsole.Symbols;
+using System.CommandLine.Invocation;
+using System.CommandLine.Binding;
 
 namespace CodegenCS.DotNetTool.Commands
 {
@@ -16,22 +18,59 @@ namespace CodegenCS.DotNetTool.Commands
         {
             var command = new Command(commandName);
 
-            command.AddArgument(new Argument<string>("Template", description: "Template to run. E.g. \"MyTemplate.dll\" or \"MyTemplate.cs\" or \"MyTemplate\"") { Arity = ArgumentArity.ExactlyOne });
-
-            command.AddArgument(new Argument<string[]>("Models", description: "Input Model(s) E.g. \"DbSchema.json\", \"ApiEndpoints.yaml\", etc. Templates might expect 0, 1 or 2 models") { Arity = new ArgumentArity(0, 2) });
-
             command.AddOption(new Option<string>(new[] { "--OutputFolder", "-o" }, description: "Folder to save output [default: current folder]") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "OutputFolder" });
             command.AddOption(new Option<string>(new[] { "--File", "-f" }, description: "Default Output File [default: \"{MyTemplate}.generated.cs\"]") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "DefaultOutputFile" });
 
-            command.Handler = CommandHandler.Create<ParseResult, CommandArgs>(HandleCommand);
+            command.AddArgument(new Argument<string>("Template", description: "Template to run. E.g. \"MyTemplate.dll\" or \"MyTemplate.cs\" or \"MyTemplate\"") { Arity = ArgumentArity.ExactlyOne });
+
+            command.AddArgument(new Argument<string[]>("Models", description: "Input Model(s) E.g. \"DbSchema.json\", \"ApiEndpoints.yaml\", etc. Templates might expect 0, 1 or 2 models", parse: ParseModels)
+            { 
+                Arity = ArgumentArity.ZeroOrMore /* OnlyTake() doesn't work with limited Arity. ParseResultVisitor missed the PassedOver arguments */ 
+            });
+
+            command.AddArgument(TemplateSpecificArguments);
+
+            command.Handler = CommandHandler.Create<InvocationContext, ParseResult, CommandArgs>(HandleCommand);
+            // a Custom Binder (inheriting from BinderBase<CommandArgs>) could be used to create CommandArgs (defining which arguments are Models and which ones are TemplateArgs):
+            //command.SetHandler((args) => HandleCommand(args), new CustomBinder());
 
             return command;
         }
+        static internal Argument<string[]> TemplateSpecificArguments { get; } = new Argument<string[]>("TemplateArgs", parse: ParseTemplateArgs)
+        {
+            Description = "Template-specific arguments/options (if any)",
+            Arity = new ArgumentArity(0, 999)
+        };
 
+        static string[] ParseModels(ArgumentResult result)
+        {
+            int models = 0;
+            for (int i=0; i < Math.Min(2, result.Tokens.Count); i++)
+            {
+                FileInfo fi;
+                if ((fi = new FileInfo(result.Tokens[i].Value)).Exists || (fi = new FileInfo(result.Tokens[i].Value + ".json")).Exists || (fi = new FileInfo(result.Tokens[i].Value + ".yaml")).Exists)
+                    models++;
+                else
+                    break;
+            }
+            result.OnlyTake(models);
+            var arr = result.Tokens.Take(models).Select(t => t.Value).ToArray();
+            return arr;
+        }
+        static string[] ParseTemplateArgs(ArgumentResult result)
+        {
+            int models = result.Parent.Children.Where(s => s.Symbol.Name == "Models").Single().Tokens.Count();
+            //result.OnlyTake(result.Tokens.Count - models); // either OnlyTake() has some bugs or I don't know how it works
+            var arr = result.Tokens.Skip(models).Select(t => t.Value).ToArray();
+            return arr;
+        }
 
-        protected static async Task<int> HandleCommand(ParseResult parseResult, CommandArgs cliArgs)
+        protected static async Task<int> HandleCommand(InvocationContext context, ParseResult parseResult, CommandArgs cliArgs)
         {
             bool verboseMode = (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--verbose"));
+
+            string[] templateSpecificArguments = parseResult.GetValueForArgument(TemplateSpecificArguments) ?? Array.Empty<string>();
+
 
             string currentCommand = "dotnet-codegencs template run";
             int statusCode;
@@ -39,7 +78,7 @@ namespace CodegenCS.DotNetTool.Commands
             {
                 System.Console.CancelKeyPress += (s, e) =>
                 {
-                    Console.WriteLineError(ConsoleColor.Red, $"Stopping '{currentCommand}...'");
+                    Console.WriteLineError(ConsoleColor.Red, $"Stopping {ConsoleColor.Yellow}'{currentCommand}'{PREVIOUS_COLOR}...");
                     consoleContext.RestorePreviousColor();
                     //Environment.Exit(-1); CancelKeyPress will do it automatically since we didn't set e.Cancel to true
                 };
@@ -87,7 +126,7 @@ namespace CodegenCS.DotNetTool.Commands
 
                     if (statusCode != 0)
                     {
-                        Console.WriteLineError(ConsoleColor.Red, $"TemplateBuilder ({currentCommand}) Failed.");
+                        Console.WriteLineError(ConsoleColor.Red, $"TemplateBuilder ({ConsoleColor.Yellow}'{currentCommand}'{PREVIOUS_COLOR}) Failed.");
                         return -1;
                     }
                     currentCommand = "dotnet-codegencs template run";
@@ -101,6 +140,7 @@ namespace CodegenCS.DotNetTool.Commands
                     Models = cliArgs.Models,
                     OutputFolder = cliArgs.OutputFolder,
                     DefaultOutputFile = cliArgs.DefaultOutputFile,
+                    TemplateSpecificArguments = templateSpecificArguments,
                     VerboseMode = verboseMode
                 };
 
@@ -112,7 +152,8 @@ namespace CodegenCS.DotNetTool.Commands
 
                 if (statusCode != 0)
                 {
-                    Console.WriteLineError(ConsoleColor.Red, $"TemplateLauncher ({currentCommand}) Failed.");
+                    if (statusCode != -2) // invalid template args
+                        Console.WriteLineError(ConsoleColor.Red, $"TemplateLauncher ({ConsoleColor.Yellow}'{currentCommand}'{PREVIOUS_COLOR}) Failed.");
                     return -1;
                 }
 
@@ -134,6 +175,8 @@ namespace CodegenCS.DotNetTool.Commands
 
             /// <see cref="TemplateLauncher.TemplateLauncher.TemplateLauncherArgs.DefaultOutputFile"/>
             public string DefaultOutputFile { get; set; }
+
+            public string[] TemplateArgs { get; set; }
 
         }
 

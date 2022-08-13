@@ -107,6 +107,9 @@ namespace CodegenCS.TemplateBuilder
             _namespaces.Add("Newtonsoft.Json");
             AddAssembly(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.JsonConvert).GetTypeInfo().Assembly.Location));
 
+            AddAssembly(MetadataReference.CreateFromFile(typeof(System.CommandLine.Argument).GetTypeInfo().Assembly.Location));
+            AddAssembly(MetadataReference.CreateFromFile(typeof(System.CommandLine.Binding.BindingContext).GetTypeInfo().Assembly.Location));
+
             #endregion
 
             // Add this library? //AddAssembly(typeof(RoslynCompiler));

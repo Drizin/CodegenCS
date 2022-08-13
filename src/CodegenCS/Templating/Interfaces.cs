@@ -1,5 +1,7 @@
 ﻿using System;
+using System.CommandLine;
 using CodegenCS.___InternalInterfaces___;
+using CodegenCS.Utils;
 
 namespace CodegenCS
 {
@@ -72,6 +74,43 @@ namespace CodegenCS
     {
         FormattableString Render(TModel1 model1, TModel2 model2);
     }
+
+
+    // "dotnet-codegencs template run" has some arguments and options (like Models, OutputFolder, etc).
+    // If the template accepts (or requires) extra/custom arguments/options they can be passed in two ways:
+    // ----
+    // 1) CommandLineArgs class can be injected in any class, and provides an array of strings all other arguments/options that were not recognized/captured by dotnet-codegencs.
+    //    Template constructor can validate those arguments and throw ArgumentException for invalid arguments, so that dotnet-codegencs shows the error message.
+    //    If besides the error message (in red) you want to show a custom help message (showing all command-line options with colors etc) you can use the CommandLineArgsException.
+    // ----
+    // 2)If template defines a method "public static void ConfigureCommand(Command command)", then this method can be used to configure (describe) the template custom Arguments and Options.
+    // In this case dotnet-codegencs will pass an empty command to this configuration method, will create a Parser for the Command definition,
+    // will parse the command line to extract/validate those extra arguments/options, and if there's any parse error it will invoke the regular ShowHelp() for the Command definition.
+    // If there are no errors it will create and register (in the Dependency Injection container) ParseResult, BindingContext and InvocationContext.
+    // Those objects (ParseResult/BindingContext/InvocationContext) can be used to get the args/options that the template needs.
+    // Example: TemplateOptions constructor can take ParseResult and extract it's values using parseResult.CommandResult.GetValueForArgument and parseResult.CommandResult.GetValueForOption.
+    // 
+    // If any class (e.g. a TemplateArgs class required by Template class) implements IModelBinderArgs then it will be automatically created using ModelBinder() - which binds
+    // the class properties to the command-line Arguments and Options by matching their names.
+
+
+    /// <summary>
+    /// Templates are resolved using dependency injection. If during the template construction (resolving) dotnet-codegencs get an ArgumentException
+    /// it will show the error message. CommandLineArgsException extends ArgumentException and allows to write a custom help message (with colors etc).
+    /// </summary>
+    public class CommandLineArgsException : ArgumentException
+    {
+        public Action<ILogger> ShowHelp { get; private set; }
+        public CommandLineArgsException(string errorMessage, Action<ILogger> showHelp) : base(errorMessage)
+        {
+            ShowHelp = showHelp;
+        }
+    }
+
+    public interface IAutoBindCommandLineArgs
+    {
+    }
+
 
 
 

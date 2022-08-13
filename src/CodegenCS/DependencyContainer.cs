@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.CommandLine.Binding;
+using System.CommandLine.NamingConventionBinder;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace CodegenCS
@@ -22,7 +25,8 @@ namespace CodegenCS
         public object Resolve(Type type, params object[] otherDependencies)
         {
             // If type is registered (either as singleton or per instance)
-            if (regs.TryGetValue(type, out Func<object> fac)) return fac();
+            if (regs.TryGetValue(type, out Func<object> fac)) 
+                return fac();
 
             // Else try to create..
             var obj = CreateInstance(type, otherDependencies);
@@ -50,38 +54,99 @@ namespace CodegenCS
             if (type.IsAbstract)
                 throw new InvalidOperationException("Can't create abstract type " + type);
 
-            
+            if (IsSimpleType(type))
+                throw new InvalidOperationException("Can't create simple type " + type);
+            if (type.IsArray && IsSimpleType(type.GetElementType()))
+                throw new InvalidOperationException("Can't create simple type " + type);
+
+
+            if (typeof(IAutoBindCommandLineArgs).IsAssignableFrom(type))
+            {
+                var binder = new ModelBinder(type);
+                try
+                {
+                    BindingContext bindingContext = null;
+                    if (regs.TryGetValue(typeof(BindingContext), out Func<object> fac))
+                        bindingContext = (BindingContext)fac();
+                    if (bindingContext != null)
+                    {
+                        // create an instance of MyTemplateArgs based on the parsed command line
+                        var instance = binder.CreateInstance(bindingContext);
+                        return instance;
+                    }
+                }
+                catch { }
+            }
+
+
             // Prioritize the constructor with more parameters
             var ctors = type.GetConstructors().OrderByDescending(c => c.GetParameters().Length).ToList();
+            Dictionary<ConstructorInfo, object[]> ctorToArgs = new Dictionary<ConstructorInfo, object[]>();
+            Dictionary<ConstructorInfo, decimal> ctorToWeight = new Dictionary<ConstructorInfo, decimal>();
 
-            for (int ci = 0; ci < ctors.Count(); ci++)
+            foreach(var ctor in ctors)
             {
-                var ctor = ctors[ci];
                 var parmInfos = ctor.GetParameters();
-                var obj = new object[parmInfos.Length];
+                var objects = new object[parmInfos.Length];
+                ctorToArgs.Add(ctor, objects);
+                decimal weight = 0;
                 for (int i = 0; i < parmInfos.Length; i++)
                 {
                     var parmInfo = parmInfos[i];
 
                     if (regs.TryGetValue(parmInfo.ParameterType, out Func<object> fac)) // type is registered
-                        obj[i] = fac();
+                        objects[i] = fac();
                     else if (parmInfo.HasDefaultValue) // not registered but has a default value (might be null)
-                        obj[i] = parmInfo.DefaultValue;
+                        objects[i] = parmInfo.DefaultValue;
                     else
-                        obj[i] = CreateInstance(parmInfo.ParameterType, otherDependencies); // try to create (result might also be null)
+                        try
+                        {
+                            objects[i] = CreateInstance(parmInfo.ParameterType, otherDependencies); // try to create (result might also be null)
+                        }
+                        catch (Exception)
+                        {
+                            // primitive types won't be created
+                        }
+                    if (objects[i] != null)
+                        weight++;
+                    // Complex/custom types are slightly more preferrable than simple types.
+                    if (!IsSimpleType(parmInfo.ParameterType) && !(parmInfo.ParameterType.IsArray && IsSimpleType(parmInfo.ParameterType.GetElementType())))
+                        weight += 0.2m;
                 }
+                ctorToWeight.Add(ctor, weight);
+            }
+            foreach (var ctor in ctorToWeight.OrderByDescending(c => c.Value).Select(c => c.Key))
+            {
+                var args = ctorToArgs[ctor];
                 try
                 {
-                    return Activator.CreateInstance(type, obj);
+                    return ctor.Invoke(args);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // if this constructor failed, try next one
-                    if (ci < ctors.Count - 1)
-                        continue;
                 }
             }
+            
+
             return null;
+        }
+
+        public static bool IsSimpleType(Type type)
+        {
+            return
+                type.IsPrimitive ||
+                new Type[] {
+            typeof(string),
+            typeof(decimal),
+            typeof(DateTime),
+            typeof(DateTimeOffset),
+            typeof(TimeSpan),
+            typeof(Guid)
+                }.Contains(type) ||
+                type.IsEnum ||
+                Convert.GetTypeCode(type) != TypeCode.Object ||
+                (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && IsSimpleType(type.GetGenericArguments()[0]));
         }
 
         /// <summary>
