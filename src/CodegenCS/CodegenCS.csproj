@@ -49,6 +49,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-codegencs" />
+    <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-codegencs" />
   </ItemGroup>
 
 </Project>

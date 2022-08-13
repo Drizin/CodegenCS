@@ -1,3 +1,3 @@
 [submodule "src/External/command-line-api"]
 	path = src/External/command-line-api
-	url = https://github.com/dotnet/command-line-api.git
+	url = https://github.com/CodegenCS/command-line-api.git

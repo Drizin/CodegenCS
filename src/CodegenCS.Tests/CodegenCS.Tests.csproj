@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <Company>Rick Drizin</Company>
     <Copyright>Rick Drizin</Copyright>
@@ -42,6 +42,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj" />
+    <ProjectReference Include="..\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj" />
+    <ProjectReference Include="..\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" />
+    <ProjectReference Include="..\dotnet-codegencs\dotnet-codegencs.csproj" />
   </ItemGroup>
 
   <ItemGroup>

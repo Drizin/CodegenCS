@@ -25,12 +25,25 @@ Remove-Item -Recurse -Force -ErrorAction Ignore "$env:HOMEDRIVE$env:HOMEPATH\.nu
 
 New-Item -ItemType Directory -Force -Path ".\packages-local"
 
+# when target frameworks are added/modified dotnet clean might fail and we may need to cleanup the old dependency tree
+Get-ChildItem $Path -Recurse | Where{$_.FullName -Match ".*\\obj\\.*project.assets.json$"} | Remove-Item
 dotnet clean 
-if ($error) {
-    # when target frameworks are added/modified dotnet clean might fail and we may need to cleanup the old dependency tree
-    Get-ChildItem $Path -Recurse | Where{$_.FullName -Match ".*\\obj\\.*project.assets.json$"} | Remove-Item
-    dotnet clean 
-}
+
+git submodule init
+git pull --recurse-submodules
+git submodule update --remote --recursive
+
+cd External\command-line-api\
+Remove-Item -Recurse ~\.nuget\packages\System.CommandLine* -Force
+dotnet clean
+dotnet pack  /p:PackageVersion=2.0.0-codegencs
+copy artifacts\packages\Debug\Shipping\System.CommandLine.2.0.0-codegencs.nupkg ..\..\packages-local
+copy artifacts\packages\Debug\Shipping\System.CommandLine.NamingConventionBinder.2.0.0-codegencs.nupkg ..\..\packages-local
+
+
+cd ..\..\
+
+
 
 # CodegenCS + nupkg/snupkg
 & $msbuild ".\CodegenCS\CodegenCS.csproj"                          `
