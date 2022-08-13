@@ -833,12 +833,16 @@ namespace CodegenCS
 
             #region If IEnumerable<T> was wrapped using IEnumerableExtensions.Render (that allow to specify custom EnumerableRenderOptions), unwrap.
             RenderEnumerableOptions enumerableRenderOptions = this.DefaultIEnumerableRenderOptions; // by default uses the CodegenTextWriter setting, but it may be overriden in the wrapper
-            Delegate ienumerableAction = null;
+            object ienumerableCallbackAction = null;
+            MethodInfo ienumerableCallbackActionMethod = null;
             if (typeof(IInlineIEnumerable).IsAssignableFrom(arg.GetType()))
             {
-                if (IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerable<>)))
+                if (IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerable<>)) && (ienumerableCallbackAction = ((PropertyInfo)arg.GetType().GetMember("ItemAction").Single()).GetValue(arg)) != null)
                 {
-                    ienumerableAction = (Delegate)((PropertyInfo)arg.GetType().GetMember("ItemAction").Single()).GetValue(arg);
+                    // turns out the only "instance" we need is Action<T> itself (ienumerableCallbackAction), not the container type (the caller template)
+                    var genericType = arg.GetType().GetGenericArguments()[0]; // T
+                    Type genericAction = typeof(Action<>).MakeGenericType(genericType); // typeof(Action<T>)
+                    ienumerableCallbackActionMethod = genericAction.GetMethod("Invoke");
                 }
 
                 enumerableRenderOptions = ((IInlineIEnumerable)arg).RenderOptions ?? enumerableRenderOptions;
@@ -862,10 +866,9 @@ namespace CodegenCS
                         if (addMiddleSeparator)
                             WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: false, previousItemWroteMultilines: previousItemWroteMultilines);
 
-                        if (ienumerableAction != null) // if there's a specific action to be executed for each item
+                        if (ienumerableCallbackActionMethod != null) // if there's a specific action to be executed for each item
                         {
-                            ienumerableAction.DynamicInvoke(item); 
-                            //TODO: use Invoke (much faster than DynamicInvoke). We have Action<T> and we have the caller instance from the Expression<Action<T>>
+                            ienumerableCallbackActionMethod.Invoke(ienumerableCallbackAction, new object[] { item });
                         }
                         else
                         {

@@ -17,7 +17,6 @@ namespace CodegenCS
         public RenderEnumerableOptions RenderOptions { get; private set; } = null; // if not set will follow ICodegenTextWriter.DefaultIEnumerableRenderOptions
 
         public Action<T> ItemAction { get; internal set; }
-        public object ItemActionInstance { get; internal set; }
 
         public InlineIEnumerable(IEnumerable<T> items)
         {
@@ -71,26 +70,19 @@ namespace CodegenCS
         /// <summary>
         /// Like <see cref="Render{FormattableString}(IEnumerable{FormattableString})"/> but instead of rendering the items "as is" it will render the items by running an Action.
         /// </summary>
-        public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, Expression<Action<T>> action)
+        public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, Action<T> action)
         {
-            //https://stackoverflow.com/questions/5409580/action-delegate-how-to-get-the-instance-that-call-the-method
-            MethodCallExpression call = (MethodCallExpression)action.Body;
-            LambdaExpression targetOnly = Expression.Lambda(call.Object, null);
-            Delegate compiled = targetOnly.Compile();
-            object instance = compiled.DynamicInvoke(null);
-            return new InlineIEnumerable<T>(items) { ItemAction = action.Compile(), ItemActionInstance = instance };
+            // Turns out that the only "instance" we need is Action<T> itself, not the container type (the template which defines the action)
+            // But if we needed the container type we could get it using MethodCallExpression.Body.Object: https://stackoverflow.com/questions/5409580/action-delegate-how-to-get-the-instance-that-call-the-method
+            return new InlineIEnumerable<T>(items) { ItemAction = action };
         }
 
 
         /// <summary>
         /// Like <see cref="Render{T}(IEnumerable{T}, RenderEnumerableOptions)"/> but instead of rendering the items "as is" it will render the items by running an Action.
-        public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, Expression<Action<T>> action, RenderEnumerableOptions customRenderOptions)
+        public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, Action<T> action, RenderEnumerableOptions customRenderOptions)
         {
-            MethodCallExpression call = (MethodCallExpression)action.Body;
-            LambdaExpression targetOnly = Expression.Lambda(call.Object, null);
-            Delegate compiled = targetOnly.Compile();
-            object instance = compiled.DynamicInvoke(null);
-            return new InlineIEnumerable<T>(items, customRenderOptions) { ItemAction = action.Compile(), ItemActionInstance = instance };
+            return new InlineIEnumerable<T>(items, customRenderOptions) { ItemAction = action };
         }
 
 
