@@ -69,14 +69,13 @@ namespace CodegenCS.Tests.TemplateTests
             {
                 Template = _builderArgs.Output,
                 Models = models,
-                VerboseMode = true,
                 OutputFolder = _tmpFolder,
                 DefaultOutputFile = Path.GetFileName(_tmpTemplateFile) + ".generated.cs",
                 TemplateSpecificArguments = templateArgs
             };
-            var launcher = new CodegenCS.TemplateLauncher.TemplateLauncher(_logger, _context, _launcherArgs);
+            var launcher = new CodegenCS.TemplateLauncher.TemplateLauncher(_logger, _context, true);
 
-            int exitCode = await launcher.ExecuteAsync();
+            int exitCode = await launcher.ExecuteAsync(_launcherArgs, null);
             return exitCode;
         }
 

@@ -200,25 +200,27 @@ namespace CodegenCS.TemplateBuilder
             {
                 var emitResult = compilation.Emit(dllStream, pdbStream);
 
-                Action<ConsoleColor, Diagnostic> writeError = async (color, diag) =>
+                //TODO: combine all errors into a single statement, 
+                // since Powershell ISE stops at first stderr message when $ErrorActionPreference = "Stop"
+                Func<ConsoleColor, Diagnostic, Task> writeErrorAsync = async (color, diag) =>
                 {
                     var lineStart = diag.Location.GetLineSpan().StartLinePosition.Line;
                     var lineEnd = diag.Location.GetLineSpan().EndLinePosition.Line;
-                    await _logger.WriteLineErrorAsync($"  {color}{diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
+                    await _logger.WriteLineErrorAsync(color, $"  {diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
                 };
                 var errors = emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
                 if (errors.Any())
                 {
                     await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Errors: ");
                     foreach (var error in errors)
-                        writeError(ConsoleColor.Red, error);
+                        await writeErrorAsync(ConsoleColor.Red, error);
                 }
 
-                Action<ConsoleColor, Diagnostic> writeWarning = async (color, diag) =>
+                Func<ConsoleColor, Diagnostic, Task> writeWarningAsync = async (color, diag) =>
                 {
                     var lineStart = diag.Location.GetLineSpan().StartLinePosition.Line;
                     var lineEnd = diag.Location.GetLineSpan().EndLinePosition.Line;
-                    await _logger.WriteLineAsync($"  {color}{diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
+                    await _logger.WriteLineAsync(color, $"  {diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
                 };
 
                 var warnings = emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Warning);
@@ -226,7 +228,7 @@ namespace CodegenCS.TemplateBuilder
                 {
                     await _logger.WriteLineAsync(ConsoleColor.Yellow, $"Warnings: ");
                     foreach (var warning in warnings)
-                        writeWarning(ConsoleColor.Yellow, warning);
+                        await writeWarningAsync(ConsoleColor.Yellow, warning);
                 }
 
                 if (!emitResult.Success)

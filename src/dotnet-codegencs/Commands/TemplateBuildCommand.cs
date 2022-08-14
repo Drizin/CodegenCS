@@ -56,9 +56,9 @@ namespace CodegenCS.DotNetTool.Commands
                     Output = cliArgs.Output,
                     VerboseMode = verboseMode
                 };
-                var launcher = new TemplateBuilder.TemplateBuilder(new ColoredConsoleLogger(), args);
+                var builder = new TemplateBuilder.TemplateBuilder(new ColoredConsoleLogger(), args);
 
-                return await launcher.ExecuteAsync();
+                return await builder.ExecuteAsync();
             }
         }
 

@@ -10,7 +10,6 @@ using CodegenCS.Utils;
 using System.CommandLine;
 using System.CommandLine.Binding;
 using CodegenCS.Templating;
-using System.CommandLine.Parsing;
 using System.CommandLine.Invocation;
 using System.CommandLine.Help;
 using System.CommandLine.IO;
@@ -20,15 +19,30 @@ namespace CodegenCS.TemplateLauncher
     public class TemplateLauncher
     {
         protected ILogger _logger;
-        protected TemplateLauncherArgs _args;
-        ICodegenContext _ctx;
+        protected ICodegenContext _ctx;
+        protected int _expectedModels;
+        protected Type _model1Type = null;
+        protected Type _model2Type = null;
+        public int ExpectedModels => _expectedModels;
+        protected Type _entryPointClass = null;
+        protected FileInfo _templateFile;
+        internal FileInfo _originallyInvokedTemplateFile;
+        public bool ShowTemplateHelp { get; set; }
+        protected string _defaultOutputFile = null;
+        protected MethodInfo entryPointMethod = null;
+        protected FileInfo[] _modelFiles = null;
+        protected Type _iTypeTemplate = null;
+        protected string _outputFolder = null;
+        public bool VerboseMode { get; set; }
+        public Func<BindingContext, HelpBuilder> HelpBuilderFactory = null;
+        public delegate ParseResult ParseCliUsingCustomCommandDelegate(string filePath, Type model1Type, Type model2Type, DependencyContainer dependencyContainer, MethodInfo configureCommand, ParseResult parseResult);
+        public ParseCliUsingCustomCommandDelegate ParseCliUsingCustomCommand = null;
 
-        public TemplateLauncher(ILogger logger, ICodegenContext ctx, TemplateLauncherArgs args)
+        public TemplateLauncher(ILogger logger, ICodegenContext ctx, bool verboseMode)
         {
             _logger = logger;
-            _args = args;
             _ctx = ctx;
-
+            VerboseMode = verboseMode;
         }
 
         /// <summary>
@@ -60,63 +74,41 @@ namespace CodegenCS.TemplateLauncher
             public string DefaultOutputFile { get; set; }
 
             public string[] TemplateSpecificArguments { get; set; } = new string[0];
-
-            public bool VerboseMode { get; set; }
         }
 
 
-
-        public async Task<int> ExecuteAsync()
+        public async Task<int> LoadAndExecuteAsync(string templateDll, TemplateLauncherArgs args, ParseResult parseResult)
         {
-            FileInfo templateFile;
-            if (!((templateFile = new FileInfo(_args.Template)).Exists || (templateFile = new FileInfo(_args.Template + ".dll")).Exists))
+            int returnCode = await LoadAsync(templateDll);
+            if (returnCode != 0)
+                return returnCode;
+            return await ExecuteAsync(args, parseResult);
+        }
+
+        public async Task<int> LoadAsync(string templateDll)
+        {
+            if (!((_templateFile = new FileInfo(templateDll)).Exists || (_templateFile = new FileInfo(templateDll + ".dll")).Exists))
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Cannot find Template DLL {_args.Template}");
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Cannot find Template DLL {templateDll}");
                 return -1;
             }
 
-            FileInfo[] modelFiles = new FileInfo[_args.Models?.Length ?? 0];
-            for (int i = 0; i < modelFiles.Length; i++)
-            {
-                string model = _args.Models[i];
-                if (model != null)
-                {
-                    if (!((modelFiles[i] = new FileInfo(model)).Exists || (modelFiles[i] = new FileInfo(model + ".json")).Exists || (modelFiles[i] = new FileInfo(model + ".yaml")).Exists))
-                    {
-                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Cannot find find model {model}");
-                        return -1;
-                    }
-                }
-            }
-
-            string outputFolder = Directory.GetCurrentDirectory();
-            string defaultOutputFile = Path.GetFileNameWithoutExtension(templateFile.Name) + ".cs";
-            if (!string.IsNullOrWhiteSpace(_args.OutputFolder))
-                outputFolder = Path.GetFullPath(_args.OutputFolder);
-            if (!string.IsNullOrWhiteSpace(_args.DefaultOutputFile))
-                defaultOutputFile = _args.DefaultOutputFile;
+            await _logger.WriteLineAsync(ConsoleColor.Green, $"Loading {ConsoleColor.Yellow}'{_templateFile.Name}'{PREVIOUS_COLOR}...");
 
 
-            await _logger.WriteLineAsync(ConsoleColor.Green, $"Loading {ConsoleColor.Yellow}'{templateFile.Name}'{PREVIOUS_COLOR}...");
-            if (_args.TemplateSpecificArguments?.Any() == true)
-                await _logger.WriteLineAsync(ConsoleColor.Green, $"Forwarded arguments/options: {ConsoleColor.Yellow}'{string.Join("', '", _args.TemplateSpecificArguments)}'{PREVIOUS_COLOR}...");
-
-
-            var asm = Assembly.LoadFile(templateFile.FullName);
+            var asm = Assembly.LoadFile(_templateFile.FullName);
 
             if (asm.GetName().Version?.ToString() != "0.0.0.0")
-                await _logger.WriteLineAsync($"{ConsoleColor.Cyan}{templateFile.Name}{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{asm.GetName().Version}{PREVIOUS_COLOR}");
+                await _logger.WriteLineAsync($"{ConsoleColor.Cyan}{_templateFile.Name}{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{asm.GetName().Version}{PREVIOUS_COLOR}");
 
             var types = asm.GetTypes().Where(t => typeof(IBaseTemplate).IsAssignableFrom(t));
             IEnumerable<Type> types2;
 
-            Type entryPointClass = null;
+            if (_entryPointClass == null && types.Count() == 1)
+                _entryPointClass = types.Single();
 
-            if (entryPointClass == null && types.Count() == 1)
-                entryPointClass = types.Single();
-
-            if (entryPointClass == null && (types2 = types.Where(t => t.Name == "Main")).Count() == 1)
-                entryPointClass = types2.Single();
+            if (_entryPointClass == null && (types2 = types.Where(t => t.Name == "Main")).Count() == 1)
+                _entryPointClass = types2.Single();
 
             var interfacesPriority = new Type[]
             {
@@ -135,33 +127,33 @@ namespace CodegenCS.TemplateLauncher
 
             Type foundInterface = null;
             Type iBaseXModelTemplate = null;
-            Type iTypeTemplate = null;
 
-            if (entryPointClass != null)
+            if (_entryPointClass != null)
             {
                 for (int i = 0; i < interfacesPriority.Length && foundInterface == null; i++)
                 {
-                    if (IsAssignableToType(entryPointClass, interfacesPriority[i]))
+                    if (IsAssignableToType(_entryPointClass, interfacesPriority[i]))
                     {
                         foundInterface = interfacesPriority[i];
                     }
                 }
             }
 
-            for (int i = 0; i < interfacesPriority.Length && entryPointClass == null; i++)
+            for (int i = 0; i < interfacesPriority.Length && _entryPointClass == null; i++)
             {
                 if ((types2 = types.Where(t => IsAssignableToType(t, interfacesPriority[i]))).Count() == 1)
                 {
-                    entryPointClass = types2.Single();
+                    _entryPointClass = types2.Single();
                     foundInterface = interfacesPriority[i];
                 }
             }
 
             //TODO: [System.Runtime.InteropServices.DllImportAttribute]
 
-            if (entryPointClass == null || foundInterface == null)
+            if (_entryPointClass == null || foundInterface == null)
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find template entry-point in '{templateFile.Name}'.");
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find template entry-point in '{(_originallyInvokedTemplateFile ?? _templateFile).Name}'.");
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Template should implement ICodegenTemplate, ICodegenMultifileTemplate or ICodegenStringTemplate.");
                 return -1;
             }
 
@@ -175,29 +167,64 @@ namespace CodegenCS.TemplateLauncher
                 throw new NotImplementedException();
 
             if (IsAssignableToType(foundInterface, typeof(IBaseMultifileTemplate)))
-                iTypeTemplate = typeof(IBaseMultifileTemplate);
+                _iTypeTemplate = typeof(IBaseMultifileTemplate);
             else if (IsAssignableToType(foundInterface, typeof(IBaseSinglefileTemplate)))
-                iTypeTemplate = typeof(IBaseSinglefileTemplate);
+                _iTypeTemplate = typeof(IBaseSinglefileTemplate);
             else if (IsAssignableToType(foundInterface, typeof(IBaseStringTemplate)))
-                iTypeTemplate = typeof(IBaseStringTemplate);
+                _iTypeTemplate = typeof(IBaseStringTemplate);
             else
                 throw new NotImplementedException();
 
-            MethodInfo entryPointMethod = foundInterface.GetMethod("Render", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public);
+            entryPointMethod = foundInterface.GetMethod("Render", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public);
 
-            await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Template entry-point: {ConsoleColor.White}'{entryPointClass.Name}.{entryPointMethod.Name}()'{PREVIOUS_COLOR}...");
+            await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Template entry-point: {ConsoleColor.White}'{_entryPointClass.Name}.{entryPointMethod.Name}()'{PREVIOUS_COLOR}...");
 
 
-            int expectedModels;
             if (iBaseXModelTemplate == typeof(IBase2ModelTemplate<,>))
-                expectedModels = 2;
+            {
+                _expectedModels = 2;
+                _model1Type = _entryPointClass.GetInterfaces().Where(it => it.IsGenericType && it.GetGenericTypeDefinition() == iBaseXModelTemplate).ToList()[0].GetGenericArguments()[0];
+                _model2Type = _entryPointClass.GetInterfaces().Where(it => it.IsGenericType && it.GetGenericTypeDefinition() == iBaseXModelTemplate).ToList()[0].GetGenericArguments()[1];
+            }
             else if (iBaseXModelTemplate == typeof(IBase1ModelTemplate<>))
-                expectedModels = 1;
+            {
+                _expectedModels = 1;
+                _model1Type = _entryPointClass.GetInterfaces().Where(it => it.IsGenericType && it.GetGenericTypeDefinition() == iBaseXModelTemplate).ToList()[0].GetGenericArguments()[0];
+            }
             else
-                expectedModels = 0;
+                _expectedModels = 0;
+
+            return 0;
+        }
+
+        public async Task<int> ExecuteAsync(TemplateLauncherArgs _args, ParseResult parseResult)
+        {
+
+            _modelFiles = new FileInfo[_args.Models?.Length ?? 0];
+            for (int i = 0; i < _modelFiles.Length; i++)
+            {
+                string model = _args.Models[i];
+                if (model != null)
+                {
+                    if (!((_modelFiles[i] = new FileInfo(model)).Exists || (_modelFiles[i] = new FileInfo(model + ".json")).Exists || (_modelFiles[i] = new FileInfo(model + ".yaml")).Exists))
+                    {
+                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Cannot find find model {model}");
+                        return -1;
+                    }
+                }
+            }
+
+            string providedTemplateName = _originallyInvokedTemplateFile?.Name ?? _templateFile?.Name ?? _args.Template;
+
+            _outputFolder = Directory.GetCurrentDirectory();
+            _defaultOutputFile = Path.GetFileNameWithoutExtension(providedTemplateName) + ".generated.cs";
+            if (!string.IsNullOrWhiteSpace(_args.OutputFolder))
+                _outputFolder = Path.GetFullPath(_args.OutputFolder);
+            if (!string.IsNullOrWhiteSpace(_args.DefaultOutputFile))
+                _defaultOutputFile = _args.DefaultOutputFile;
 
 
-            _ctx.DefaultOutputFile.RelativePath = defaultOutputFile;
+            _ctx.DefaultOutputFile.RelativePath = _defaultOutputFile;
 
             var dependencyContainer = new DependencyContainer();
             dependencyContainer.RegisterSingleton<ILogger>(_logger);
@@ -209,82 +236,100 @@ namespace CodegenCS.TemplateLauncher
             CommandLineArgs cliArgs = new CommandLineArgs(_args.TemplateSpecificArguments);
             dependencyContainer.RegisterSingleton<CommandLineArgs>(cliArgs);
 
+
+
             #region If template has a method "public static void ConfigureCommand(Command)" then we can use it to parse the command-line arguments or to ShowHelp()
-            var methods = entryPointClass.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.InvokeMethod);
+            var methods = _entryPointClass.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.InvokeMethod);
             MethodInfo configureCommand = methods.Where(m => m.Name == "ConfigureCommand" && m.GetParameters().Count()==1 && m.GetParameters()[0].ParameterType == typeof(Command)).SingleOrDefault();
-            Command templateCommand = null;
-            Action showHelp = null;
-            ParseResult parseResult = null;
+
             if (configureCommand != null)
             {
-                if (_args.VerboseMode)
-                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"Found ConfigureCommand(Command) method...");
-
-                // dummy command, just to parse the Arguments/Options defined in "public static void ConfigureCommand(Command)"
-                templateCommand = new Command(Path.GetFileNameWithoutExtension(templateFile.Name).Replace(" ","_"));
-                configureCommand.Invoke(null, new object[] { templateCommand });
-                var parser = new Parser(templateCommand);
-                parseResult = parser.Parse(_args.TemplateSpecificArguments);
-                var invocationContext = new InvocationContext(parseResult);
-                var bindingContext = invocationContext.BindingContext;
-
-                showHelp = () =>
+                if (VerboseMode)
                 {
-                    var helpBulder = new HelpBuilder(bindingContext.ParseResult.CommandResult.LocalizationResources, maxWidth: GetConsoleWidth());
-                    helpBulder.Write(parseResult.CommandResult.Command, bindingContext.Console.Out.CreateTextWriter());
-                };
-
-                dependencyContainer.RegisterSingleton<ParseResult>(parseResult);
-                dependencyContainer.RegisterSingleton<InvocationContext>(invocationContext);
-                dependencyContainer.RegisterSingleton<BindingContext>(bindingContext);
-                dependencyContainer.RegisterSingleton<Command>(templateCommand);
+                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Yellow}ConfigureCommand(Command){PREVIOUS_COLOR} method was found.");
+                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"The following args will be forwarded to the template: {ConsoleColor.Yellow}'{string.Join("', '", _args.TemplateSpecificArguments)}'{PREVIOUS_COLOR}...");
+                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"These args can be injected into your template using {ConsoleColor.Yellow}CommandLineArgs{PREVIOUS_COLOR} class");
+                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"or using any custom class that implements {ConsoleColor.Yellow}IAutoBindCommandLineArgs{PREVIOUS_COLOR}");
+                }
+                if (ParseCliUsingCustomCommand != null)
+                {
+                    if (VerboseMode)
+                        await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"Parsing command-line arguments to check if they match the options/args defined in ConfigureCommand()...");
+                    parseResult = ParseCliUsingCustomCommand(providedTemplateName, _model1Type, _model2Type, dependencyContainer, configureCommand, parseResult);
+                }
             }
+            else
+            {
+                if (VerboseMode)
+                {
+                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Yellow}ConfigureCommand(Command){PREVIOUS_COLOR} method was not found.");
+                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"The following args will be forwarded to the template: {ConsoleColor.Yellow}'{string.Join("', '", _args.TemplateSpecificArguments)}'{PREVIOUS_COLOR}...");
+                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"These args can be injected into your template using {ConsoleColor.Yellow}CommandLineArgs{PREVIOUS_COLOR} class.");
+                }
+            }
+
+
+            var invocationContext = new InvocationContext(parseResult);
+            var bindingContext = invocationContext.BindingContext;
+            dependencyContainer.RegisterSingleton<ParseResult>(parseResult);
+            dependencyContainer.RegisterSingleton<InvocationContext>(invocationContext);
+            dependencyContainer.RegisterSingleton<BindingContext>(bindingContext);
+
+
             #endregion
 
-            if (expectedModels != modelFiles.Count())
+            if (_expectedModels != _modelFiles.Count())
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Template entry-point {ConsoleColor.White}'{entryPointClass.Name}.{entryPointMethod.Name}()'{PREVIOUS_COLOR} requires {ConsoleColor.White}{expectedModels}{PREVIOUS_COLOR} model(s) but got only {ConsoleColor.White}{modelFiles.Count()}{PREVIOUS_COLOR}.");
-                showHelp?.Invoke(); // only available for templates that have ConfigureCommand(Command)
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Template entry-point {ConsoleColor.White}'{_entryPointClass.Name}.{entryPointMethod.Name}()'{PREVIOUS_COLOR} requires {ConsoleColor.White}{_expectedModels}{PREVIOUS_COLOR} model(s) but got only {ConsoleColor.White}{_modelFiles.Count()}{PREVIOUS_COLOR}.");
+
+                if (parseResult != null)
+                    ShowParseResults(bindingContext, parseResult);
                 return -2;
             }
 
             if (parseResult != null && parseResult.Errors.Any())
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: {ConsoleColor.White}{parseResult.Errors.Count}{PREVIOUS_COLOR} error(s) found while parsing command-line arguments:");
                 foreach (var error in parseResult.Errors)
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{error.Message}");
-                showHelp?.Invoke();
+                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: {error.Message}");
+                ShowParseResults(bindingContext, parseResult);
+                return -2;
+            }
+
+            if (ShowTemplateHelp)
+            {
+                ShowParseResults(bindingContext, parseResult);
                 return -2;
             }
 
 
-            #region Loading Required Models
-            List<object> args = new List<object>();
 
-            for (int i = 0; i < expectedModels; i++)
+            #region Loading Required Models
+            List<object> modelArgs = new List<object>();
+
+            for (int i = 0; i < _expectedModels; i++)
             {
                 Type modelType;
                 try
                 {
-                    modelType = entryPointClass.GetInterfaces().Where(itf => itf.IsGenericType
+                    modelType = _entryPointClass.GetInterfaces().Where(itf => itf.IsGenericType
                         && (itf.GetGenericTypeDefinition() == typeof(IBase1ModelTemplate<>) || itf.GetGenericTypeDefinition() == typeof(IBase2ModelTemplate<,>)))
                         .Select(interf => interf.GetGenericArguments().Skip(i).First()).Distinct().Single();
-                    await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Model{(expectedModels > 1 ? (i + 1).ToString() : "")} type is {ConsoleColor.White}'{modelType.FullName}'{PREVIOUS_COLOR}...");
+                    await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} type is {ConsoleColor.White}'{modelType.FullName}'{PREVIOUS_COLOR}...");
                 }
                 catch (Exception ex)
                 {
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not get type for Model{(expectedModels > 1 ? (i + 1).ToString() : "")}: {ex.Message}");
+                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not get type for Model{(_expectedModels > 1 ? (i + 1).ToString() : "")}: {ex.Message}");
                     return -1;
                 }
                 try
                 {
-                    object model = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText(modelFiles[i].FullName), modelType);
-                    await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Model{(expectedModels > 1 ? (i + 1).ToString() : "")} successfuly loaded from {ConsoleColor.White}'{modelFiles[i].Name}'{PREVIOUS_COLOR}...");
-                    args.Add(model);
+                    object model = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText(_modelFiles[i].FullName), modelType);
+                    await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} successfuly loaded from {ConsoleColor.White}'{_modelFiles[i].Name}'{PREVIOUS_COLOR}...");
+                    modelArgs.Add(model);
                 }
                 catch (Exception ex)
                 {
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not load Model{(expectedModels > 1 ? (i + 1).ToString() : "")} (type {ConsoleColor.White}'{modelType.FullName}'{PREVIOUS_COLOR}): {ex.Message}");
+                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not load Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} (type {ConsoleColor.White}'{modelType.FullName}'{PREVIOUS_COLOR}): {ex.Message}");
                     return -1;
                 }
             }
@@ -295,12 +340,15 @@ namespace CodegenCS.TemplateLauncher
             object instance = null;
             try
             {
-                instance = dependencyContainer.Resolve(entryPointClass);
+                instance = dependencyContainer.Resolve(_entryPointClass);
+
+                //TODO: if _args.TemplateSpecificArguments?.Any() == true && typeof(CommandLineArgs) wasn't injected into the previous Resolve() call:
+                // $"ERROR: There are unknown args but they couldn't be forwarded to the template because it doesn't define {ConsoleColor.Yellow}'ConfigureCommand(Command)'{PREVIOUS_COLOR} and doesn't take {ConsoleColor.White}CommandLineArgs{PREVIOUS_COLOR} in the constructor."
             }
             catch (CommandLineArgsException ex)
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.Message}");
-                if (_args.VerboseMode)
+                if (VerboseMode)
                     await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.ToString()}");
                 ex.ShowHelp(_logger);
                 return -1;
@@ -308,39 +356,39 @@ namespace CodegenCS.TemplateLauncher
             catch (ArgumentException ex)
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.Message}");
-                if (_args.VerboseMode)
+                if (VerboseMode)
                     await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.ToString()}");
                 return -1;
             }
 
-            if (iTypeTemplate == typeof(IBaseMultifileTemplate)) // pass ICodegenContext
+            if (_iTypeTemplate == typeof(IBaseMultifileTemplate)) // pass ICodegenContext
             {
-                args.Insert(0, _ctx);
-                (entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? entryPointClass.GetMethod(entryPointMethod.Name))
-                    .Invoke(instance, args.ToArray());
+                modelArgs.Insert(0, _ctx);
+                (_entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(entryPointMethod.Name))
+                    .Invoke(instance, modelArgs.ToArray());
             }
-            else if (iTypeTemplate == typeof(IBaseSinglefileTemplate)) // pass ICodegenTextWriter
+            else if (_iTypeTemplate == typeof(IBaseSinglefileTemplate)) // pass ICodegenTextWriter
             {
-                args.Insert(0, _ctx.DefaultOutputFile);
-                (entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? entryPointClass.GetMethod(entryPointMethod.Name))
-                    .Invoke(instance, args.ToArray());
+                modelArgs.Insert(0, _ctx.DefaultOutputFile);
+                (_entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(entryPointMethod.Name))
+                    .Invoke(instance, modelArgs.ToArray());
             }
-            else if (iTypeTemplate == typeof(IBaseStringTemplate)) // get the FormattableString and write to DefaultOutputFile
+            else if (_iTypeTemplate == typeof(IBaseStringTemplate)) // get the FormattableString and write to DefaultOutputFile
             {
-                FormattableString fs = (FormattableString) (entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? entryPointClass.GetMethod(entryPointMethod.Name))
-                    .Invoke(instance, args.ToArray());
+                FormattableString fs = (FormattableString) (_entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(entryPointMethod.Name))
+                    .Invoke(instance, modelArgs.ToArray());
                 _ctx.DefaultOutputFile.Write(fs);
             }
 
             if (_ctx.Errors.Any())
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"\nError while building '{templateFile.Name}':");
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"\nError while building '{providedTemplateName}':");
                 foreach (var error in _ctx.Errors)
                     await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{error}");
                 return -1;
             }
 
-            int savedFiles = _ctx.SaveFiles(outputFolder);
+            int savedFiles = _ctx.SaveFiles(_outputFolder);
 
             if (savedFiles == 0)
             {
@@ -348,23 +396,31 @@ namespace CodegenCS.TemplateLauncher
             }
             else if (savedFiles == 1)
             {
-                await _logger.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles}{PREVIOUS_COLOR} file: {ConsoleColor.Yellow}'{outputFolder}\\{_ctx.OutputFilesPaths.Single()}'{PREVIOUS_COLOR}");
+                await _logger.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles}{PREVIOUS_COLOR} file: {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\{_ctx.OutputFilesPaths.Single()}'{PREVIOUS_COLOR}");
             }
             else
             {
-                await _logger.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles}{PREVIOUS_COLOR} files at folder {ConsoleColor.Yellow}'{outputFolder}\\'{PREVIOUS_COLOR}{(_args.VerboseMode ? ":" : "")}");
-                if (_args.VerboseMode)
+                await _logger.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles}{PREVIOUS_COLOR} files at folder {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\'{PREVIOUS_COLOR}{(VerboseMode ? ":" : "")}");
+                if (VerboseMode)
                 {
                     foreach (var f in _ctx.OutputFiles)
-                        await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"    {Path.Combine(outputFolder, f.RelativePath)}");
+                        await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"    {Path.Combine(_outputFolder, f.RelativePath)}");
                     await _logger.WriteLineAsync();
                 }
             }
 
-            await _logger.WriteLineAsync(ConsoleColor.Green, $"Successfully executed template {ConsoleColor.Yellow}'{templateFile.Name}'{PREVIOUS_COLOR}.");
+            await _logger.WriteLineAsync(ConsoleColor.Green, $"Successfully executed template {ConsoleColor.Yellow}'{providedTemplateName}'{PREVIOUS_COLOR}.");
 
             return 0;
         }
+
+        void ShowParseResults(BindingContext bindingContext, ParseResult parseResult)
+        {
+            var helpBuilder = HelpBuilderFactory != null ? HelpBuilderFactory(bindingContext) : new HelpBuilder(parseResult.CommandResult.LocalizationResources);
+            var writer = bindingContext.Console.Out.CreateTextWriter();
+            helpBuilder.Write(parseResult.CommandResult.Command, writer);
+        }
+
 
         #region Utils
         protected bool IsInstanceOfGenericType(Type genericType, object instance)

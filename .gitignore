@@ -335,3 +335,5 @@ ASALocalRun/
 
 /src/packages-local
 /src/release.snk
+
+*.generated.cs

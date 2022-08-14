@@ -29,9 +29,10 @@ namespace CodegenCS.DotNetTool
                     Console.Write($"dotnet-codegencs.exe version {typeof(Program).Assembly.GetName().Version}");
                     Console.WriteLine($" (CodegenCS.dll version {typeof(CodegenCS.ICodegenContext).Assembly.GetName().Version})");
                 }
-
+                
 
                 var parser = CliCommandParser.Instance;
+                CliCommandParser.RunTemplate._verboseMode = (args?.Any(a=>a.ToLower() == "--verbose" || a.ToLower() == "--debug") ?? false);
                 var parseResult = parser.Parse(args);
 
                 bool verboseMode = (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--verbose"));

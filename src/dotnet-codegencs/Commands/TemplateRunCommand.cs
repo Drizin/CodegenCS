@@ -9,26 +9,63 @@ using Console = InterpolatedColorConsole.ColoredConsole;
 using static InterpolatedColorConsole.Symbols;
 using System.CommandLine.Invocation;
 using System.CommandLine.Binding;
+using CodegenCS.Utils;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace CodegenCS.DotNetTool.Commands
 {
     internal class TemplateRunCommand
     {
-        public static Command GetCommand(string commandName = "run")
+        internal readonly Argument<string> _templateArg;
+        internal readonly Argument<string[]> _templateSpecificArguments;
+
+        internal bool _verboseMode = false;
+        private bool _showTemplateHelp = false;
+        private readonly ILogger _logger;
+        private FileInfo _templateFile = null;
+        private FileInfo _originallyInvokedTemplateFile;
+        internal TemplateLauncher.TemplateLauncher _launcher = null;
+        private CodegenContext _ctx = new CodegenContext(); // _ctx = new DotNet.DotNetCodegenContext(); if user passes csproj file, etc.
+        internal int? _expectedModels = null;
+        internal int? _initialParsedModels = null;
+        internal Command _command;
+        internal int? buildResult = null;
+        internal int? loadResult = null;
+
+        public TemplateRunCommand()
+        {
+            _templateArg = new Argument<string>("Template", description: "Template to run. E.g. \"MyTemplate.dll\" or \"MyTemplate.cs\" or \"MyTemplate\"") { Arity = ArgumentArity.ExactlyOne };
+            _templateSpecificArguments = new Argument<string[]>("TemplateArgs", parse: ParseTemplateArgs)
+            {
+                Description = "Template-specific arguments/options (if template requires/accepts it)",
+                Arity = new ArgumentArity(0, 999), 
+                //Arity = ArgumentArity.ZeroOrMore,
+                HelpName ="Template args"
+            };
+            _logger = new ColoredConsoleLogger();
+            _command = GetCommand();
+        }
+
+        public Command GetCommand(string commandName = "run")
         {
             var command = new Command(commandName);
 
-            command.AddOption(new Option<string>(new[] { "--OutputFolder", "-o" }, description: "Folder to save output [default: current folder]") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "OutputFolder" });
-            command.AddOption(new Option<string>(new[] { "--File", "-f" }, description: "Default Output File [default: \"{MyTemplate}.generated.cs\"]") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "DefaultOutputFile" });
+            AddGlobalOptions(command);
 
-            command.AddArgument(new Argument<string>("Template", description: "Template to run. E.g. \"MyTemplate.dll\" or \"MyTemplate.cs\" or \"MyTemplate\"") { Arity = ArgumentArity.ExactlyOne });
+            command.AddArgument(_templateArg);
 
             command.AddArgument(new Argument<string[]>("Models", description: "Input Model(s) E.g. \"DbSchema.json\", \"ApiEndpoints.yaml\", etc. Templates might expect 0, 1 or 2 models", parse: ParseModels)
-            { 
-                Arity = ArgumentArity.ZeroOrMore /* OnlyTake() doesn't work with limited Arity. ParseResultVisitor missed the PassedOver arguments */ 
+            {
+                //Arity = new ArgumentArity(0, 2)
+                // If we have limited arity (e.g. 0 to 2 args) using OnlyTake() when parsing this argument (Models) won't work:
+                // even if we OnlyTake(1) the next argument (TemplateArgs parsed by ParseTemplateArgs()) will still miss one token (ParseResultVisitor misses the PassedOver arguments)
+                    
+                // So we have to be unlimited:
+                Arity = ArgumentArity.ZeroOrMore
             });
 
-            command.AddArgument(TemplateSpecificArguments);
+            command.AddArgument(_templateSpecificArguments);
 
             command.Handler = CommandHandler.Create<InvocationContext, ParseResult, CommandArgs>(HandleCommand);
             // a Custom Binder (inheriting from BinderBase<CommandArgs>) could be used to create CommandArgs (defining which arguments are Models and which ones are TemplateArgs):
@@ -36,41 +73,140 @@ namespace CodegenCS.DotNetTool.Commands
 
             return command;
         }
-        static internal Argument<string[]> TemplateSpecificArguments { get; } = new Argument<string[]>("TemplateArgs", parse: ParseTemplateArgs)
+        protected void AddGlobalOptions(Command command)
         {
-            Description = "Template-specific arguments/options (if any)",
-            Arity = new ArgumentArity(0, 999)
-        };
+            command.AddGlobalOption(new Option<string>(new[] { "--OutputFolder", "-o" }, description: "Folder to save output [default: current folder]") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "OutputFolder" });
+            command.AddGlobalOption(new Option<string>(new[] { "--File", "-f" }, description: "Default Output File [default: \"{MyTemplate}.generated.cs\"]") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "DefaultOutputFile" });
+        }
+        protected Command GetFakeRunCommand()
+        {
+            var command = new Command("run");
+            AddGlobalOptions(command);
+            command.IsHidden = true;
+            return command;
+        }
 
-        static string[] ParseModels(ArgumentResult result)
+        string[] ParseModels(ArgumentResult result)
         {
-            int models = 0;
-            for (int i=0; i < Math.Min(2, result.Tokens.Count); i++)
+            string[] models = new string[_expectedModels ?? 2];
+            int foundModels = 0;
+            int maxModels = Math.Min(Math.Min(result.Tokens.Count, 2), _expectedModels ?? 2);
+            for (int i = 0; i < maxModels; i++)
             {
                 FileInfo fi;
                 if ((fi = new FileInfo(result.Tokens[i].Value)).Exists || (fi = new FileInfo(result.Tokens[i].Value + ".json")).Exists || (fi = new FileInfo(result.Tokens[i].Value + ".yaml")).Exists)
-                    models++;
-                else
-                    break;
+                {
+                    foundModels++;
+                    models[i] = fi.FullName;
+                }
+                else if (_expectedModels != null) // if we already know the number of expected models we can be strict, else we should be lenient and ignore non-models
+                {
+                    result.ErrorMessage = "ERROR: Cannot find model: " + result.Tokens[i].Value; // automatically handled UseParseErrorReporting() middleware
+                    return null;
+                }
             }
-            result.OnlyTake(models);
-            var arr = result.Tokens.Take(models).Select(t => t.Value).ToArray();
-            return arr;
+            _initialParsedModels ??= foundModels;
+            if (_verboseMode)
+                Console.WriteLine(ConsoleColor.DarkGray, "[DEBUG] Models: " + (models.ToList().Take(foundModels).Any() ? String.Join(", ", models.ToList().Take(foundModels)) : "<none>"));
+            if (result.Tokens.Count != foundModels)
+                result.OnlyTake(foundModels);
+            if (foundModels == models.Length)
+                return models;
+            return models.ToList().Take(foundModels).ToArray();
         }
-        static string[] ParseTemplateArgs(ArgumentResult result)
+
+        string[] ParseTemplateArgs(ArgumentResult result)
         {
+            // Since Models arg is unlimited (ArgumentArity.ZeroOrMore) this subsequent argument will get the same arguments, and we have to skip the number of tokens which were matched to models
             int models = result.Parent.Children.Where(s => s.Symbol.Name == "Models").Single().Tokens.Count();
-            //result.OnlyTake(result.Tokens.Count - models); // either OnlyTake() has some bugs or I don't know how it works
             var arr = result.Tokens.Skip(models).Select(t => t.Value).ToArray();
+            if (_verboseMode && arr.Any())
+                Console.WriteLine(ConsoleColor.DarkGray, $"[DEBUG] TemplateArgs: {ConsoleColor.Yellow}'{String.Join("', '", arr)}'{PREVIOUS_COLOR}");
+            else
+                Console.WriteLine(ConsoleColor.DarkGray, $"[DEBUG] TemplateArgs: <none>");
             return arr;
         }
 
-        protected static async Task<int> HandleCommand(InvocationContext context, ParseResult parseResult, CommandArgs cliArgs)
+
+        /// <summary>
+        /// If template is not yet built (DLL), builds CS or CSX into a DLL
+        /// </summary>
+        public async Task<int> BuildScriptAsync(string template)
         {
-            bool verboseMode = (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--verbose"));
+            string currentCommand = "dotnet-codegencs template run";
+            using (var consoleContext = Console.WithColor(ConsoleColor.Cyan))
+            {
+                System.Console.CancelKeyPress += (s, e) =>
+                {
+                    Console.WriteLineError(ConsoleColor.Red, $"Stopping {ConsoleColor.Yellow}'{currentCommand}'{PREVIOUS_COLOR}...");
+                    consoleContext.RestorePreviousColor();
+                    //Environment.Exit(-1); CancelKeyPress will do it automatically since we didn't set e.Cancel to true
+                };
+            }
 
-            string[] templateSpecificArguments = parseResult.GetValueForArgument(TemplateSpecificArguments) ?? Array.Empty<string>();
+            string[] validExtensions = new string[] { ".dll", ".cs", ".csx" };
+            _templateFile = File.Exists(template) ? new FileInfo(template) : null;
+            for (int i = 0; _templateFile == null && i < validExtensions.Length; i++)
+            {
+                if (File.Exists(template + validExtensions[i]))
+                    _templateFile = new FileInfo(template + validExtensions[i]);
+            }
 
+            if (_templateFile == null)
+            {
+                if (validExtensions.Contains(Path.GetExtension(template).ToLower()))
+                    Console.WriteLineError(ConsoleColor.Red, $"Cannot find Template {ConsoleColor.Yellow}'{template}'{PREVIOUS_COLOR}");
+                else
+                    Console.WriteLineError(ConsoleColor.Red, $"Cannot find Template {ConsoleColor.Yellow}'{template}.dll'{PREVIOUS_COLOR} or {ConsoleColor.Yellow}'{template}.cs'{PREVIOUS_COLOR} or {ConsoleColor.Yellow}'{template}.csx'{PREVIOUS_COLOR}");
+                return -1;
+            }
+            else if (!validExtensions.Contains(Path.GetExtension(_templateFile.FullName).ToLower()))
+            {
+                Console.WriteLineError(ConsoleColor.Red, $"Invalid Template name {ConsoleColor.Yellow}'{_templateFile.Name}'{PREVIOUS_COLOR}");
+                Console.WriteLineError(ConsoleColor.Red, $"Valid template extensions are {ConsoleColor.Yellow}{string.Join(", ", validExtensions.Select(ext => ext.TrimStart('.')))}{PREVIOUS_COLOR}");
+                return -1;
+            }
+
+            // If user provided a single CS/CSX file (instead of a DLL file) first we need to build into a dll
+            if (Path.GetExtension(template).ToLower() != ".dll")
+            {
+                currentCommand = "dotnet-codegencs template build";
+
+                var builderArgs = new TemplateBuilder.TemplateBuilder.TemplateBuilderArgs()
+                {
+                    Template = new string[] { _templateFile.FullName },
+                    //TODO define folder+filename by hash of template name+contents, to cache results.
+                    Output = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), Guid.NewGuid().ToString(), Path.GetFileNameWithoutExtension(_templateFile.FullName)) + ".dll",
+                    VerboseMode = _verboseMode,
+                };
+                var builder = new TemplateBuilder.TemplateBuilder(_logger, builderArgs);
+
+                int statusCode = await builder.ExecuteAsync();
+
+                if (statusCode != 0)
+                {
+                    Console.WriteLineError(ConsoleColor.Red, $"TemplateBuilder ({ConsoleColor.Yellow}'{currentCommand}'{PREVIOUS_COLOR}) Failed.");
+                    return -1;
+                }
+                currentCommand = "dotnet-codegencs template run";
+                _originallyInvokedTemplateFile = _templateFile;
+                _templateFile = new FileInfo(builderArgs.Output);
+            }
+            return 0;
+        }
+
+        public async Task<int> LoadTemplateAsync()
+        {
+            _launcher ??= new TemplateLauncher.TemplateLauncher(_logger, _ctx, _verboseMode) { _originallyInvokedTemplateFile = _originallyInvokedTemplateFile };
+            int returnCode = await _launcher.LoadAsync(_templateFile.FullName);
+            _expectedModels = _launcher.ExpectedModels;
+            return returnCode;
+        }
+
+        protected async Task<int> HandleCommand(InvocationContext context, ParseResult parseResult, CommandArgs cliArgs)
+        {
+            _verboseMode |= (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--verbose"));
+            _showTemplateHelp |= (parseResult.HasOption(CliCommandParser.HelpOption));
 
             string currentCommand = "dotnet-codegencs template run";
             int statusCode;
@@ -83,72 +219,27 @@ namespace CodegenCS.DotNetTool.Commands
                     //Environment.Exit(-1); CancelKeyPress will do it automatically since we didn't set e.Cancel to true
                 };
 
-                var logger = new ColoredConsoleLogger();
 
-                string[] validExtensions = new string[] { ".dll", ".cs", ".csx" };
-                FileInfo templateFile = File.Exists(cliArgs.Template) ? new FileInfo(cliArgs.Template) : null;
-                for (int i = 0; templateFile == null && i < validExtensions.Length; i++)
+                if (_launcher == null) // is this possible? arriving here without LoadTemplateAsync
                 {
-                    if (File.Exists(cliArgs.Template + validExtensions[i]))
-                        templateFile = new FileInfo(cliArgs.Template + validExtensions[i]);
+                    _launcher ??= new TemplateLauncher.TemplateLauncher(_logger, _ctx, _verboseMode) { _originallyInvokedTemplateFile = _originallyInvokedTemplateFile};
+                    return await _launcher.LoadAsync(_templateFile.FullName);
                 }
 
-                if (templateFile == null)
-                {
-                    if (validExtensions.Contains(Path.GetExtension(cliArgs.Template).ToLower()))
-                        Console.WriteLineError(ConsoleColor.Red, $"Cannot find Template {ConsoleColor.Yellow}'{cliArgs.Template}'{PREVIOUS_COLOR}");
-                    else
-                        Console.WriteLineError(ConsoleColor.Red, $"Cannot find Template {ConsoleColor.Yellow}'{cliArgs.Template}.dll'{PREVIOUS_COLOR} or {ConsoleColor.Yellow}'{cliArgs.Template}.cs'{PREVIOUS_COLOR} or {ConsoleColor.Yellow}'{cliArgs.Template}.csx'{PREVIOUS_COLOR}");
-                    return -1;
-                }
-                else if (!validExtensions.Contains(Path.GetExtension(templateFile.FullName).ToLower()))
-                {
-                    Console.WriteLineError(ConsoleColor.Red, $"Invalid Template name {ConsoleColor.Yellow}'{templateFile.Name}'{PREVIOUS_COLOR}");
-                    Console.WriteLineError(ConsoleColor.Red, $"Valid template extensions are {ConsoleColor.Yellow}{string.Join(", ", validExtensions.Select(ext =>ext.TrimStart('.')))}{PREVIOUS_COLOR}");
-                    return -1;
-                }
-
-                // If user provided a single CS/CSX file (instead of a DLL file) first we need to build into a dll
-                if (Path.GetExtension(cliArgs.Template).ToLower() != ".dll")
-                {
-                    currentCommand = "dotnet-codegencs template build";
-
-                    var builderArgs = new TemplateBuilder.TemplateBuilder.TemplateBuilderArgs()
-                    {
-                        Template = new string[] { templateFile.FullName },
-                        //TODO define folder+filename by hash of template name+contents, to cache results.
-                        Output = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), Guid.NewGuid().ToString(), Path.GetFileNameWithoutExtension(templateFile.FullName)) + ".dll",
-                        VerboseMode = verboseMode,
-                    };
-                    var builder = new TemplateBuilder.TemplateBuilder(logger, builderArgs);
-
-                    statusCode = await builder.ExecuteAsync();
-
-                    if (statusCode != 0)
-                    {
-                        Console.WriteLineError(ConsoleColor.Red, $"TemplateBuilder ({ConsoleColor.Yellow}'{currentCommand}'{PREVIOUS_COLOR}) Failed.");
-                        return -1;
-                    }
-                    currentCommand = "dotnet-codegencs template run";
-                    templateFile = new FileInfo(builderArgs.Output);
-                }
+                _launcher.ShowTemplateHelp = _showTemplateHelp;
 
                 // now we have the DLL to run...
                 var launcherArgs = new TemplateLauncher.TemplateLauncher.TemplateLauncherArgs()
                 {
-                    Template = templateFile.FullName,
+                    Template = _templateFile.FullName,
                     Models = cliArgs.Models,
                     OutputFolder = cliArgs.OutputFolder,
                     DefaultOutputFile = cliArgs.DefaultOutputFile,
-                    TemplateSpecificArguments = templateSpecificArguments,
-                    VerboseMode = verboseMode
+                    TemplateSpecificArguments = cliArgs.TemplateArgs,
                 };
 
 
-                var ctx = new CodegenContext(); // var ctx = new DotNet.DotNetCodegenContext(); if user passes csproj file, etc.
-                var launcher = new TemplateLauncher.TemplateLauncher(logger, new CodegenContext(), launcherArgs);
-
-                statusCode = await launcher.ExecuteAsync();
+                statusCode = await _launcher.ExecuteAsync(launcherArgs, parseResult);
 
                 if (statusCode != 0)
                 {
@@ -159,6 +250,63 @@ namespace CodegenCS.DotNetTool.Commands
 
                 return 0;
             }
+        }
+
+        /// <summary>
+        /// Creates a custom Command for the template, configures it (using ConfigureCommand() defined in template), and register under a fake "template run" which replaces the real one.
+        /// </summary>
+        Command CreateCustomCommand(string filePath, Type model1Type, Type model2Type, MethodInfo configureCommand)
+        {
+            // Create a subcommand for the invoked template, add model arguments, add custom options/arguments
+            var customTemplateCommand = new Command(filePath.Replace(" ", "_"));
+
+            if (model1Type != null && model2Type != null)
+            {
+                customTemplateCommand.AddArgument(new Argument<string>("Model1", $"Model of type {model1Type.FullName}") { Arity = ArgumentArity.ExactlyOne });
+                customTemplateCommand.AddArgument(new Argument<string>("Model2", $"Model of type {model2Type.FullName}") { Arity = ArgumentArity.ExactlyOne });
+            }
+            else if (model1Type != null)
+            {
+                customTemplateCommand.AddArgument(new Argument<string>("Model", $"Model of type {model1Type.FullName}") { Arity = ArgumentArity.ExactlyOne });
+            }
+
+            //configure custom options/arguments
+            configureCommand.Invoke(null, new object[] { customTemplateCommand });
+
+
+            // Remove the old "template run" and "template build"
+            var templateCmd = (Command)_command.Parents.Single();
+            var subcommands = (List<Command>)templateCmd.Subcommands;
+            subcommands.Clear();
+
+            // Create a new fake "template run" command
+            var fakeTemplateRunCommand = GetFakeRunCommand();
+            fakeTemplateRunCommand.AddCommand(customTemplateCommand);
+            templateCmd.Add(fakeTemplateRunCommand);
+
+            return customTemplateCommand;
+        }
+
+        public ParseResult ParseCliUsingCustomCommand(string filePath, Type model1Type, Type model2Type, DependencyContainer dependencyContainer, MethodInfo configureCommand, ParseResult parseResult)
+        {
+            // If template have a static ConfigureCommand(Command), let's create a fake command and reparse the command-line arguments using the arguments/options defined in ConfigureCommand()
+            var rootCommand = parseResult.RootCommandResult.Command;
+
+            // dummy command, just to parse the Arguments/Options defined in "public static void ConfigureCommand(Command)"
+            var templateCommand = CreateCustomCommand(filePath, model1Type, model2Type, configureCommand);
+            dependencyContainer.RegisterSingleton<Command>(templateCommand);
+
+            // Parse again from root, but now with fake run command
+            var parser = new Parser(rootCommand);
+
+            var allArgs = parseResult.Tokens.Select(t => t.Value).ToList();
+            var templateArg = parseResult.CommandResult.GetValueForArgument((Argument<string>)parseResult.CommandResult.Command.Arguments.Single(a => a.Name == "Template"));
+            int templatePos = allArgs.IndexOf(templateArg);
+            if (templatePos > 0)
+                allArgs[templatePos] = filePath;
+
+            parseResult = parser.Parse(allArgs);
+            return parseResult;
         }
 
         protected class CommandArgs
