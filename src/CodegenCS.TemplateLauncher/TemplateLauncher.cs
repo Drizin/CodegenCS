@@ -23,7 +23,6 @@ namespace CodegenCS.TemplateLauncher
         protected int _expectedModels;
         protected Type _model1Type = null;
         protected Type _model2Type = null;
-        public int ExpectedModels => _expectedModels;
         protected Type _entryPointClass = null;
         protected FileInfo _templateFile;
         internal FileInfo _originallyInvokedTemplateFile;
@@ -79,18 +78,25 @@ namespace CodegenCS.TemplateLauncher
 
         public async Task<int> LoadAndExecuteAsync(string templateDll, TemplateLauncherArgs args, ParseResult parseResult)
         {
-            int returnCode = await LoadAsync(templateDll);
-            if (returnCode != 0)
-                return returnCode;
+            var loadResult = await LoadAsync(templateDll);
+            if (loadResult.ReturnCode != 0)
+                return loadResult.ReturnCode;
             return await ExecuteAsync(args, parseResult);
         }
 
-        public async Task<int> LoadAsync(string templateDll)
+        public class TemplateLoadResponse
+        {
+            public int ReturnCode { get; set; }
+            public Type Model1Type { get; set; }
+            public Type Model2Type { get; set; }
+        }
+
+        public async Task<TemplateLoadResponse> LoadAsync(string templateDll)
         {
             if (!((_templateFile = new FileInfo(templateDll)).Exists || (_templateFile = new FileInfo(templateDll + ".dll")).Exists))
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Cannot find Template DLL {templateDll}");
-                return -1;
+                return new TemplateLoadResponse() { ReturnCode = -1 };
             }
 
             await _logger.WriteLineAsync(ConsoleColor.Green, $"Loading {ConsoleColor.Yellow}'{_templateFile.Name}'{PREVIOUS_COLOR}...");
@@ -154,7 +160,7 @@ namespace CodegenCS.TemplateLauncher
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find template entry-point in '{(_originallyInvokedTemplateFile ?? _templateFile).Name}'.");
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Template should implement ICodegenTemplate, ICodegenMultifileTemplate or ICodegenStringTemplate.");
-                return -1;
+                return new TemplateLoadResponse() { ReturnCode = -1 };
             }
 
             if (IsAssignableToType(foundInterface, typeof(IBase1ModelTemplate<>)))
@@ -194,7 +200,7 @@ namespace CodegenCS.TemplateLauncher
             else
                 _expectedModels = 0;
 
-            return 0;
+            return new TemplateLoadResponse() { ReturnCode = 0, Model1Type = _model1Type, Model2Type = _model2Type  };
         }
 
         public async Task<int> ExecuteAsync(TemplateLauncherArgs _args, ParseResult parseResult)

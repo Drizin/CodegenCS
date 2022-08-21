@@ -15,9 +15,9 @@ namespace CodegenCS.DotNetTool.Commands
         {
             var command = new Command(commandName);
 
-            command.AddArgument(new Argument<string[]>("Template", description: "Template(s) to build. E.g. \"MyTemplate.cs\"") { Arity = ArgumentArity.OneOrMore });
+            command.AddArgument(new Argument<string[]>("template", description: "Template(s) to build. E.g. \"MyTemplate.cs\"") { Arity = ArgumentArity.OneOrMore });
 
-            command.AddOption(new Option<string>(new[] { "--Output", "-o" }, description:
+            command.AddOption(new Option<string>(new[] { "--output", "-o" }, description:
                 """
                 Folder and/or filename to save output dll
                 If folder is not provided then dll is saved in current folder
@@ -28,7 +28,7 @@ namespace CodegenCS.DotNetTool.Commands
                 Examples: "MyCodeGenerator.dll"              (specify only filename)
                 """
             )
-            { Arity = ArgumentArity.ExactlyOne, ArgumentHelpName = "Output" });
+            { Arity = ArgumentArity.ExactlyOne, ArgumentHelpName = "output_name" });
 
             command.Handler = CommandHandler.Create<ParseResult, CommandArgs>(HandleCommand);
 
@@ -58,7 +58,8 @@ namespace CodegenCS.DotNetTool.Commands
                 };
                 var builder = new TemplateBuilder.TemplateBuilder(new ColoredConsoleLogger(), args);
 
-                return await builder.ExecuteAsync();
+                var builderResult = await builder.ExecuteAsync();
+                return builderResult.ReturnCode;
             }
         }
 

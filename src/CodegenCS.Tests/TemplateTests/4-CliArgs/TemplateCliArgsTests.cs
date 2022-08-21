@@ -56,8 +56,8 @@ namespace CodegenCS.Tests.TemplateTests
                 VerboseMode = true,
             };
             var builder = new CodegenCS.TemplateBuilder.TemplateBuilder(_logger, _builderArgs);
-            int ret = await builder.ExecuteAsync();
-            Assert.AreEqual(0, ret);
+            var builderResult = await builder.ExecuteAsync();
+            Assert.AreEqual(0, builderResult.ReturnCode);
 
         }
         private async Task<int> LaunchAsync(string[] models = null, string[] templateArgs = null)
@@ -117,8 +117,7 @@ namespace CodegenCS.Tests.TemplateTests
             Assert.AreEqual(args.Length, parseResult.Tokens.Count);
             Assert.AreEqual("run", parseResult.CommandResult.Command.Name);
 
-            Argument<string[]> s = (Argument<string[]>)parseResult.CommandResult.Command.Children.Where(s => s.Name == "TemplateArgs").Single();
-            string[] templateSpecificArgs = parseResult.GetValueForArgument<string[]>(s);
+            string[] templateSpecificArgs = parseResult.GetValueForArgument<string[]>(CodegenCS.DotNetTool.CliCommandParser.RunTemplate._templateSpecificArguments);
             Assert.AreEqual(new string[] { "now", "comes", "template-specific", "options", "and", "args" }, templateSpecificArgs);
 
             parseResult = CodegenCS.DotNetTool.CliCommandParser.RootCommand.Parse(string.Join(" ", args));
@@ -126,8 +125,7 @@ namespace CodegenCS.Tests.TemplateTests
             Assert.AreEqual(args.Length, parseResult.Tokens.Count);
             Assert.AreEqual("run", parseResult.CommandResult.Command.Name);
 
-            s = (Argument<string[]>)parseResult.CommandResult.Command.Children.Where(s => s.Name == "TemplateArgs").Single();
-            templateSpecificArgs = parseResult.GetValueForArgument<string[]>(s);
+            templateSpecificArgs = parseResult.GetValueForArgument<string[]>(CodegenCS.DotNetTool.CliCommandParser.RunTemplate._templateSpecificArguments);
             Assert.AreEqual(new string[] { "now", "comes", "template-specific", "options", "and", "args" }, templateSpecificArgs);
 
             //TODO: res = GetCommand().Parse("""run Template.cs Model.json --OutputFolder MyOutputFolder lala -lele -Template lili""");

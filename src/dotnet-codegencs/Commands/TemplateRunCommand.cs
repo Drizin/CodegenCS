@@ -18,6 +18,7 @@ namespace CodegenCS.DotNetTool.Commands
     internal class TemplateRunCommand
     {
         internal readonly Argument<string> _templateArg;
+        internal readonly Argument<string[]> _modelsArg;
         internal readonly Argument<string[]> _templateSpecificArguments;
 
         internal bool _verboseMode = false;
@@ -35,13 +36,22 @@ namespace CodegenCS.DotNetTool.Commands
 
         public TemplateRunCommand()
         {
-            _templateArg = new Argument<string>("Template", description: "Template to run. E.g. \"MyTemplate.dll\" or \"MyTemplate.cs\" or \"MyTemplate\"") { Arity = ArgumentArity.ExactlyOne };
+            _templateArg = new Argument<string>("template", description: "Template to run. E.g. \"MyTemplate.dll\" or \"MyTemplate.cs\" or \"MyTemplate\"") { Arity = ArgumentArity.ExactlyOne };
+            _modelsArg = new Argument<string[]>("models", description: "Input Model(s) E.g. \"DbSchema.json\", \"ApiEndpoints.yaml\", etc. Templates might expect 0, 1 or 2 models", parse: ParseModels)
+            {
+                //Arity = new ArgumentArity(0, 2)
+                // If we have limited arity (e.g. 0 to 2 args) using OnlyTake() when parsing this argument (Models) won't work:
+                // even if we OnlyTake(1) the next argument (TemplateArgs parsed by ParseTemplateArgs()) will still miss one token (ParseResultVisitor misses the PassedOver arguments)
+
+                // So we have to be unlimited:
+                Arity = ArgumentArity.ZeroOrMore
+            };
             _templateSpecificArguments = new Argument<string[]>("TemplateArgs", parse: ParseTemplateArgs)
             {
                 Description = "Template-specific arguments/options (if template requires/accepts it)",
                 Arity = new ArgumentArity(0, 999), 
                 //Arity = ArgumentArity.ZeroOrMore,
-                HelpName ="Template args"
+                HelpName ="template_args"
             };
             _logger = new ColoredConsoleLogger();
             _command = GetCommand();
@@ -55,15 +65,7 @@ namespace CodegenCS.DotNetTool.Commands
 
             command.AddArgument(_templateArg);
 
-            command.AddArgument(new Argument<string[]>("Models", description: "Input Model(s) E.g. \"DbSchema.json\", \"ApiEndpoints.yaml\", etc. Templates might expect 0, 1 or 2 models", parse: ParseModels)
-            {
-                //Arity = new ArgumentArity(0, 2)
-                // If we have limited arity (e.g. 0 to 2 args) using OnlyTake() when parsing this argument (Models) won't work:
-                // even if we OnlyTake(1) the next argument (TemplateArgs parsed by ParseTemplateArgs()) will still miss one token (ParseResultVisitor misses the PassedOver arguments)
-                    
-                // So we have to be unlimited:
-                Arity = ArgumentArity.ZeroOrMore
-            });
+            command.AddArgument(_modelsArg);
 
             command.AddArgument(_templateSpecificArguments);
 
@@ -118,7 +120,7 @@ namespace CodegenCS.DotNetTool.Commands
         string[] ParseTemplateArgs(ArgumentResult result)
         {
             // Since Models arg is unlimited (ArgumentArity.ZeroOrMore) this subsequent argument will get the same arguments, and we have to skip the number of tokens which were matched to models
-            int models = result.Parent.Children.Where(s => s.Symbol.Name == "Models").Single().Tokens.Count();
+            int models = result.Parent.GetValueForArgument(_modelsArg)?.Length ?? 0;
             var arr = result.Tokens.Skip(models).Select(t => t.Value).ToArray();
             if (_verboseMode && arr.Any())
                 Console.WriteLine(ConsoleColor.DarkGray, $"[DEBUG] TemplateArgs: {ConsoleColor.Yellow}'{String.Join("', '", arr)}'{PREVIOUS_COLOR}");
@@ -181,9 +183,9 @@ namespace CodegenCS.DotNetTool.Commands
                 };
                 var builder = new TemplateBuilder.TemplateBuilder(_logger, builderArgs);
 
-                int statusCode = await builder.ExecuteAsync();
+                var builderResult = await builder.ExecuteAsync();
 
-                if (statusCode != 0)
+                if (builderResult.ReturnCode != 0)
                 {
                     Console.WriteLineError(ConsoleColor.Red, $"TemplateBuilder ({ConsoleColor.Yellow}'{currentCommand}'{PREVIOUS_COLOR}) Failed.");
                     return -1;
@@ -198,9 +200,9 @@ namespace CodegenCS.DotNetTool.Commands
         public async Task<int> LoadTemplateAsync()
         {
             _launcher ??= new TemplateLauncher.TemplateLauncher(_logger, _ctx, _verboseMode) { _originallyInvokedTemplateFile = _originallyInvokedTemplateFile };
-            int returnCode = await _launcher.LoadAsync(_templateFile.FullName);
-            _expectedModels = _launcher.ExpectedModels;
-            return returnCode;
+            var loadResult = await _launcher.LoadAsync(_templateFile.FullName);
+            _expectedModels = (loadResult.Model1Type != null ? 1 : 0) + (loadResult.Model2Type != null ? 1 : 0);
+            return loadResult.ReturnCode;
         }
 
         protected async Task<int> HandleCommand(InvocationContext context, ParseResult parseResult, CommandArgs cliArgs)
@@ -223,7 +225,8 @@ namespace CodegenCS.DotNetTool.Commands
                 if (_launcher == null) // is this possible? arriving here without LoadTemplateAsync
                 {
                     _launcher ??= new TemplateLauncher.TemplateLauncher(_logger, _ctx, _verboseMode) { _originallyInvokedTemplateFile = _originallyInvokedTemplateFile};
-                    return await _launcher.LoadAsync(_templateFile.FullName);
+                    var loadResult = await _launcher.LoadAsync(_templateFile.FullName);
+                    return loadResult.ReturnCode;
                 }
 
                 _launcher.ShowTemplateHelp = _showTemplateHelp;
@@ -300,7 +303,7 @@ namespace CodegenCS.DotNetTool.Commands
             var parser = new Parser(rootCommand);
 
             var allArgs = parseResult.Tokens.Select(t => t.Value).ToList();
-            var templateArg = parseResult.CommandResult.GetValueForArgument((Argument<string>)parseResult.CommandResult.Command.Arguments.Single(a => a.Name == "Template"));
+            var templateArg = parseResult.CommandResult.GetValueForArgument(_templateArg);
             int templatePos = allArgs.IndexOf(templateArg);
             if (templatePos > 0)
                 allArgs[templatePos] = filePath;

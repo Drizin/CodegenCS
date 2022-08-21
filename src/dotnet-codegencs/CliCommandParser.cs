@@ -23,6 +23,7 @@ namespace CodegenCS.DotNetTool
         private static readonly Command _templateCommands = new Command("template");
         private static readonly Command BuildTemplateCommand = Commands.TemplateBuildCommand.GetCommand();
         private static readonly Command RunTemplateCommand = RunTemplate._command;
+        private static readonly Command CloneTemplateCommand = Commands.TemplateCloneCommand.GetCommand();
         private static readonly Command SimplePOCOGeneratorCommand = SimplePOCOGenerator.CliCommand.GetCommand();
         private static readonly Command EFCoreGeneratorCommand = EFCoreGenerator.CliCommand.GetCommand();
         private static readonly Command DbSchemaExtractorCommand = DbSchema.Extractor.CliCommand.GetCommand();
@@ -35,6 +36,7 @@ namespace CodegenCS.DotNetTool
             rootCommand.AddCommand(_templateCommands);
             _templateCommands.AddCommand(RunTemplateCommand);
             _templateCommands.AddCommand(BuildTemplateCommand);
+            _templateCommands.AddCommand(CloneTemplateCommand);
 
             rootCommand.AddCommand(SimplePOCOGeneratorCommand);
             rootCommand.AddCommand(EFCoreGeneratorCommand);
@@ -59,7 +61,7 @@ namespace CodegenCS.DotNetTool
                 // - If it's not a DLL we first build cs/csx into a dll
                 // - We load the dll so we know the number of expected models.
                 // - If required we'll parse command-line arguments again
-                if (context.ParseResult.CommandResult.Command == CliCommandParser.RunTemplate._command)
+                if (context.ParseResult.CommandResult.Command == CliCommandParser.RunTemplate._command && !context.ParseResult.Errors.Any())
                 {
                     var template = context.ParseResult.GetValueForArgument(RunTemplate._templateArg);
 

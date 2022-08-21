@@ -59,6 +59,7 @@
     <ProjectReference Include="..\CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj" />
     <ProjectReference Include="..\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj" />
     <ProjectReference Include="..\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" />
+    <ProjectReference Include="..\CodegenCS.TemplateDownloader\CodegenCS.TemplateDownloader.csproj" />
   </ItemGroup>
 
   <Choose>

@@ -42,7 +42,13 @@ namespace CodegenCS.TemplateBuilder
             public bool VerboseMode { get; set; }
         }
 
-        public async Task<int> ExecuteAsync()
+        public class TemplateBuilderResponse
+        {
+            public int ReturnCode { get; set; }
+            public string TargetFile { get; set; }
+        }
+
+        public async Task<TemplateBuilderResponse> ExecuteAsync()
         {
             inputFiles = new FileInfo[_args.Template.Length];
             for (int i=0; i < _args.Template.Length; i++)
@@ -50,7 +56,7 @@ namespace CodegenCS.TemplateBuilder
                 if (!((inputFiles[i] = new FileInfo(_args.Template[i])).Exists || (inputFiles[i] = new FileInfo(_args.Template[i] + ".cs")).Exists || (inputFiles[i] = new FileInfo(_args.Template[i] + ".csx")).Exists))
                 {
                     await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Cannot find Template Script {ConsoleColor.Yellow}'{_args.Template[i]}'{PREVIOUS_COLOR}");
-                    return -1;
+                    return new TemplateBuilderResponse() { ReturnCode = -1 };
                 }
             }
 
@@ -76,21 +82,21 @@ namespace CodegenCS.TemplateBuilder
 
             var sources = inputFiles.Select(inp => inp.FullName).ToArray();
 
-            var targetFile = Path.Combine(outputFolder, outputFileName);
+            var targetFile = Utils.IOUtils.MakeRelativePath(Path.Combine(outputFolder, outputFileName));
 
             bool success = await compiler.Compile(sources, targetFile);
 
             if (!success)
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Error while building '{string.Join(", ", inputFiles.Select(inp => inp.Name))}'.");
-                return -1;
+                return new TemplateBuilderResponse() { ReturnCode = -1 };
             }
 
             await _logger.WriteLineAsync(ConsoleColor.Green, $"\nSuccessfully built template into {ConsoleColor.White}'{targetFile}'{PREVIOUS_COLOR}.");
-            return 0;
+            return new TemplateBuilderResponse() { ReturnCode = 0, TargetFile = targetFile };
 
         }
-       
+
 
     }
     
