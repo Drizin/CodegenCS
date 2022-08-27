@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.DbSchema.Extracto
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-codegencs", "dotnet-codegencs\dotnet-codegencs.csproj", "{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.DbSchema.Templates", "CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj", "{6912334B-B566-49DC-B278-41B4C8EE4B40}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.TemplateBuilder", "CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj", "{20234722-DC8F-4B0D-B12A-3DF606D181DA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.TemplateLauncher", "CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj", "{82DF9B4A-88AB-4A98-AF7C-DE21FDCDA13B}"
@@ -56,10 +54,6 @@ Global
 		{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6912334B-B566-49DC-B278-41B4C8EE4B40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6912334B-B566-49DC-B278-41B4C8EE4B40}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6912334B-B566-49DC-B278-41B4C8EE4B40}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6912334B-B566-49DC-B278-41B4C8EE4B40}.Release|Any CPU.Build.0 = Release|Any CPU
 		{20234722-DC8F-4B0D-B12A-3DF606D181DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{20234722-DC8F-4B0D-B12A-3DF606D181DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20234722-DC8F-4B0D-B12A-3DF606D181DA}.Release|Any CPU.ActiveCfg = Release|Any CPU

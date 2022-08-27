@@ -34,6 +34,7 @@ git pull --recurse-submodules
 git submodule update --remote --recursive
 
 cd External\command-line-api\
+git checkout main 
 Remove-Item -Recurse ~\.nuget\packages\System.CommandLine* -Force
 dotnet clean
 dotnet pack  /p:PackageVersion=2.0.0-codegencs

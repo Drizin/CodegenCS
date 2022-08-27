@@ -1,3 +1,4 @@
+/*
 using CodegenCS;
 using CodegenCS.AdventureWorksPOCOSample;
 using Dapper;
@@ -116,3 +117,4 @@ namespace CodegenCS.Tests.POCOTests
 
     }
 }
+*/

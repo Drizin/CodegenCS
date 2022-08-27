@@ -237,7 +237,7 @@ namespace CodegenCS.DotNetTool.Commands
                     Template = _templateFile.FullName,
                     Models = cliArgs.Models,
                     OutputFolder = cliArgs.OutputFolder,
-                    DefaultOutputFile = cliArgs.DefaultOutputFile,
+                    DefaultOutputFile = cliArgs.File,
                     TemplateSpecificArguments = cliArgs.TemplateArgs,
                 };
 
@@ -325,7 +325,7 @@ namespace CodegenCS.DotNetTool.Commands
 
 
             /// <see cref="TemplateLauncher.TemplateLauncher.TemplateLauncherArgs.DefaultOutputFile"/>
-            public string DefaultOutputFile { get; set; }
+            public string File { get; set; }
 
             public string[] TemplateArgs { get; set; }
 

@@ -5,8 +5,6 @@ using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.Linq;
 using System.Reflection;
-using SimplePOCOGenerator = CodegenCS.DbSchema.Templates.SimplePOCOGenerator;
-using EFCoreGenerator = CodegenCS.DbSchema.Templates.EFCoreGenerator;
 using System.CommandLine.Help;
 using System.CommandLine.Parsing;
 using static CodegenCS.DotNetTool.CliCommandParser;
@@ -24,9 +22,10 @@ namespace CodegenCS.DotNetTool
         private static readonly Command BuildTemplateCommand = Commands.TemplateBuildCommand.GetCommand();
         private static readonly Command RunTemplateCommand = RunTemplate._command;
         private static readonly Command CloneTemplateCommand = Commands.TemplateCloneCommand.GetCommand();
-        private static readonly Command SimplePOCOGeneratorCommand = SimplePOCOGenerator.CliCommand.GetCommand();
-        private static readonly Command EFCoreGeneratorCommand = EFCoreGenerator.CliCommand.GetCommand();
-        private static readonly Command DbSchemaExtractorCommand = DbSchema.Extractor.CliCommand.GetCommand();
+
+        private static readonly Command _modelCommands = new Command("model");
+        private static readonly Command _modelDbSchemaCommands = new Command("dbschema");
+        private static readonly Command _modelDbSchemaExtractCommand = DbSchema.Extractor.CliCommand.GetCommand();
 
         internal static readonly Option HelpOption = new Option<bool>(new[] { "--help", "-?", "/?", "/help", "--?" }, "\nShow Help"); // default lib will also track "-h" 
         internal static readonly Option VerboseOption = new Option<bool>(new[] { "--verbose", "--debug" }, getDefaultValue: () => false, "Verbose mode") { }; // verbose output, detailed exceptions
@@ -38,9 +37,9 @@ namespace CodegenCS.DotNetTool
             _templateCommands.AddCommand(BuildTemplateCommand);
             _templateCommands.AddCommand(CloneTemplateCommand);
 
-            rootCommand.AddCommand(SimplePOCOGeneratorCommand);
-            rootCommand.AddCommand(EFCoreGeneratorCommand);
-            rootCommand.AddCommand(DbSchemaExtractorCommand);
+            _modelDbSchemaCommands.AddCommand(_modelDbSchemaExtractCommand);
+            _modelCommands.AddCommand(_modelDbSchemaCommands);
+            rootCommand.AddCommand(_modelCommands);
 
             // Add options
             rootCommand.AddGlobalOption(HelpOption);
@@ -194,7 +193,7 @@ namespace CodegenCS.DotNetTool
                 }
 
                 // default descriptor for enum types will show all possible values (e.g. "<MSSQL|PostgreSQL>"), but I think it's better to show possible values in the description and leave descriptor with the 
-                CustomizeSymbol(DbSchemaExtractorCommand.Arguments.Single(a => a.Name== "dbtype"), firstColumnText: (ctx) => "<dbtype>");
+                CustomizeSymbol(_modelDbSchemaExtractCommand.Arguments.Single(a => a.Name== "dbtype"), firstColumnText: (ctx) => "<dbtype>");
             }
 
             private static int GetConsoleWidth()

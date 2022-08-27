@@ -1,30 +1,27 @@
 # CodegenCS
 
-**DbSchema Extractor**
+This is a dotnet tool (command-line tool) to extract the schema of a MSSQL or PostgreSQL database (and save it in a JSON file) and to clone/build/run code-generator templates.
 
-This is a dotnet tool (command-line tool) that extracts the schema of a MSSQL or PostgreSQL database and saves it in a JSON file.  It also contains a simple template to generate POCOs based on the JSON schema.
+**Extracting schema of a MSSQL or PostgreSQL database**
 
-Sample usage:
+```dotnet-codegencs model dbschema extract mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json```
 
-```dotnet-codegencs extract-dbschema postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
+```dotnet-codegencs model dbschema extract mssql "Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
 
-```dotnet-codegencs extract-dbschema mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json```
+```dotnet-codegencs model dbschema extract postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
 
-```dotnet-codegencs extract-dbschema mssql "Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json```
+**Downloading and running a simple template (POCO Generator)**
 
-**Simple POCO Generator**
+```dotnet-codegencs template clone https://github.com/CodegenCS/CodegenCS.Templates/SimplePocos/SimplePocos.cs```
 
-This is a template that generates POCO classes from a JSON schema extracted with dbschema-extractor.
+(or just ```dotnet-codegencs template clone /SimplePocos/SimplePocos```)
 
-Sample usage:
+```dotnet-codegencs template run --TargetFolder=.\OutputFolder\ SimplePocos.dll AdventureWorks.json MyProject.POCOs```
 
-```dotnet-codegencs simplepocogenerator AdventureWorks.json --TargetFolder=OutputFolder --Namespace=MyProject.POCOs```
+```dotnet-codegencs template run --TargetFolder=.\Somefolder\ --File POCOs.generated.cs SimplePocos.dll AdventureWorks.json MyProject.POCOs --SingleFile```
 
-```dotnet-codegencs simplepocogenerator AdventureWorks.json --TargetFolder=. --Namespace=MyProject.POCOs --SingleFile=POCOs.generated.cs --CrudExtensions```
 
-```dotnet-codegencs simplepocogenerator AdventureWorks.json --TargetFolder=. --Namespace=MyProject.POCOs --CrudClassMethods```
-
-For more templates or for more information check out the [main project](https://github.com/Drizin/CodegenCS) documentation.
+For more templates or for more information check out the [main project](https://github.com/CodegenCS/CodegenCS) documentation.
 
 ## License
 MIT License

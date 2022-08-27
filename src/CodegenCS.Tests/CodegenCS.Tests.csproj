@@ -6,7 +6,7 @@
     <Company>Rick Drizin</Company>
     <Copyright>Rick Drizin</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/</PackageProjectUrl>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
@@ -41,7 +41,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj" />
     <ProjectReference Include="..\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj" />
     <ProjectReference Include="..\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" />
     <ProjectReference Include="..\dotnet-codegencs\dotnet-codegencs.csproj" />

@@ -67,6 +67,7 @@ namespace CodegenCS.TemplateDownloader
                 // Rule #1: accept fully qualified urls like
                 // http(s)://domain.com/folder/file.cs or
                 // https://github.com/user/project/file.cs
+                path.Append(_args.Origin);
             }
             else
             {
@@ -83,6 +84,8 @@ namespace CodegenCS.TemplateDownloader
                     path.Append("github.com/CodegenCS/CodegenCS.Templates/");
                     path.Append(_args.Origin.TrimStart('/'));
                 }
+				else
+					path.Append(_args.Origin);
             }
 
             Match match;

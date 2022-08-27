@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Invocation;
-using System.CommandLine.IO;
-using System.CommandLine.Parsing;
 using System.Reflection;
-using System.Text;
 using Console = InterpolatedColorConsole.ColoredConsole;
 
 namespace CodegenCS.DbSchema.Extractor
 {
     public static class CliCommand
     {
-        public static Command GetCommand(string commandName = "extract-dbschema")
+        public static Command GetCommand(string commandName = "extract")
         {
             var command = new Command(commandName);
             //command.AddAlias("dbschema-extractor");
@@ -39,8 +35,6 @@ namespace CodegenCS.DbSchema.Extractor
                 "PostgreSQL example: \"Host=localhost; Database=Adventureworks; Username=postgres; Password=myPassword\"") { Arity = ArgumentArity.ExactlyOne });
 
             command.AddArgument(new Argument<string>("output", description: "Output JSON schema. E.g. \"Schema.json\"") { Arity = ArgumentArity.ExactlyOne });
-
-            //TODO: There's a bug in command-line-api - if we call dotnet-codegencs.exe  extract-dbschema postgresql (missing 2 parameters), we get System.ArgumentOutOfRangeException
 
             command.Handler = CommandHandler.Create<ParseResult, DbSchemaExtractorArgs>(HandleCommand);
 

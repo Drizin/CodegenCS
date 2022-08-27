@@ -6,7 +6,7 @@
     <authors>Rick Drizin</authors>
     <owners>Rick Drizin</owners>
     <license type="expression">MIT</license>
-    <projectUrl>https://github.com/Drizin/CodegenCS</projectUrl>
+    <projectUrl>https://github.com/CodegenCS/CodegenCS</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Command line tool to extract schema from MSSQL/PostgreSQL database into json files, and templates to generate POCO classes.</description>
     <copyright>Copyright Rick Drizin 2019</copyright>

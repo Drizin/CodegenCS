@@ -95,9 +95,15 @@ namespace CodegenCS.DotNetTool.Commands
                 if (loadResult.Model2Type != null)
                     modelsUsage += $" <{loadResult.Model2Type.Name}Model>";
 
-                //TODO: show how to extract schemas
-                    
+                if (loadResult.Model1Type == typeof(CodegenCS.DbSchema.DatabaseSchema))
+                {
+                    await logger.WriteLineAsync(ConsoleColor.Cyan, $"To generate a {ConsoleColor.Yellow}{loadResult.Model1Type.Name} model{PREVIOUS_COLOR} use: '{ConsoleColor.White}dotnet-codegencs model dbschema extract <MSSQL|PostgreSQL> <connectionString> <output>{PREVIOUS_COLOR}'");
+                    await logger.WriteLineAsync(ConsoleColor.Cyan, $"For help: '{ConsoleColor.White}dotnet-codegencs model dbschema extract /?{PREVIOUS_COLOR}'");
+                    await logger.WriteLineAsync(ConsoleColor.Cyan, $"For sample schema check: '{ConsoleColor.White}https://github.com/CodegenCS/CodegenCS/blob/master/src/CodegenCS.DbSchema/SampleSchema/AdventureWorksSchema.json{PREVIOUS_COLOR}'");
+                }
+
                 await logger.WriteLineAsync(ConsoleColor.Cyan, $"To run this template use: '{ConsoleColor.White}dotnet-codegencs template run {ConsoleColor.Yellow}{builderResult.TargetFile}{PREVIOUS_COLOR}{modelsUsage}{PREVIOUS_COLOR}'");
+                await logger.WriteLineAsync(ConsoleColor.Cyan, $"For help: '{ConsoleColor.White}dotnet-codegencs template run /?{PREVIOUS_COLOR}'");
 
 
                 return 0;

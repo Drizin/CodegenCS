@@ -7,11 +7,11 @@
     <RootNamespace>CodegenCS.DotNetTool</RootNamespace>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/Drizin/CodegenCS</PackageProjectUrl>
-    <Description>Command line tool to extract schema from MSSQL/PostgreSQL database into json files, and templates to generate POCO classes.</Description>
+    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS</PackageProjectUrl>
+    <Description>Command line tool to clone/build/run templates, or create dbschema models (extract schema from MSSQL/PostgreSQL database into json files)</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>1.2.0</Version>
+    <Version>2.0.0</Version>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dotnet-codegencs</ToolCommandName>
     <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
@@ -56,7 +56,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj" />
-    <ProjectReference Include="..\CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj" />
     <ProjectReference Include="..\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj" />
     <ProjectReference Include="..\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" />
     <ProjectReference Include="..\CodegenCS.TemplateDownloader\CodegenCS.TemplateDownloader.csproj" />
