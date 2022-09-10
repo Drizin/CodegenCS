@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Company>Rick Drizin</Company>
+    <Copyright>Rick Drizin</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/</PackageProjectUrl>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <PropertyGroup>
+        <SignAssembly>True</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\..\debug.snk</AssemblyOriginatorKeyFile>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <SignAssembly>True</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\..\release.snk</AssemblyOriginatorKeyFile>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+
+  <ItemGroup>
+    <Compile Remove="**\*-TestsOutput\**" />
+    <Content Include="**\*-TestsOutput\**" />
+	  <Compile Include="..\CodegenCS.DbSchema.Templates\SimplePOCOGenerator\SampleOutput\*.cs">
+		  <Link>POCOTests\GeneratedPOCOs\%(Filename)%(Extension)</Link>
+	  </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="nunit" Version="3.10.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\dotnet-codegencs\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj" />
+    <ProjectReference Include="..\..\dotnet-codegencs\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" />
+    <ProjectReference Include="..\..\dotnet-codegencs\dotnet-codegencs\dotnet-codegencs.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="TemplateBuilderTests\" />
+  </ItemGroup>
+
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <ItemGroup>
+        <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.csproj" />
+        <ProjectReference Include="..\..\Models\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="CodegenCS" Version="2.*" />
+        <PackageReference Include="CodegenCS.DbSchema" Version="2.*" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+
+</Project>
