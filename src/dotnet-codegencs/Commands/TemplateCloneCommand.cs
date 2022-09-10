@@ -16,7 +16,7 @@ namespace CodegenCS.DotNetTool.Commands
             var command = new Command(commandName);
 
             command.AddArgument(new Argument<string>("origin", description: "Template to download (clone). " 
-                + "\nE.g. \"github.com/CodegenCS/CodegenCS.Templates/SimplePocos/SimplePocos.cs\""
+                + "\nE.g. \"github.com/CodegenCS/Templates/SimplePocos/SimplePocos.cs\""
                 + "\nor even simpler: \"SimplePocos/SimplePocos.cs\" or just \"SimplePocos\"") 
             { Arity = ArgumentArity.ExactlyOne });
 

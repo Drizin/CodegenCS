@@ -12,7 +12,7 @@ This is a dotnet tool (command-line tool) to extract the schema of a MSSQL or Po
 
 **Downloading and running a simple template (POCO Generator)**
 
-```dotnet-codegencs template clone https://github.com/CodegenCS/CodegenCS.Templates/SimplePocos/SimplePocos.cs```
+```dotnet-codegencs template clone https://github.com/CodegenCS/Templates/SimplePocos/SimplePocos.cs```
 
 (or just ```dotnet-codegencs template clone /SimplePocos/SimplePocos```)
 

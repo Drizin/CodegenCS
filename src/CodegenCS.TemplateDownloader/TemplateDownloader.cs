@@ -79,9 +79,9 @@ namespace CodegenCS.TemplateDownloader
                 // If if starts with forward-slash or if there's no dot until the first slash, then there's no domain.
                 if (_args.Origin.StartsWith("/") || !_args.Origin.Contains("/") || (_args.Origin.Contains("/") && !_args.Origin.Substring(0, _args.Origin.IndexOf("/")).Contains(".")))
                 {
-                    // Rule #3: accept "GithubProject/Template.cs" as a shortcut to github.com/CodegenCS/CodegenCS.Templates/GithubProject/Template.cs
+                    // Rule #3: accept "GithubProject/Template.cs" as a shortcut to github.com/CodegenCS/Templates/GithubProject/Template.cs
 
-                    path.Append("github.com/CodegenCS/CodegenCS.Templates/");
+                    path.Append("github.com/CodegenCS/Templates/");
                     path.Append(_args.Origin.TrimStart('/'));
                 }
 				else
@@ -98,7 +98,7 @@ namespace CodegenCS.TemplateDownloader
 
                 // Rule #4: if it's specified a folder (or project) in Github but it's not specified a file (no extension) we treat it as a shortcut to the cs file with the same name as the folder.
                 // e.g. accept github.com/GithubUser/GithubProject as a shortcut to github.com/GithubUser/GithubProject/GithubProject.cs
-                // e.g. accept                       GithubProject as a shortcut to github.com/CodegenCS/CodegenCS.Templates/GithubProject/GithubProject.cs
+                // e.g. accept                       GithubProject as a shortcut to github.com/CodegenCS/Templates/GithubProject/GithubProject.cs
 
                 string lastPart;
                 if (string.IsNullOrWhiteSpace(githubPath))
