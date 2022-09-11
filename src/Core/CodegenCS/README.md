@@ -1,28 +1,38 @@
+**CodegenCS is a Toolkit for doing Code Generation using plain C#**. For an overview of all CodegenCS components and tools check out the [Main Project Page](https://github.com/CodegenCS/CodegenCS/).
+
 [![Nuget](https://img.shields.io/nuget/v/CodegenCS?label=CodegenCS)](https://www.nuget.org/packages/CodegenCS)
 [![Downloads](https://img.shields.io/nuget/dt/CodegenCS.svg)](https://www.nuget.org/packages/CodegenCS)
+
 
 # CodegenCS (Core Library)
 
 CodegenCS Core Library is a Class Library for Code Generation that allows us to generate code using plain C#.  
-
-By using plain C# we can render our outputs using plain strings (and string interpolation) and using well-established and well-known C# constructs (invoking methods, passing parameters, embedding strings, looping, formatting, etc) - no need to learn a new syntax.  
-
-On top of that our templates can leverage .NET Framework and .NET libraries for anything that they need (e.g. reading input models from JSON file, or reading directly the the schema from a database, or reading the YAML specs of a REST API).  
-
-CodegenCS is written in C# and templates are developed using plain C# - but the templates can write any text-based output (not only C# code - you can write Javascript, Python, Java, HTML, SQL Scripts, CSHTML, XML, Terraform files, or anything else)
-
 
 This page is about the **CodegenCS Core Library**:
 - If you are **writing a template** (code generator) and want to learn more about CodegenCS features, this is the right place
 - If you just want to **compile and run templates** check out [`dotnet-codegencs template build`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs) and [`dotnet-codegencs template run`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs)
 - If you just want to **reverse-engineer a database schema** check out [`dotnet-codegencs dbschema extract`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs)
 - If you just want to **browse available templates** (POCO Generators, DAL generators, etc) check out [Templates](https://github.com/CodegenCS/Templates/)
-- If you just want to **download the Visual Studio Extension** check out... (Pending)  
-
-For a general overview of all CodegenCS components and tools check out the [Main Page](https://github.com/CodegenCS/CodegenCS/).
+<!-- - If you just want to **download the Visual Studio Extension** check out... (Pending)   -->
 
 
-## Quick Start / NuGet Package
+
+## Features Summary
+
+CodegenCS is a class library for doing code generation using plain C#.  
+Basically it's a "TextWriter on steroids" tweaked to help with common code generation tasks and challenges:
+- Preserves indentation (when we write new lines it will automatically indent the line according to current level) - indent can be controlled explicitly or implicitly.
+- Implicit control of indentation means we can embed complex templates inside other templates and their indentation is automatically "captured" by the position where they are embedded
+- Helpers to write multi-line blocks without having to worry about different indentations for control logic and output code
+- Helpers to keep track of multiple files which can be saved at once in the output folder.
+- Supports string interpolation of IEnumerables (items are rendered one by one, and between the items we can have separators like line-breaks or others)
+- Supports string interpolation of Actions, Functions or Templating Interfaces (to break complex templates into smaller parts)
+- **IF / ELSE / ENDIF symbols** that can be embedded within the text strings and allow concise syntax for **Control Blocks**
+
+
+## Using CodegenCS Core Library in your project:
+
+If you just want to write your own templates check out [`dotnet-codegencs`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs). If you want to use CodegenCS Core Library in your project:
 
 <!-- 
 The [`dotnet-codegencs template build`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs) and [`dotnet-codegencs template run`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs) tools automatically add CodegenCS nuget package and reference, so in order to write templates / compile templates / run templates you normally don't need this.  
@@ -48,7 +58,7 @@ But for a better development/debugging experience (IDE with intellisense) you sh
 - Will automatically adjust multiline blocks (by removing left-padding and removing the first empty line) so that we can just indent-align our multiline blocks wherever they look better - no need to manually worry about whitespace or indenting (since indenting is controlled by the writer context). 
 - This same magic (that we've been doing for years) now can also be done by using the new C# 11 [**"Raw String Literals"**](https://github.com/dotnet/csharplang/blob/main/proposals/raw-string-literal.md) - with the advantage that raw string literals let us render regular single-curly-braces without escaping (much easier to write C#/Java/C blocks) and for interpolated expressions we can use double-mustaches
 - Supports string interpolation of IEnumerables (items are rendered one by one, and between the items we can have separators like line-breaks or any other - it's all configurable using the `.Render()` extension over `IEnumerable<T>`)
-- Supports Control Symbols like IF-ENDIF / IF-ELSE-ENDIF / IIF (Immediate IF) - it's a concise syntax for conditional blocks
+- Supports Control Symbols like **IF-ENDIF / IF-ELSE-ENDIF / IIF (Immediate IF)** - it's a concise syntax for conditional blocks
 - Supports string interpolation of Actions, Functions or Templating interfaces (prefered)
 
 **Writing lines to a CodegenTextWriter and saving to file**

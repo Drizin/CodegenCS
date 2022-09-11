@@ -7,7 +7,7 @@ Basically it contains classes to represent the Database Schema, and there's anot
 Check out the [main project](https://github.com/CodegenCS/CodegenCS) to see more information.
 
 ## Code
-[https://github.com/CodegenCS/CodegenCS/tree/master/src/CodegenCS.DbSchema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema)
+[https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema)
 
 ## License
 MIT License
