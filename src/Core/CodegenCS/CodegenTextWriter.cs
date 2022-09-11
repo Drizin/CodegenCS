@@ -152,6 +152,7 @@ namespace CodegenCS
             _encoding = textWriter.Encoding;
             _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
             _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
+            _dependencyContainer.RegisterSingleton<TextWriter>(() => this);
         }
 
         /// <summary>
@@ -778,6 +779,101 @@ namespace CodegenCS
             Type[] interfaceTypes = arg.GetType().GetInterfaces();
             Type interfaceType;
 
+            #region lazy evaluation: if arg is Func<> invoke it (unwrap it). If it requires arguments (Func<T, TResult> or Func<T1, T2, TResult>, etc) try to resolve and inject them
+            if (IsAssignableToGenericType(arg.GetType(), typeof(Func<>)) || 
+                IsAssignableToGenericType(arg.GetType(), typeof(Func<,>)) || 
+                IsAssignableToGenericType(arg.GetType(), typeof(Func<,,>)) ||
+                IsAssignableToGenericType(arg.GetType(), typeof(Func<,,,>)) ||
+                IsAssignableToGenericType(arg.GetType(), typeof(Func<,,,,>)))
+            {
+                var genericTypes = arg.GetType().GetGenericArguments();
+                Type genericFunc; // typeof(Func<T>) where T is IEnumerable, or Func<T, TResult>, etc.
+                switch (genericTypes.Length - 1) // -1 because the last arg is the TResult
+                {
+                    case 0: genericFunc = typeof(Func<>).MakeGenericType(genericTypes); break;
+                    case 1: genericFunc = typeof(Func<,>).MakeGenericType(genericTypes); break;
+                    case 2: genericFunc = typeof(Func<,,>).MakeGenericType(genericTypes); break;
+                    case 3: genericFunc = typeof(Func<,,,>).MakeGenericType(genericTypes); break;
+                    case 4: genericFunc = typeof(Func<,,,,>).MakeGenericType(genericTypes); break;
+                    case 5: genericFunc = typeof(Func<,,,,,>).MakeGenericType(genericTypes); break;
+                    case 6: genericFunc = typeof(Func<,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 7: genericFunc = typeof(Func<,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 8: genericFunc = typeof(Func<,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 9: genericFunc = typeof(Func<,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 10: genericFunc = typeof(Func<,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 11: genericFunc = typeof(Func<,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 12: genericFunc = typeof(Func<,,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 13: genericFunc = typeof(Func<,,,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 14: genericFunc = typeof(Func<,,,,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 15: genericFunc = typeof(Func<,,,,,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 16: genericFunc = typeof(Func<,,,,,,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    default: throw new NotImplementedException("Func<> can't receive more than 16 arguments"); // 16 inputs and 1 TResult
+                }
+                
+                var func = genericFunc.GetMethod("Invoke");
+                var funcAction = arg;
+                var funcArgs = new object[genericTypes.Length - 1]; // -1 because the return type is not passed to the Func
+                for (int i = 0; i < genericTypes.Length - 1; i++)
+                    funcArgs[i] = this.ResolveDependency(genericTypes[i]);
+                arg = func.Invoke(arg, funcArgs);
+                interfaceTypes = arg.GetType().GetInterfaces();
+            }
+            #endregion
+
+            #region lazy evaluation: if arg is Action just invoke it
+            if (arg as Action != null)
+            {
+                InnerInlineAction(() =>
+                {
+                    Action action = ((Action)arg);
+                    action();
+                });
+                return;
+            }
+            #endregion
+
+            #region lazy evaluation: if arg is Action Action<T> or Action<T1, T2>, etc, try to resolve arguments and invoke
+            if (IsAssignableToGenericType(arg.GetType(), typeof(Action<>)) ||
+                IsAssignableToGenericType(arg.GetType(), typeof(Action<,>)) ||
+                IsAssignableToGenericType(arg.GetType(), typeof(Action<,,>)) ||
+                IsAssignableToGenericType(arg.GetType(), typeof(Action<,,,>)))
+            {
+                var genericTypes = arg.GetType().GetGenericArguments();
+                Type genericAction; // typeof(Action<T>) or Action<T1, T2>, etc.
+                switch (genericTypes.Length)
+                {
+                    case 1: genericAction = typeof(Action<>).MakeGenericType(genericTypes); break;
+                    case 2: genericAction = typeof(Action<,>).MakeGenericType(genericTypes); break;
+                    case 3: genericAction = typeof(Action<,,>).MakeGenericType(genericTypes); break;
+                    case 4: genericAction = typeof(Action<,,,>).MakeGenericType(genericTypes); break;
+                    case 5: genericAction = typeof(Action<,,,,>).MakeGenericType(genericTypes); break;
+                    case 6: genericAction = typeof(Action<,,,,,>).MakeGenericType(genericTypes); break;
+                    case 7: genericAction = typeof(Action<,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 8: genericAction = typeof(Action<,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 9: genericAction = typeof(Action<,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 10: genericAction = typeof(Action<,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 11: genericAction = typeof(Action<,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 12: genericAction = typeof(Action<,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 13: genericAction = typeof(Action<,,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 14: genericAction = typeof(Action<,,,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 15: genericAction = typeof(Action<,,,,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    case 16: genericAction = typeof(Action<,,,,,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
+                    default: throw new NotImplementedException("Action<> can't receive more than 16 arguments");
+                }
+                var action = genericAction.GetMethod("Invoke");
+                var funcAction = arg;
+                var actionArgs = new object[genericTypes.Length];
+                for (int i = 0; i < genericTypes.Length; i++)
+                    actionArgs[i] = this.ResolveDependency(genericTypes[i]);
+                InnerInlineAction(() =>
+                {
+                    action.Invoke(arg, actionArgs);
+                });
+                return;
+            }
+            #endregion
+
+
             #region if arg is string (most common case) or Func<string> (lazy-evaluated func which returns a string)
             if (arg as string != null)
             {
@@ -788,36 +884,15 @@ namespace CodegenCS
                 });
                 return;
             }
-            
-            if (arg as Func<string> != null)
-            {
-                InnerInlineAction(() =>
-                {
-                    string str = ((Func<string>)arg)();
-                    InnerWrite(AdjustMultilineString(str));
-                });
-                return;
-            }
             #endregion
 
-            #region if arg is FormattableString or Func<FormattableString>
+            #region if arg is FormattableString
             if (arg as FormattableString != null)
             {
                 InnerInlineAction(() =>
                 {
                     FormattableString subText = (FormattableString)arg;
                     InnerWriteFormattable(AdjustMultilineString(subText.Format), subText.GetArguments());
-                });
-                return;
-            }
-
-            if (arg as Func<FormattableString> != null)
-            {
-                InnerInlineAction(() =>
-                {
-                    Func<FormattableString> fnFormattable = ((Func<FormattableString>)arg);
-                    FormattableString formattable = fnFormattable();
-                    InnerWriteFormattable(AdjustMultilineString(formattable.Format), formattable.GetArguments());
                 });
                 return;
             }
@@ -933,38 +1008,6 @@ namespace CodegenCS
                 InnerInlineAction(() =>
                 {
                     TemplateRenderer.Render(template, this, _dependencyContainer);
-                });
-                return;
-            }
-            #endregion
-
-
-            #region if arg is Action<ICodegenTextWriter> or Action<TextWriter>
-            if (arg as Action<ICodegenTextWriter> != null)
-            {
-                InnerInlineAction(() =>
-                {
-                    Action<ICodegenTextWriter> action = ((Action<ICodegenTextWriter>)arg);
-                    action(this);
-                });
-                return;
-            }
-            if (arg as Action != null)
-            {
-                InnerInlineAction(() =>
-                {
-                    Action action = ((Action)arg);
-                    action();
-                });
-                return;
-            }
-
-            if (arg as Action<TextWriter> != null)
-            {
-                InnerInlineAction(() =>
-                {
-                    Action<TextWriter> action = ((Action<TextWriter>)arg);
-                    action(this);
                 });
                 return;
             }

@@ -99,7 +99,7 @@ namespace CodegenCS.DotNetTool.Commands
                 {
                     await logger.WriteLineAsync(ConsoleColor.Cyan, $"To generate a {ConsoleColor.Yellow}{loadResult.Model1Type.Name} model{PREVIOUS_COLOR} use: '{ConsoleColor.White}dotnet-codegencs model dbschema extract <MSSQL|PostgreSQL> <connectionString> <output>{PREVIOUS_COLOR}'");
                     await logger.WriteLineAsync(ConsoleColor.Cyan, $"For help: '{ConsoleColor.White}dotnet-codegencs model dbschema extract /?{PREVIOUS_COLOR}'");
-                    await logger.WriteLineAsync(ConsoleColor.Cyan, $"For a sample schema please check out: '{ConsoleColor.White}https://github.com/CodegenCS/CodegenCS/blob/master/src/CodegenCS.DbSchema/SampleSchema/AdventureWorksSchema.json{PREVIOUS_COLOR}'");
+                    await logger.WriteLineAsync(ConsoleColor.Cyan, $"For a sample schema please check out: '{ConsoleColor.White}https://github.com/CodegenCS/CodegenCS/blob/master/src/Models/CodegenCS.DbSchema.SampleDatabases/AdventureWorksSchema.json{PREVIOUS_COLOR}'");
                 }
 
                 await logger.WriteLineAsync(ConsoleColor.Cyan, $"To run this template use: '{ConsoleColor.White}dotnet-codegencs template run {ConsoleColor.Yellow}{builderResult.TargetFile}{PREVIOUS_COLOR}{modelsUsage}{PREVIOUS_COLOR}'");

@@ -4,11 +4,11 @@
     <TargetFrameworks>netstandard2.0;net472;net5.0</TargetFrameworks>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/blob/master/src/CodegenCS/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/blob/master/src/Core/CodegenCS/</PackageProjectUrl>
     <Description>Class Library and Toolkit for Code Generation using plain C#</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <DocumentationFile>CodegenCS.xml</DocumentationFile>
     <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

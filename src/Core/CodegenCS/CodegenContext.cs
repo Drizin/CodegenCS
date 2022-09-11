@@ -104,6 +104,8 @@ namespace CodegenCS
                 _dependencyContainer.RegisterSingleton<CodegenOutputFile>(() => (CodegenOutputFile)_defaultOutputFile);
             if (_defaultOutputFile is CodegenTextWriter)
                 _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => (CodegenTextWriter)_defaultOutputFile);
+            if (_defaultOutputFile is TextWriter)
+                _dependencyContainer.RegisterSingleton<TextWriter>(() => (TextWriter)_defaultOutputFile);
 
         }
         #endregion

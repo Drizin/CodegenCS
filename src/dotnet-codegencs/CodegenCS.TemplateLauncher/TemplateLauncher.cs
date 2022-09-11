@@ -205,6 +205,8 @@ namespace CodegenCS.TemplateLauncher
 
         public async Task<int> ExecuteAsync(TemplateLauncherArgs _args, ParseResult parseResult)
         {
+            if (_entryPointClass == null)
+                throw new InvalidOperationException("Should call LoadAsync() before ExecuteAsync(). Or use LoadAndExecuteAsync()");
 
             _modelFiles = new FileInfo[_args.Models?.Length ?? 0];
             for (int i = 0; i < _modelFiles.Length; i++)
@@ -237,6 +239,7 @@ namespace CodegenCS.TemplateLauncher
             dependencyContainer.RegisterSingleton<ICodegenContext>(_ctx);
             dependencyContainer.RegisterSingleton<ICodegenOutputFile>(_ctx.DefaultOutputFile);
             dependencyContainer.RegisterSingleton<ICodegenTextWriter>(_ctx.DefaultOutputFile);
+            dependencyContainer.RegisterSingleton<TextWriter>((TextWriter)_ctx.DefaultOutputFile);
 
             // CommandLineArgs can be injected in the template constructor (or in any dependency like "TemplateArgs" nested class), and will bring all command-line arguments that were not captured by dotnet-codegencs tool
             CommandLineArgs cliArgs = new CommandLineArgs(_args.TemplateSpecificArguments);
@@ -275,11 +278,15 @@ namespace CodegenCS.TemplateLauncher
             }
 
 
-            var invocationContext = new InvocationContext(parseResult);
-            var bindingContext = invocationContext.BindingContext;
-            dependencyContainer.RegisterSingleton<ParseResult>(parseResult);
-            dependencyContainer.RegisterSingleton<InvocationContext>(invocationContext);
-            dependencyContainer.RegisterSingleton<BindingContext>(bindingContext);
+            BindingContext bindingContext = null;
+            if (parseResult != null)
+            {
+                var invocationContext = new InvocationContext(parseResult);
+                bindingContext = invocationContext.BindingContext;
+                dependencyContainer.RegisterSingleton<ParseResult>(parseResult);
+                dependencyContainer.RegisterSingleton<InvocationContext>(invocationContext);
+                dependencyContainer.RegisterSingleton<BindingContext>(bindingContext);
+            }
 
 
             #endregion
@@ -376,8 +383,9 @@ namespace CodegenCS.TemplateLauncher
             else if (_iTypeTemplate == typeof(IBaseSinglefileTemplate)) // pass ICodegenTextWriter
             {
                 modelArgs.Insert(0, _ctx.DefaultOutputFile);
-                (_entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(entryPointMethod.Name))
-                    .Invoke(instance, modelArgs.ToArray());
+                var method = _entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray());
+                method = method ?? _entryPointClass.GetMethod(entryPointMethod.Name);
+                method.Invoke(instance, modelArgs.ToArray());
             }
             else if (_iTypeTemplate == typeof(IBaseStringTemplate)) // get the FormattableString and write to DefaultOutputFile
             {
