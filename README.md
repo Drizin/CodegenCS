@@ -32,6 +32,15 @@ CodegenCS is written in C# and templates are developed using plain C# - but the 
 
 Check [dotnet-codegencs](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs#quickstart) quickstart.
 
+# FAQ
+
+## How does CodegenCS compare to T4?
+
+Check [CodegenCS vs T4 Templates](https://github.com/CodegenCS/CodegenCS/tree/master/docs/Comparison-T4.md)
+
+## How does CodegenCS compare to Roslyn?
+
+Check [CodegenCS vs Roslyn](https://github.com/CodegenCS/CodegenCS/tree/master/docs/Comparison-Roslyn.md)
 
 
 
@@ -48,9 +57,9 @@ Check [dotnet-codegencs](https://github.com/CodegenCS/CodegenCS/tree/master/src/
 
 
 
-<!-- # Stargazers over time
+# Stargazers over time
 
-[![Star History Chart](https://api.star-history.com/svg?repos=CodegenCS/CodegenCS&type=Date)](https://star-history.com/#CodegenCS/CodegenCS&Date) -->
+[![Star History Chart](https://api.star-history.com/svg?repos=CodegenCS/CodegenCS&type=Date)](https://star-history.com/#CodegenCS/CodegenCS&Date)
 
 # License
 MIT License
