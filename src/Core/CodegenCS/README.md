@@ -28,7 +28,7 @@ Basically this library provides a **"Magic TextWriter"** that helps with common 
 - Supports interpolation of "special symbols" that can be used to write simple conditional-blocks without having to "leave" the string literal and use external control logic.
 - Supports interpolation of "special instructions" to describe how `IEnumerable` items should be rendered (separated by linebreaks or commas, etc).  
 
-Besides the TextWriter the library also provides a "context" class to manage multiple in-memory text writers, and save them into multiple files (other templating engines have poor or no support for multiple files).  
+Besides the TextWriter the library also provides a "context" class to manage multiple in-memory text writers, and save them into multiple files (other templating engines have poor support for multiple files).  
 
 
 <br />
@@ -313,7 +313,7 @@ Complex templates can be better organized by breaking it down into smaller/reusa
 
 String interpolation doesn't allow the interpolation of methods, but it allows the interpolation of delegates (Actions and Funcs).  
 
-PS: Embedding Actions/Funcs delegates inside interpolated strings (and benefiting from Implicit Indent Control) is very elegant and it's the prefered method. But if for any reason you don't like the idea of embedding delegates or if you think you need more control you might prefer to [`manually invoke methods`](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS/Deprecated.md#ManuallyInvokingMethods)).
+Embedding Actions/Funcs delegates inside interpolated strings is very elegant, can benefit from Implicit Indent Control, and therefore it's the prefered way of organizing templates. However if for any reason you don't like the idea of embedding delegates, or if you think you need more control, you might prefer to [`manually invoke methods`](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS/Deprecated.md#ManuallyInvokingMethods)).
 
 ## Embedding Action
 
@@ -394,7 +394,9 @@ void MyGenerator()
 
 ## Passing other arguments to delegates
 
-If your delegate expect other parameters (other than the standard types that can be automatically injected), you can easily convert between delegate types using lambdas.
+If your delegate expect other parameters (other than the standard types that can be automatically injected), you have two options:
+- You can use the `WithArguments()` extension which can provide some arguments to any delegate (for any type that you want injected you can just pass null)
+- You can convert between delegate types using lambdas.
 
 Let's say you have an `Action<Table>` (a delegate that expects to receive a table object), you can convert that (wrapping) into an `Action` delegate:
 
@@ -424,10 +426,23 @@ Action GenerateTables = () =>
             /// </summary>
             public class {{ table.TableName }}
             {
+                // THIS! Delegate will be wrapped together with the arguments.
+                {{ GenerateColumns.WithArguments(table) }}
+            }
+            """);
+
+        /* OR if you want to convert Action<Table> into Action:
+        _writer_.WriteLine($$"""
+            /// <summary>
+            /// POCO for {{ table.TableName }}
+            /// </summary>
+            public class {{ table.TableName }}
+            {
                 // THIS! This is a new lambda Action that invokes the Action<Table>
                 {{ () => GenerateColumns(table) }}
             }
             """);
+        */
     }
 };
 
@@ -456,7 +471,7 @@ PS: The examples above (and other examples later) use the [DatabaseSchema Model]
 
 In the previous example we had to **programmatically run loops**: `GenerateTables` does a `foreach` to go through a list of tables, and then `GenerateColumns` does another `foreach` to go through a list of columns.
 
-Iterating through a list is a very common task in code generators, and many templating engines (like Handlebars, Dotliquid, Mustache - **but not T4**) have their own syntaxes for doing iteration "inline" (directly inside the text blocks).
+Iterating through a list is a very common task in code generators, and many templating engines (like Handlebars, Dotliquid, Mustache) have their own syntaxes for doing iteration "inline" (directly inside the text blocks). T4 does not support it (you need to do it programatically).
 
 CodegenTextWriter supports the interpolation of `IEnumerable<T>` (for a lot of `T` types) directly from interpolated strings, which means that you don't have "leave" the text block and programatically run a `foreach` loop when you need to simple iterate through a list of items. It's just an easier alternative instead of explicitly doing a `foreach` and writing each element individually.  
 
@@ -489,7 +504,8 @@ The `Render()` extension is not mandatory (if you just embed the `IEnumerable<T>
 
 ## `IEnumerable<Func<FormattableString>>`
 
-If we want to manipulate the items before they are rendered (e.g. formatting) we can use LINQ expressions to convert from `IEnumerable<T>` into `IEnumerable<Func<FormattableString>>`:
+If we want to manipulate the items before they are rendered (e.g. formatting) we can transform your items using LINQ expressions.  
+In the example below convert from `IEnumerable<string>` into `IEnumerable<FormattableString>`:
 
 ```cs
 var groceries = new string[] { "Milk", "Eggs", "Diet Coke" };
@@ -520,7 +536,7 @@ w.WriteLine($$"""
 
 ## Real-world example
 
-Let's use `IEnumerable<Func<FormattableString>>` in a more concrete example:
+Let's use `IEnumerable<FormattableString>` in a more concrete example:
 
 
 ```cs
@@ -550,6 +566,52 @@ void Generate()
 ```
 
 PS: In the example above there is also a single level of nested block, so removing the `(FormattableString)` cast wouldn't make a difference.
+
+## IEnumerables with Delegates
+
+The embedded `IEnumerable<T>` can have any type of T, including delegates (Actions/Funcs, even with injected parameters).  
+If you need to pass arguments to the delegate (even if you want to mix with injected parameters) you can use the `WithArguments()` delegates extension. Like this:
+
+
+```cs
+// return type is IEnumerable<FormattableString>, but for simplicity let's define as object.
+Func<Table, object> GenerateColumns = (table) =>
+    table.Columns.Select(column => (FormattableString)$$"""
+        public {{column.ClrType}} {{column.ColumnName}} { get; set; }
+        """);
+
+
+// This one requires 2 arguments, and the first one will be automatically injected (since arg provided is null)
+Func<ICodegenTextWriter, DatabaseSchema, object> GenerateTables = (ICodegenTextWriter w, DatabaseSchema schema) =>
+    schema.Tables.Select(table => (FormattableString)$$"""
+        /// <summary>
+        /// POCO for {{table.TableName}}
+        /// </summary>
+        public class {{table.TableName}}
+        {
+            {{ GenerateColumns.WithArguments(table) }}
+        }
+        """)
+        // so far we have IEnumerable<FormattableString>, now we can provide instructions
+        // on how each item should be separated from the next one:
+        .Render(new RenderEnumerableOptions() { BetweenItemsBehavior = ItemsSeparatorBehavior.WriteLineBreak });
+
+void Generate()
+{
+    var schema = JsonConvert.DeserializeObject<DatabaseSchema>(File.ReadAllText("AdventureWorks.json"));
+    var w = new CodegenTextWriter();
+
+    w.Write($$"""
+        namespace {{myNamespace}}
+        {
+            {{ GenerateTables.WithArguments(null, MyDbSchema) }}
+        }
+        """);
+}
+```
+
+In this example above we used `Func` but it would also work with `Action`.
+
 
 ## Different separators
 

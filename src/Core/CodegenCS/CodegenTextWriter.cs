@@ -777,9 +777,86 @@ namespace CodegenCS
                 return; 
 
             Type[] interfaceTypes = arg.GetType().GetInterfaces();
-            Type interfaceType;
 
-            #region lazy evaluation: if arg is Func<> invoke it (unwrap it). If it requires arguments (Func<T, TResult> or Func<T1, T2, TResult>, etc) try to resolve and inject them
+            #region If Action delegate was wrapped using DelegateExtensions.WithArguments (that allow to specify specific args), resolve missing args (inject) and evaluate delegate.
+            {
+                object wrappedAction = null;
+
+                if ((IsAssignableToGenericType(arg.GetType(), typeof(InlineAction<>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineAction<,>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineAction<,,>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineAction<,,,>)))
+                    && (wrappedAction = ((PropertyInfo)arg.GetType().GetMember("Action").Single()).GetValue(arg)) != null) // unwrap inner Action
+                {
+                    var genericTypes = arg.GetType().GetGenericArguments(); // genericTypes contains both types that should be resolved/injected and others that were passed
+                    Type genericAction;
+                    switch (genericTypes.Length)
+                    {
+                        case 1: genericAction = typeof(Action<>).MakeGenericType(genericTypes); break;
+                        case 2: genericAction = typeof(Action<,>).MakeGenericType(genericTypes); break;
+                        case 3: genericAction = typeof(Action<,,>).MakeGenericType(genericTypes); break;
+                        case 4: genericAction = typeof(Action<,,,>).MakeGenericType(genericTypes); break;
+                        default: throw new NotImplementedException("Action<> can't have more than 4 generic types when used with WithArguments()");
+                    }
+                    MethodInfo actionInvokeMethod = genericAction.GetMethod("Invoke");
+                    object[] actionInvokeMethodArgs = new object[genericTypes.Length];
+                    for (int i = 0; i < genericTypes.Length; i++)
+                    {
+                        string propName = "Arg" + (i + 1).ToString();
+
+                        // check if arg was provided. If not provided try to resolve/inject.
+                        actionInvokeMethodArgs[i] = ((PropertyInfo)arg.GetType().GetMember(propName).Single()).GetValue(arg);
+                        actionInvokeMethodArgs[i] = actionInvokeMethodArgs[i] ?? this.ResolveDependency(genericTypes[i]);
+                    }
+
+                    InnerInlineAction(() =>
+                    {
+                        actionInvokeMethod.Invoke(wrappedAction, actionInvokeMethodArgs);
+                    });
+                    return;
+                }
+            }
+            #endregion
+
+            #region If Func delegate was wrapped using DelegateExtensions.WithArguments (that allow to specify specific args), resolve missing args (inject) and invoke it
+            {
+                object wrappedFunc = null;
+
+                if ((IsAssignableToGenericType(arg.GetType(), typeof(InlineFunc<,>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineFunc<,,>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineFunc<,,,>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineFunc<,,,,>)))
+                    && (wrappedFunc = ((PropertyInfo)arg.GetType().GetMember("Func").Single()).GetValue(arg)) != null) // unwrap inner Func
+                {
+                    // turns out the only "instance" we need is Func<T> itself (ienumerableCallbackAction), not the container type (the caller template)
+                    var genericTypes = arg.GetType().GetGenericArguments(); // genericTypes contains both types that should be resolved/injected and others that were passed
+                    Type genericFunc;
+                    switch (genericTypes.Length)
+                    {
+                        case 2: genericFunc = typeof(Func<,>).MakeGenericType(genericTypes); break;
+                        case 3: genericFunc = typeof(Func<,,>).MakeGenericType(genericTypes); break;
+                        case 4: genericFunc = typeof(Func<,,,>).MakeGenericType(genericTypes); break;
+                        case 5: genericFunc = typeof(Func<,,,,>).MakeGenericType(genericTypes); break;
+                        default: throw new NotImplementedException("Func<> can't have more than 4 input types when used with WithArguments()");
+                    }
+                    MethodInfo funcInvokeMethod = genericFunc.GetMethod("Invoke");
+                    object[] funcInvokeMethodArgs = new object[genericTypes.Length - 1]; // -1 because last type os func return
+                    for (int i = 0; i < genericTypes.Length - 1; i++)
+                    {
+                        string propName = "Arg" + (i + 1).ToString();
+
+                        // check if arg was provided. If not provided try to resolve/inject.
+                        funcInvokeMethodArgs[i] = ((PropertyInfo)arg.GetType().GetMember(propName).Single()).GetValue(arg);
+                        funcInvokeMethodArgs[i] = funcInvokeMethodArgs[i] ?? this.ResolveDependency(genericTypes[i]);
+                    }
+
+                    arg = funcInvokeMethod.Invoke(wrappedFunc, funcInvokeMethodArgs); // let the resulting type be processed later
+                    interfaceTypes = arg.GetType().GetInterfaces();
+                }
+            }
+            #endregion
+
+            #region If arg is Func<> invoke it (unwrap it). If it requires arguments (Func<T, TResult> or Func<T1, T2, TResult>, etc) try to resolve and inject them
             if (IsAssignableToGenericType(arg.GetType(), typeof(Func<>)) || 
                 IsAssignableToGenericType(arg.GetType(), typeof(Func<,>)) || 
                 IsAssignableToGenericType(arg.GetType(), typeof(Func<,,>)) ||
@@ -815,7 +892,7 @@ namespace CodegenCS
                 var funcArgs = new object[genericTypes.Length - 1]; // -1 because the return type is not passed to the Func
                 for (int i = 0; i < genericTypes.Length - 1; i++)
                     funcArgs[i] = this.ResolveDependency(genericTypes[i]);
-                arg = func.Invoke(arg, funcArgs);
+                arg = func.Invoke(arg, funcArgs); // let the resulting type be processed later
                 interfaceTypes = arg.GetType().GetInterfaces();
             }
             #endregion
@@ -874,7 +951,7 @@ namespace CodegenCS
             #endregion
 
 
-            #region if arg is string (most common case) or Func<string> (lazy-evaluated func which returns a string)
+            #region if arg is string (most common case)
             if (arg as string != null)
             {
                 InnerInlineAction(() =>
@@ -908,7 +985,7 @@ namespace CodegenCS
 
             #region If IEnumerable<T> was wrapped using IEnumerableExtensions.Render (that allow to specify custom EnumerableRenderOptions), unwrap.
             RenderEnumerableOptions enumerableRenderOptions = this.DefaultIEnumerableRenderOptions; // by default uses the CodegenTextWriter setting, but it may be overriden in the wrapper
-            
+
             object ienumerableCallbackAction = null;
             MethodInfo ienumerableCallbackActionMethod = null;
             object[] ienumerableCallbackActionMethodArgs = null;
@@ -922,7 +999,7 @@ namespace CodegenCS
                 if ((IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableAction<>)) ||
                     IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableAction<,>)) ||
                     IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableAction<,,>)) ||
-                    IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableAction<,,,>))) 
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableAction<,,,>)))
                     && (ienumerableCallbackAction = ((PropertyInfo)arg.GetType().GetMember("ItemAction").Single()).GetValue(arg)) != null)
                 {
                     // turns out the only "instance" we need is Action<T> itself (ienumerableCallbackAction), not the container type (the caller template)
@@ -947,7 +1024,7 @@ namespace CodegenCS
                 if ((IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableFunc<,>)) ||
                     IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableFunc<,,>)) ||
                     IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableFunc<,,,>)) ||
-                    IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableFunc<,,,,>))) 
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableFunc<,,,,>)))
                     && (ienumerableCallbackFunc = ((PropertyInfo)arg.GetType().GetMember("ItemFunc").Single()).GetValue(arg)) != null)
                 {
                     // turns out the only "instance" we need is Func<T> itself (ienumerableCallbackFunc), not the container type (the caller template)
@@ -964,14 +1041,14 @@ namespace CodegenCS
                     }
                     ienumerableCallbackFuncMethod = genericFunc.GetMethod("Invoke");
                     ienumerableCallbackFuncMethodArgs = new object[genericTypes.Length - 1]; // -1 because last is return type (FormattableString)
-                    // -2 because we skip the last type which is the return type, and we skip the element before which is iterated through the ienumerable:
+                                                                                                // -2 because we skip the last type which is the return type, and we skip the element before which is iterated through the ienumerable:
                     for (int i = 0; i < genericTypes.Length - 2; i++)
                         ienumerableCallbackFuncMethodArgs[i] = this.ResolveDependency(genericTypes[i]);
                 }
 
 
                 enumerableRenderOptions = ((IInlineIEnumerable)arg).RenderOptions ?? enumerableRenderOptions;
-                arg = ((IInlineIEnumerable)arg).Items;
+                arg = ((IInlineIEnumerable)arg).Items; // let the unwrapped list be processed later (it will be processed together with the optional Func/Action delegate and with the extracted rendering options)
                 interfaceTypes = arg.GetType().GetInterfaces();
             }
             #endregion
