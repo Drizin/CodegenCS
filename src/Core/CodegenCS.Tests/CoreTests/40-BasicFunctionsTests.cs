@@ -9,7 +9,7 @@ namespace CodegenCS.Tests.CoreTests
 {
     internal class BasicFunctionsTests : BaseTest
     {
-        CodegenTextWriter _w = null;
+        ICodegenTextWriter _w = null;
 
         #region Setup
         [SetUp]
@@ -62,6 +62,41 @@ Hello3
 ".TrimStart();
             Assert.AreEqual(expected, _w.GetContents());
         }
+
+        Action<ICodegenTextWriter> callback2 = (w) => w.Write("Hello");
+        [Test]
+        public void TestCallback2()
+        {
+
+            _w.Write($$"""
+                {{callback2}}
+                """);
+
+            string expected = "Hello";
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        Action<ICodegenTextWriter, ICodegenContext> Callback3 = (w, ctx) => 
+        {
+            w.Write("Hello");
+            ctx["OtherFile"].Write("Any types can be injected");
+        };
+
+        [Test]
+        public void TestCallback3()
+        {
+            var ctx = new CodegenContext();
+            _w = ctx.DefaultOutputFile;
+
+            _w.Write($$"""
+                {{Callback3}}
+                """);
+
+            string expected = "Hello";
+            Assert.AreEqual(expected, _w.GetContents());
+            Assert.AreEqual(2, ctx.OutputFiles.Count);
+            Assert.AreEqual("Any types can be injected", ctx["OtherFile"].GetContents());
+        }
         #endregion
 
         #region Explicitly invoking a method that takes ICodegenTextWriter
@@ -85,7 +120,7 @@ Hello3
         #endregion
 
         #region Recursive method
-        private static void WriteToDoList(CodegenTextWriter writer, IEnumerable<TodoItem> todoItems)
+        private static void WriteToDoList(ICodegenTextWriter writer, IEnumerable<TodoItem> todoItems)
         {
             foreach (var item in todoItems)
             {
@@ -210,6 +245,7 @@ I have a LOT of things to do today:
         {
             string[] cols = new string[] { "AddressLine1", "AddressLine2", "City" };
 
+            // This Render() takes Action<TItem> and invokes for each ienumerable item
             _w.Write($$"""
             INSERT INTO [Person].[Address]
             (
@@ -226,6 +262,118 @@ I have a LOT of things to do today:
                 )
                 """;
 
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+
+        [Test]
+        public void TestIEnumerable5()
+        {
+            string[] cols = new string[] { "AddressLine1", "AddressLine2", "City" };
+
+            // This Render() takes Action<T1, TItem> (where T1 will be dynamically resolved/injected) and invokes for each ienumerable item
+            _w.Write($$"""
+            INSERT INTO [Person].[Address]
+            (
+                {{cols.Render((ICodegenTextWriter writer, string col) => CustomRender(writer, col), RenderEnumerableOptions.MultiLineCSV)}}
+            )
+            """);
+
+            string expected = """
+                INSERT INTO [Person].[Address]
+                (
+                    [AddressLine1],
+                    [AddressLine2],
+                    [City]
+                )
+                """;
+
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        Action<ICodegenTextWriter, string> CustomRender2 = (ICodegenTextWriter writer, string column) =>
+        {
+            writer.Write("[" + column + "]");
+        };
+
+        [Test]
+        public void TestIEnumerable6()
+        {
+            string[] cols = new string[] { "AddressLine1", "AddressLine2", "City" };
+
+            // Render() instead of Action<T> it will take Action<T, T1> where T1 will be dynamically resolved/injected
+            _w.Write($$"""
+            INSERT INTO [Person].[Address]
+            (
+                {{cols.Render(CustomRender2, RenderEnumerableOptions.MultiLineCSV)}}
+            )
+            """);
+
+            string expected = """
+                INSERT INTO [Person].[Address]
+                (
+                    [AddressLine1],
+                    [AddressLine2],
+                    [City]
+                )
+                """;
+
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        Func<ICodegenTextWriter, string, FormattableString> CustomRender6Func = (ICodegenTextWriter writer, string column) =>
+        {
+            return $"[{column}]";
+        };
+
+        [Test]
+        public void TestIEnumerable6Func()
+        {
+            string[] cols = new string[] { "AddressLine1", "AddressLine2", "City" };
+
+            // Render() instead of Action<T> it will take Action<T, T1> where T1 will be dynamically resolved/injected
+            _w.Write($$"""
+            INSERT INTO [Person].[Address]
+            (
+                {{cols.Render(CustomRender6Func, RenderEnumerableOptions.MultiLineCSV)}}
+            )
+            """);
+
+            string expected = """
+                INSERT INTO [Person].[Address]
+                (
+                    [AddressLine1],
+                    [AddressLine2],
+                    [City]
+                )
+                """;
+
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        [Test]
+        public void TestInnerIEnumerables()
+        {
+            _w.Write($$"""
+{{MyDbSchema.Tables.Select(table => (FormattableString) $$"""
+Table: {{table.TableName}}
+{{() => table.Columns.Select(column => $$"""
+    Column: {{column.ColumnName}}
+""")}}
+""")}}
+""");
+
+            string expected = """
+                Table: Users
+                    Column: UserId
+                    Column: FirstName
+                    Column: LastName
+
+                Table: Products
+                    Column: Description
+                    Column: ProductId
+                """;
+            
             Assert.AreEqual(expected, _w.GetContents());
         }
 

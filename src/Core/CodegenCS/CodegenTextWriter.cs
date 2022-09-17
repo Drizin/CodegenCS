@@ -908,17 +908,67 @@ namespace CodegenCS
 
             #region If IEnumerable<T> was wrapped using IEnumerableExtensions.Render (that allow to specify custom EnumerableRenderOptions), unwrap.
             RenderEnumerableOptions enumerableRenderOptions = this.DefaultIEnumerableRenderOptions; // by default uses the CodegenTextWriter setting, but it may be overriden in the wrapper
+            
             object ienumerableCallbackAction = null;
             MethodInfo ienumerableCallbackActionMethod = null;
+            object[] ienumerableCallbackActionMethodArgs = null;
+
+            object ienumerableCallbackFunc = null;
+            MethodInfo ienumerableCallbackFuncMethod = null;
+            object[] ienumerableCallbackFuncMethodArgs = null;
+
             if (typeof(IInlineIEnumerable).IsAssignableFrom(arg.GetType()))
             {
-                if (IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerable<>)) && (ienumerableCallbackAction = ((PropertyInfo)arg.GetType().GetMember("ItemAction").Single()).GetValue(arg)) != null)
+                if ((IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableAction<>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableAction<,>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableAction<,,>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableAction<,,,>))) 
+                    && (ienumerableCallbackAction = ((PropertyInfo)arg.GetType().GetMember("ItemAction").Single()).GetValue(arg)) != null)
                 {
                     // turns out the only "instance" we need is Action<T> itself (ienumerableCallbackAction), not the container type (the caller template)
-                    var genericType = arg.GetType().GetGenericArguments()[0]; // T
-                    Type genericAction = typeof(Action<>).MakeGenericType(genericType); // typeof(Action<T>)
+                    var genericTypes = arg.GetType().GetGenericArguments(); // genericTypes[0] is T of IEnumerable<T>, others should be resolved/injected.
+                    Type genericAction;
+                    switch (genericTypes.Length)
+                    {
+                        case 1: genericAction = typeof(Action<>).MakeGenericType(genericTypes); break;
+                        case 2: genericAction = typeof(Action<,>).MakeGenericType(genericTypes); break;
+                        case 3: genericAction = typeof(Action<,,>).MakeGenericType(genericTypes); break;
+                        case 4: genericAction = typeof(Action<,,,>).MakeGenericType(genericTypes); break;
+                        // 3 injected types, and 1 for enum item:
+                        default: throw new NotImplementedException("Action<> can't have more than 4 generic types");
+                    }
                     ienumerableCallbackActionMethod = genericAction.GetMethod("Invoke");
+                    ienumerableCallbackActionMethodArgs = new object[genericTypes.Length];
+                    // -1 because we skip the last element which is iterated through the ienumerable:
+                    for (int i = 0; i < genericTypes.Length - 1; i++)
+                        ienumerableCallbackActionMethodArgs[i] = this.ResolveDependency(genericTypes[i]);
                 }
+
+                if ((IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableFunc<,>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableFunc<,,>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableFunc<,,,>)) ||
+                    IsAssignableToGenericType(arg.GetType(), typeof(InlineIEnumerableFunc<,,,,>))) 
+                    && (ienumerableCallbackFunc = ((PropertyInfo)arg.GetType().GetMember("ItemFunc").Single()).GetValue(arg)) != null)
+                {
+                    // turns out the only "instance" we need is Func<T> itself (ienumerableCallbackFunc), not the container type (the caller template)
+                    var genericTypes = arg.GetType().GetGenericArguments(); // genericTypes[0] is T of IEnumerable<T>, others should be resolved/injected.
+                    Type genericFunc;
+                    switch (genericTypes.Length)
+                    {
+                        case 2: genericFunc = typeof(Func<,>).MakeGenericType(genericTypes); break;
+                        case 3: genericFunc = typeof(Func<,,>).MakeGenericType(genericTypes); break;
+                        case 4: genericFunc = typeof(Func<,,,>).MakeGenericType(genericTypes); break;
+                        case 5: genericFunc = typeof(Func<,,,,>).MakeGenericType(genericTypes); break;
+                        // 3 injected types, and 1 for enum item, 1 for returned FormatableString:
+                        default: throw new NotImplementedException("Func<> can't have more than 5 generic types");
+                    }
+                    ienumerableCallbackFuncMethod = genericFunc.GetMethod("Invoke");
+                    ienumerableCallbackFuncMethodArgs = new object[genericTypes.Length - 1]; // -1 because last is return type (FormattableString)
+                    // -2 because we skip the last type which is the return type, and we skip the element before which is iterated through the ienumerable:
+                    for (int i = 0; i < genericTypes.Length - 2; i++)
+                        ienumerableCallbackFuncMethodArgs[i] = this.ResolveDependency(genericTypes[i]);
+                }
+
 
                 enumerableRenderOptions = ((IInlineIEnumerable)arg).RenderOptions ?? enumerableRenderOptions;
                 arg = ((IInlineIEnumerable)arg).Items;
@@ -943,7 +993,14 @@ namespace CodegenCS
 
                         if (ienumerableCallbackActionMethod != null) // if there's a specific action to be executed for each item
                         {
-                            ienumerableCallbackActionMethod.Invoke(ienumerableCallbackAction, new object[] { item });
+                            ienumerableCallbackActionMethodArgs[ienumerableCallbackActionMethodArgs.Length-1] = item;
+                            ienumerableCallbackActionMethod.Invoke(ienumerableCallbackAction, ienumerableCallbackActionMethodArgs);
+                        }
+                        else if (ienumerableCallbackFuncMethod != null) // if there's a specific func to be executed for each item
+                        {
+                            ienumerableCallbackFuncMethodArgs[ienumerableCallbackFuncMethodArgs.Length - 1] = item;
+                            var renderedItem = (FormattableString) ienumerableCallbackFuncMethod.Invoke(ienumerableCallbackFunc, ienumerableCallbackFuncMethodArgs);
+                            InnerWriteFormattableArgument(renderedItem, "");
                         }
                         else
                         {

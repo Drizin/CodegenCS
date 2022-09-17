@@ -10,13 +10,10 @@ namespace CodegenCS
     /// <summary>
     /// This is just a wrapper to pass IEnumerable{T} with custom <see cref="RenderEnumerableOptions"/>
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     public class InlineIEnumerable<T> : IInlineIEnumerable
     {
         public IEnumerable<T> Items { get; private set; }
         public RenderEnumerableOptions RenderOptions { get; private set; } = null; // if not set will follow ICodegenTextWriter.DefaultIEnumerableRenderOptions
-
-        public Action<T> ItemAction { get; internal set; }
 
         public InlineIEnumerable(IEnumerable<T> items)
         {
@@ -28,7 +25,90 @@ namespace CodegenCS
             RenderOptions = renderOptions;
         }
         object IInlineIEnumerable.Items => Items;
+    }
+    #endregion
 
+    #region InlineIEnumerableAction<T>
+    /// <summary>
+    /// This is just a wrapper to pass IEnumerable{T} with custom <see cref="RenderEnumerableOptions"/>
+    /// </summary>
+    public class InlineIEnumerableAction<T> : InlineIEnumerable<T>
+    {
+        public InlineIEnumerableAction(IEnumerable<T> items) : base(items) { }
+        public InlineIEnumerableAction(IEnumerable<T> items, RenderEnumerableOptions renderOptions) : base(items, renderOptions) { }
+        public Action<T> ItemAction { get; internal set; }
+    }
+
+    /// <summary>
+    /// This is just a wrapper to pass IEnumerable{T} with custom <see cref="RenderEnumerableOptions"/>
+    /// </summary>
+    public class InlineIEnumerableAction<T1, T> : InlineIEnumerable<T>
+    {
+        public InlineIEnumerableAction(IEnumerable<T> items) : base(items) { }
+        public InlineIEnumerableAction(IEnumerable<T> items, RenderEnumerableOptions renderOptions) : base(items, renderOptions) { }
+        public Action<T1, T> ItemAction { get; internal set; }
+    }
+
+    /// <summary>
+    /// This is just a wrapper to pass IEnumerable{T} with custom <see cref="RenderEnumerableOptions"/>
+    /// </summary>
+    public class InlineIEnumerableAction<T1, T2, T> : InlineIEnumerable<T>
+    {
+        public InlineIEnumerableAction(IEnumerable<T> items) : base(items) { }
+        public InlineIEnumerableAction(IEnumerable<T> items, RenderEnumerableOptions renderOptions) : base(items, renderOptions) { }
+        public Action<T1, T2, T> ItemAction { get; internal set; }
+    }
+
+    /// <summary>
+    /// This is just a wrapper to pass IEnumerable{T} with custom <see cref="RenderEnumerableOptions"/>
+    /// </summary>
+    public class InlineIEnumerableAction<T1, T2, T3, T> : InlineIEnumerable<T>
+    {
+        public InlineIEnumerableAction(IEnumerable<T> items) : base(items) { }
+        public InlineIEnumerableAction(IEnumerable<T> items, RenderEnumerableOptions renderOptions) : base(items, renderOptions) { }
+        public Action<T1, T2, T3, T> ItemAction { get; internal set; }
+    }
+    #endregion
+
+    #region InlineIEnumerableFunc<T, FormattableString>
+    /// <summary>
+    /// This is just a wrapper to pass IEnumerable{T} with custom <see cref="RenderEnumerableOptions"/>
+    /// </summary>
+    public class InlineIEnumerableFunc<T, FormattableString> : InlineIEnumerable<T>
+    {
+        public InlineIEnumerableFunc(IEnumerable<T> items) : base(items) { }
+        public InlineIEnumerableFunc(IEnumerable<T> items, RenderEnumerableOptions renderOptions) : base(items, renderOptions) { }
+        public Func<T, FormattableString> ItemFunc { get; internal set; }
+    }
+
+    /// <summary>
+    /// This is just a wrapper to pass IEnumerable{T} with custom <see cref="RenderEnumerableOptions"/>
+    /// </summary>
+    public class InlineIEnumerableFunc<T1, T, FormattableString> : InlineIEnumerable<T>
+    {
+        public InlineIEnumerableFunc(IEnumerable<T> items) : base(items) { }
+        public InlineIEnumerableFunc(IEnumerable<T> items, RenderEnumerableOptions renderOptions) : base(items, renderOptions) { }
+        public Func<T1, T, FormattableString> ItemFunc { get; internal set; }
+    }
+
+    /// <summary>
+    /// This is just a wrapper to pass IEnumerable{T} with custom <see cref="RenderEnumerableOptions"/>
+    /// </summary>
+    public class InlineIEnumerableFunc<T1, T2, T, FormattableString> : InlineIEnumerable<T>
+    {
+        public InlineIEnumerableFunc(IEnumerable<T> items) : base(items) { }
+        public InlineIEnumerableFunc(IEnumerable<T> items, RenderEnumerableOptions renderOptions) : base(items, renderOptions) { }
+        public Func<T1, T2, T, FormattableString> ItemFunc { get; internal set; }
+    }
+
+    /// <summary>
+    /// This is just a wrapper to pass IEnumerable{T} with custom <see cref="RenderEnumerableOptions"/>
+    /// </summary>
+    public class InlineIEnumerableFunc<T1, T2, T3, T, FormattableString> : InlineIEnumerable<T>
+    {
+        public InlineIEnumerableFunc(IEnumerable<T> items) : base(items) { }
+        public InlineIEnumerableFunc(IEnumerable<T> items, RenderEnumerableOptions renderOptions) : base(items, renderOptions) { }
+        public Func<T1, T2, T3, T, FormattableString> ItemFunc { get; internal set; }
     }
     #endregion
 
@@ -67,37 +147,104 @@ namespace CodegenCS
         }
 
 
+        #region Render() methods receiving Action<>
         /// <summary>
         /// Like <see cref="Render{FormattableString}(IEnumerable{FormattableString})"/> but instead of rendering the items "as is" it will render the items by running an Action.
         /// </summary>
-        public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, Action<T> action)
+        public static InlineIEnumerableAction<T> Render<T>(this IEnumerable<T> items, Action<T> action)
         {
             // Turns out that the only "instance" we need is Action<T> itself, not the container type (the template which defines the action)
             // But if we needed the container type we could get it using MethodCallExpression.Body.Object: https://stackoverflow.com/questions/5409580/action-delegate-how-to-get-the-instance-that-call-the-method
-            return new InlineIEnumerable<T>(items) { ItemAction = action };
+            return new InlineIEnumerableAction<T>(items) { ItemAction = action };
         }
-
 
         /// <summary>
         /// Like <see cref="Render{T}(IEnumerable{T}, RenderEnumerableOptions)"/> but instead of rendering the items "as is" it will render the items by running an Action.
-        public static InlineIEnumerable<T> Render<T>(this IEnumerable<T> items, Action<T> action, RenderEnumerableOptions customRenderOptions)
+        /// </summary>
+        public static InlineIEnumerableAction<T> Render<T>(this IEnumerable<T> items, Action<T> action, RenderEnumerableOptions customRenderOptions)
         {
-            return new InlineIEnumerable<T>(items, customRenderOptions) { ItemAction = action };
+            return new InlineIEnumerableAction<T>(items, customRenderOptions) { ItemAction = action };
         }
 
+        /// <summary>
+        /// Like <see cref="Render{T}(IEnumerable{T}, RenderEnumerableOptions)"/> but instead of rendering the items "as is" it will render the items by running an Action that may require extra types (will be injected)
+        /// </summary>
+        public static InlineIEnumerableAction<T1, T> Render<T1, T>(this IEnumerable<T> items, Action<T1, T> action, RenderEnumerableOptions customRenderOptions)
+        {
+            return new InlineIEnumerableAction<T1, T>(items, customRenderOptions) { ItemAction = action };
+        }
+
+        /// <summary>
+        /// Like <see cref="Render{T}(IEnumerable{T}, RenderEnumerableOptions)"/> but instead of rendering the items "as is" it will render the items by running an Action that may require extra types (will be injected)
+        /// </summary>
+        public static InlineIEnumerableAction<T1, T2, T> Render<T1, T2, T>(this IEnumerable<T> items, Action<T1, T2, T> action, RenderEnumerableOptions customRenderOptions)
+        {
+            return new InlineIEnumerableAction<T1, T2, T>(items, customRenderOptions) { ItemAction = action };
+        }
+
+        /// <summary>
+        /// Like <see cref="Render{T}(IEnumerable{T}, RenderEnumerableOptions)"/> but instead of rendering the items "as is" it will render the items by running an Action that may require extra types (will be injected)
+        /// </summary>
+        public static InlineIEnumerableAction<T1, T2, T3, T> Render<T1, T2, T3, T>(this IEnumerable<T> items, Action<T1, T2, T3, T> action, RenderEnumerableOptions customRenderOptions)
+        {
+            return new InlineIEnumerableAction<T1, T2, T3, T>(items, customRenderOptions) { ItemAction = action };
+        }
+        #endregion
+
+        #region Render() methods returning Func<>
+        /// <summary>
+        /// Like <see cref="Render{FormattableString}(IEnumerable{FormattableString})"/> but instead of rendering the items "as is" it will render the items by returning a Func.
+        /// </summary>
+        public static InlineIEnumerableFunc<T, FormattableString> Render<T>(this IEnumerable<T> items, Func<T, FormattableString> func)
+        {
+            return new InlineIEnumerableFunc<T, FormattableString>(items) { ItemFunc = func };
+        }
+
+        /// <summary>
+        /// Like <see cref="Render{T}(IEnumerable{T}, RenderEnumerableOptions)"/> but instead of rendering the items "as is" it will render the items by running a Func.
+        /// </summary>
+        public static InlineIEnumerableFunc<T, FormattableString> Render<T>(this IEnumerable<T> items, Func<T, FormattableString> func, RenderEnumerableOptions customRenderOptions)
+        {
+            return new InlineIEnumerableFunc<T, FormattableString>(items, customRenderOptions) { ItemFunc = func };
+        }
+
+        /// <summary>
+        /// Like <see cref="Render{T}(IEnumerable{T}, RenderEnumerableOptions)"/> but instead of rendering the items "as is" it will render the items by running a Func that may require extra types (will be injected)
+        /// </summary>
+        public static InlineIEnumerableFunc<T1, T, FormattableString> Render<T1, T>(this IEnumerable<T> items, Func<T1, T, FormattableString> func, RenderEnumerableOptions customRenderOptions)
+        {
+            return new InlineIEnumerableFunc<T1, T, FormattableString>(items, customRenderOptions) { ItemFunc = func };
+        }
+
+        /// <summary>
+        /// Like <see cref="Render{T}(IEnumerable{T}, RenderEnumerableOptions)"/> but instead of rendering the items "as is" it will render the items by running a Func that may require extra types (will be injected)
+        /// </summary>
+        public static InlineIEnumerableFunc<T1, T2, T, FormattableString> Render<T1, T2, T>(this IEnumerable<T> items, Func<T1, T2, T, FormattableString> func, RenderEnumerableOptions customRenderOptions)
+        {
+            return new InlineIEnumerableFunc<T1, T2, T, FormattableString>(items, customRenderOptions) { ItemFunc = func };
+        }
+
+        /// <summary>
+        /// Like <see cref="Render{T}(IEnumerable{T}, RenderEnumerableOptions)"/> but instead of rendering the items "as is" it will render the items by running a Func that may require extra types (will be injected)
+        /// </summary>
+        public static InlineIEnumerableFunc<T1, T2, T3, T, FormattableString> Render<T1, T2, T3, T>(this IEnumerable<T> items, Func<T1, T2, T3, T, FormattableString> func, RenderEnumerableOptions customRenderOptions)
+        {
+            return new InlineIEnumerableFunc<T1, T2, T3, T, FormattableString>(items, customRenderOptions) { ItemFunc = func };
+        }
+        #endregion
 
         /// <summary>
         /// Renders items by separating them with line breaks (this is probably what you want). 
         /// </summary>
         /// <param name="useLineSpacer">If true (default) it will render an empty line (spacer) between the items</param>
-        public static InlineIEnumerable<T> RenderWithLineBreaks<T>(this IEnumerable<T> items, bool useLineSpacer = true) 
-            => new InlineIEnumerable<T>(items, useLineSpacer ? RenderEnumerableOptions.LineBreaksWithSpacer : RenderEnumerableOptions.LineBreaksWithoutSpacer);
+        public static InlineIEnumerableAction<T> RenderWithLineBreaks<T>(this IEnumerable<T> items, bool useLineSpacer = true) 
+            => new InlineIEnumerableAction<T>(items, useLineSpacer ? RenderEnumerableOptions.LineBreaksWithSpacer : RenderEnumerableOptions.LineBreaksWithoutSpacer);
 
 
         /// <summary>
         /// Renders single-line items by joining them with commas. Don't add linebreak after last item.
         /// </summary>
-        public static InlineIEnumerable<T> RenderAsSingleLineCSV<T>(this IEnumerable<T> items) => new InlineIEnumerable<T>(items, RenderEnumerableOptions.SingleLineCSV);
+        public static InlineIEnumerableAction<T> RenderAsSingleLineCSV<T>(this IEnumerable<T> items) => new InlineIEnumerableAction<T>(items, RenderEnumerableOptions.SingleLineCSV);
 
 
         #endregion
