@@ -1,14 +1,14 @@
 ﻿using CodegenCS.Utils;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using TemplateLauncherArgs = CodegenCS.TemplateLauncher.TemplateLauncher.TemplateLauncherArgs;
 using TemplateBuilderArgs = CodegenCS.TemplateBuilder.TemplateBuilder.TemplateBuilderArgs;
 using System.Linq;
 using System.CommandLine;
+using System.CommandLine.Parsing;
+using CodegenCS.DotNetTool;
 
 namespace CodegenCS.Tests.TemplateTests
 {
@@ -21,6 +21,7 @@ namespace CodegenCS.Tests.TemplateTests
         TemplateBuilderArgs _builderArgs;
         TemplateLauncherArgs _launcherArgs;
         ILogger _logger = new DebugOutputLogger();
+        CliCommandParser _cliCommandParser = new CliCommandParser();
 
         private async Task BuildAsync(FormattableString templateBody)
         {
@@ -75,8 +76,16 @@ namespace CodegenCS.Tests.TemplateTests
             };
             var launcher = new CodegenCS.TemplateLauncher.TemplateLauncher(_logger, _context, true);
 
-            int exitCode = await launcher.ExecuteAsync(_launcherArgs, null);
-            return exitCode;
+            var loadResult = await launcher.LoadAsync(_builderArgs.Output);
+
+            if (loadResult.ReturnCode != 0)
+                return loadResult.ReturnCode;
+
+            _cliCommandParser = new CliCommandParser(); // HACK: this is modified in some places (fake parser) so we should better start fresh
+            launcher.ParseCliUsingCustomCommand = _cliCommandParser._runTemplateCommandWrapper.ParseCliUsingCustomCommand;
+            var parseResult = _cliCommandParser.Parser.Parse($"testhost template run {_launcherArgs.Template} {string.Join(" ", models?.Any() == true ? models : new string[0])} {string.Join(" ", templateArgs?.Any() == true ? templateArgs : new string[0])}");
+            int executeResult = await launcher.LoadAndExecuteAsync(_launcherArgs.Template, _launcherArgs, parseResult);
+            return executeResult;
         }
 
         [Test]
@@ -112,20 +121,21 @@ namespace CodegenCS.Tests.TemplateTests
 
             //TODO: case insensitive?
             var args = new string[] { "template", "run", "template.cs", "--OutputFolder", @".\folder", "--File", "defaultfile.cs", fakeModel, "--verbose", "now", "comes", "template-specific", "options", "and", "args" };
-            var parseResult = CodegenCS.DotNetTool.CliCommandParser.Instance.Parse(args);            
+            var parser = _cliCommandParser.Parser;
+            var parseResult = parser.Parse(args);            
             Assert.AreEqual(0, parseResult.Errors.Count);
             Assert.AreEqual(args.Length, parseResult.Tokens.Count);
             Assert.AreEqual("run", parseResult.CommandResult.Command.Name);
 
-            string[] templateSpecificArgs = parseResult.GetValueForArgument<string[]>(CodegenCS.DotNetTool.CliCommandParser.RunTemplate._templateSpecificArguments);
+            string[] templateSpecificArgs = parseResult.GetValueForArgument<string[]>(_cliCommandParser._runTemplateCommandWrapper._templateSpecificArguments);
             Assert.AreEqual(new string[] { "now", "comes", "template-specific", "options", "and", "args" }, templateSpecificArgs);
 
-            parseResult = CodegenCS.DotNetTool.CliCommandParser.RootCommand.Parse(string.Join(" ", args));
+            parseResult = _cliCommandParser.RootCommand.Parse(string.Join(" ", args));
             Assert.AreEqual(0, parseResult.Errors.Count);
             Assert.AreEqual(args.Length, parseResult.Tokens.Count);
             Assert.AreEqual("run", parseResult.CommandResult.Command.Name);
 
-            templateSpecificArgs = parseResult.GetValueForArgument<string[]>(CodegenCS.DotNetTool.CliCommandParser.RunTemplate._templateSpecificArguments);
+            templateSpecificArgs = parseResult.GetValueForArgument<string[]>(_cliCommandParser._runTemplateCommandWrapper._templateSpecificArguments);
             Assert.AreEqual(new string[] { "now", "comes", "template-specific", "options", "and", "args" }, templateSpecificArgs);
 
             //TODO: res = GetCommand().Parse("""run Template.cs Model.json --OutputFolder MyOutputFolder lala -lele -Template lili""");

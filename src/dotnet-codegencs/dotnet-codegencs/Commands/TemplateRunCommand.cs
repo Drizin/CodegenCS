@@ -34,7 +34,7 @@ namespace CodegenCS.DotNetTool.Commands
         internal int? buildResult = null;
         internal int? loadResult = null;
 
-        public TemplateRunCommand()
+        public TemplateRunCommand(Command fakeTemplateCommand = null)
         {
             _templateArg = new Argument<string>("template", description: "Template to run. E.g. \"MyTemplate.dll\" or \"MyTemplate.cs\" or \"MyTemplate\"") { Arity = ArgumentArity.ExactlyOne };
             _modelsArg = new Argument<string[]>("models", description: "Input Model(s) E.g. \"DbSchema.json\", \"ApiEndpoints.yaml\", etc. Templates might expect 0, 1 or 2 models", parse: ParseModels)
@@ -54,7 +54,14 @@ namespace CodegenCS.DotNetTool.Commands
                 HelpName ="template_args"
             };
             _logger = new ColoredConsoleLogger();
-            _command = GetCommand();
+            
+            if (fakeTemplateCommand == null)
+                _command = GetCommand();
+            else
+            {
+                _command = GetFakeRunCommand();
+                _command.AddCommand(fakeTemplateCommand);
+            }
         }
 
         public Command GetCommand(string commandName = "run")
@@ -80,7 +87,7 @@ namespace CodegenCS.DotNetTool.Commands
             command.AddGlobalOption(new Option<string>(new[] { "--OutputFolder", "-o" }, description: "Folder to save output [default: current folder]") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "OutputFolder" });
             command.AddGlobalOption(new Option<string>(new[] { "--File", "-f" }, description: "Default Output File [default: \"{MyTemplate}.generated.cs\"]") { Arity = ArgumentArity.ZeroOrOne, ArgumentHelpName = "DefaultOutputFile" });
         }
-        protected Command GetFakeRunCommand()
+        protected internal Command GetFakeRunCommand()
         {
             var command = new Command("run");
             AddGlobalOptions(command);
@@ -207,7 +214,7 @@ namespace CodegenCS.DotNetTool.Commands
 
         protected async Task<int> HandleCommand(InvocationContext context, ParseResult parseResult, CommandArgs cliArgs)
         {
-            _verboseMode |= (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--verbose"));
+            _verboseMode |= (parseResult.HasOption(CliCommandParser.VerboseOption));
             _showTemplateHelp |= (parseResult.HasOption(CliCommandParser.HelpOption));
 
             string currentCommand = "dotnet-codegencs template run";
@@ -256,7 +263,7 @@ namespace CodegenCS.DotNetTool.Commands
         }
 
         /// <summary>
-        /// Creates a custom Command for the template, configures it (using ConfigureCommand() defined in template), and register under a fake "template run" which replaces the real one.
+        /// Creates a custom Command for the template, configures it (using ConfigureCommand() defined in template)
         /// </summary>
         Command CreateCustomCommand(string filePath, Type model1Type, Type model2Type, MethodInfo configureCommand)
         {
@@ -276,31 +283,22 @@ namespace CodegenCS.DotNetTool.Commands
             //configure custom options/arguments
             configureCommand.Invoke(null, new object[] { customTemplateCommand });
 
-
-            // Remove the old "template run" and "template build"
-            var templateCmd = (Command)_command.Parents.Single();
-            var subcommands = (List<Command>)templateCmd.Subcommands;
-            subcommands.Clear();
-
-            // Create a new fake "template run" command
-            var fakeTemplateRunCommand = GetFakeRunCommand();
-            fakeTemplateRunCommand.AddCommand(customTemplateCommand);
-            templateCmd.Add(fakeTemplateRunCommand);
-
             return customTemplateCommand;
         }
 
         public ParseResult ParseCliUsingCustomCommand(string filePath, Type model1Type, Type model2Type, DependencyContainer dependencyContainer, MethodInfo configureCommand, ParseResult parseResult)
         {
             // If template have a static ConfigureCommand(Command), let's create a fake command and reparse the command-line arguments using the arguments/options defined in ConfigureCommand()
-            var rootCommand = parseResult.RootCommandResult.Command;
 
-            // dummy command, just to parse the Arguments/Options defined in "public static void ConfigureCommand(Command)"
+            // This dummy (temporary) command is just to parse (validate) the Arguments/Options defined in "public static void ConfigureCommand(Command)"
             var templateCommand = CreateCustomCommand(filePath, model1Type, model2Type, configureCommand);
             dependencyContainer.RegisterSingleton<Command>(templateCommand);
 
+            // Command is registered under a new (fake) RootCommand structure which has fake "template run" (with a single subcommand specific for running this command)
+            var fakeRootCommand = new CliCommandParser(new TemplateRunCommand(templateCommand)).RootCommand;
+
             // Parse again from root, but now with fake run command
-            var parser = new Parser(rootCommand);
+            var parser = new Parser(fakeRootCommand);
 
             var allArgs = parseResult.Tokens.Select(t => t.Value).ToList();
             var templateArg = parseResult.CommandResult.GetValueForArgument(_templateArg);

@@ -43,7 +43,7 @@ namespace CodegenCS.DotNetTool.Commands
         protected static async Task<int> HandleCommand(ParseResult parseResult, CommandArgs cliArgs)
         {
             // Forward Global Options to the Command Options
-            bool verboseMode = (parseResult.Tokens.Any(t => t.Type == TokenType.Option && t.Value == "--verbose"));
+            bool verboseMode = (parseResult.HasOption(CliCommandParser.VerboseOption));
 
             using (var consoleContext = Console.WithColor(ConsoleColor.Cyan))
             {
