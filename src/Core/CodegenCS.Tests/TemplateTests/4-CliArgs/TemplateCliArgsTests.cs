@@ -44,7 +44,7 @@ namespace CodegenCS.Tests.TemplateTests
                 {{templateBody}}
                 """;
 
-            _tmpFolder = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), Guid.NewGuid().ToString());
+            _tmpFolder = Path.Combine(Path.GetTempPath() ?? Directory.GetCurrentDirectory(), Guid.NewGuid().ToString());
             _tmpTemplateFile = Path.Combine(_tmpFolder, Guid.NewGuid().ToString() + ".cs");
             _tmpDll = Path.Combine(_tmpFolder, Guid.NewGuid().ToString() + ".dll");
             new DirectoryInfo(_tmpFolder).Create();
@@ -115,7 +115,8 @@ namespace CodegenCS.Tests.TemplateTests
         [Test]
         public void ForwardTemplateArgs()
         {
-            var fakeModel = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "model.json");
+            string tmpFolder = Path.Combine(Path.GetTempPath() ?? Directory.GetCurrentDirectory(), Guid.NewGuid().ToString());
+            var fakeModel = Path.Combine(tmpFolder, "model.json");
             if (!File.Exists(fakeModel))
                 File.WriteAllText(fakeModel, ""); // parser will only accept models if they physically exist.
 

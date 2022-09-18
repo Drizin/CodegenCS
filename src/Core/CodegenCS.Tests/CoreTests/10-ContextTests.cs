@@ -2,6 +2,7 @@ using CodegenCS;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace CodegenCS.Tests.CoreTests
@@ -112,11 +113,12 @@ namespace CodegenCS.Tests.CoreTests
             _ctx.DefaultOutputFile.Write("Test");
             Assert.That(_ctx.OutputFiles.Count == 1);
 
-            Assert.Throws<Exception>(() => { _ctx.SaveFiles(Environment.GetEnvironmentVariable("TEMP")); });
+            string tmpFolder = Path.Combine(Path.GetTempPath() ?? Directory.GetCurrentDirectory(), Guid.NewGuid().ToString());
+            Assert.Throws<Exception>(() => { _ctx.SaveFiles(tmpFolder); });
 
             // Renaming DefaultOutputFile
             _ctx.DefaultOutputFile.RelativePath = "Renamed.cs";
-            Assert.AreEqual(1, _ctx.SaveFiles(Environment.GetEnvironmentVariable("TEMP")));
+            Assert.AreEqual(1, _ctx.SaveFiles(tmpFolder));
         }
 
 

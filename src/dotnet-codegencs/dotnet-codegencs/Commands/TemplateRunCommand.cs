@@ -180,12 +180,12 @@ namespace CodegenCS.DotNetTool.Commands
             if (Path.GetExtension(template).ToLower() != ".dll")
             {
                 currentCommand = "dotnet-codegencs template build";
-
+                string tmpFolder = Path.Combine(Path.GetTempPath() ?? Directory.GetCurrentDirectory(), Guid.NewGuid().ToString());
                 var builderArgs = new TemplateBuilder.TemplateBuilder.TemplateBuilderArgs()
                 {
                     Template = new string[] { _templateFile.FullName },
                     //TODO define folder+filename by hash of template name+contents, to cache results.
-                    Output = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), Guid.NewGuid().ToString(), Path.GetFileNameWithoutExtension(_templateFile.FullName)) + ".dll",
+                    Output = Path.Combine(tmpFolder, Path.GetFileNameWithoutExtension(_templateFile.FullName)) + ".dll",
                     VerboseMode = _verboseMode,
                 };
                 var builder = new TemplateBuilder.TemplateBuilder(_logger, builderArgs);
