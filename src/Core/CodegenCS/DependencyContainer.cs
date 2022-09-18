@@ -172,6 +172,11 @@ namespace CodegenCS
         public void RegisterSingleton<TService>(TService instance) => regs.Add(typeof(TService), () => instance);
 
         /// <summary>
+        /// Singleton registration for cases when the instance is already created.
+        /// </summary>
+        public void RegisterSingleton(Type serviceType, object instance) => regs.Add(serviceType, () => instance);
+
+        /// <summary>
         /// Singleton registration for cases when the instance is not yet created or might need other dependencies.
         /// The factory is wrapped under a Lazy wrapper so it's possible that the service might not even be created if not required.
         /// </summary>

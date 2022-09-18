@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 namespace CodegenCS.InputModels
 {
     /// <summary>
-    /// Input Models provide information to be used in Templates (generators)
+    /// Input Models are loaded by Command-line tool (dotnet-codegencs) and will be automatically injected into template constructors or entrypoints.
     /// </summary>
     public interface IInputModel
     {

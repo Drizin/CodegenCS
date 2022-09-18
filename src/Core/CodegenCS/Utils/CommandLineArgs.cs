@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
 
-namespace CodegenCS.Templating
+namespace CodegenCS.Utils
 {
     public class CommandLineArgs : IReadOnlyList<string>
     {

@@ -1,14 +1,19 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CodegenCS.InputModels
 {
     /// <summary>
-    /// JSON-based Input Models provide information to be used in Templates (generators)
+    /// JSON-based Input Models that are loaded by Command-line tool (dotnet-codegencs) (deserialized from a JSON file)
+    /// and will be automatically injected into template constructors or entrypoints.
     /// </summary>
     public interface IJsonInputModel : IInputModel
+    {
+    }
+
+    /// <summary>
+    /// JSON-based Input Models that have a Schema definition in a public URL and therefore can be validated.
+    /// </summary>
+    public interface IValidatableJsonInputModel : IJsonInputModel
     {
         /// <summary>
         /// Json Schema which uniquely identifies this model.
