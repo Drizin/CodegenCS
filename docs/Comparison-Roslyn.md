@@ -85,3 +85,12 @@ However, if you're writing complex templates or if your output needs decent form
 - It uses the powerful **C# 11 Raw String Literals** (you can use it even if the target project does not use C# 11) which makes everything even cleaner and doesn't require escaping of curly braces.
 - And [much more](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS)
 
+## Can I run CodegenCS from a Roslyn Source Generator?
+
+You can, but probably that's not the best way of using CodegenCS:  
+CodegenCS main purpose is to generate static sources: it's great at generating well formatted code, managing multiple files, running from command-line tool or from Visual Studio Extension.  
+But if you're running from Roslyn you probably don't need any of that...
+
+You could still rely on our models (e.g. generate from database schema), but why would you need Roslyn Source Generator for that? Just use dotnet-codegencs in your build pipeline...
+
+Yet, if you want to run CodegenCS from a Roslyn Source Generator, check out [this Sample](https://github.com/CodegenCS/Samples/tree/main/src/SampleSourceGenerator.SimplePocos)

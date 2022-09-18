@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 using CodegenCS.Utils;
 using System.CommandLine;
 using System.CommandLine.Binding;
-using CodegenCS.Templating;
 using System.CommandLine.Invocation;
 using System.CommandLine.Help;
 using System.CommandLine.IO;
+using CodegenCS.InputModels;
 
 namespace CodegenCS.TemplateLauncher
 {
@@ -28,7 +28,7 @@ namespace CodegenCS.TemplateLauncher
         internal FileInfo _originallyInvokedTemplateFile;
         public bool ShowTemplateHelp { get; set; }
         protected string _defaultOutputFile = null;
-        protected MethodInfo entryPointMethod = null;
+        protected MethodInfo _entryPointMethod = null;
         protected FileInfo[] _modelFiles = null;
         protected Type _iTypeTemplate = null;
         protected string _outputFolder = null;
@@ -102,105 +102,191 @@ namespace CodegenCS.TemplateLauncher
             await _logger.WriteLineAsync(ConsoleColor.Green, $"Loading {ConsoleColor.Yellow}'{_templateFile.Name}'{PREVIOUS_COLOR}...");
 
 
+            Type templatingInterface = null;
+
             var asm = Assembly.LoadFile(_templateFile.FullName);
 
             if (asm.GetName().Version?.ToString() != "0.0.0.0")
                 await _logger.WriteLineAsync($"{ConsoleColor.Cyan}{_templateFile.Name}{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{asm.GetName().Version}{PREVIOUS_COLOR}");
 
-            var types = asm.GetTypes().Where(t => typeof(IBaseTemplate).IsAssignableFrom(t));
-            IEnumerable<Type> types2;
+            var asmTypes = asm.GetTypes().ToList();
+            var asmMethods = asmTypes.SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)).ToList();
 
-            if (_entryPointClass == null && types.Count() == 1)
-                _entryPointClass = types.Single();
 
-            if (_entryPointClass == null && (types2 = types.Where(t => t.Name == "Main")).Count() == 1)
-                _entryPointClass = types2.Single();
-
+            // If a class implements multiple templating interfaces (or if different classs implement different interfaces) we'll pick the most elaborated one
             var interfacesPriority = new Type[]
             {
-                typeof(ICodegenMultifileTemplate<>),
                 typeof(ICodegenMultifileTemplate<,>),
+                typeof(ICodegenMultifileTemplate<>),
                 typeof(ICodegenMultifileTemplate),
 
-                typeof(ICodegenTemplate<>),
                 typeof(ICodegenTemplate<,>),
+                typeof(ICodegenTemplate<>),
                 typeof(ICodegenTemplate),
 
-                typeof(ICodegenStringTemplate<>),
                 typeof(ICodegenStringTemplate<,>),
+                typeof(ICodegenStringTemplate<>),
                 typeof(ICodegenStringTemplate),
             };
 
-            Type foundInterface = null;
-            Type iBaseXModelTemplate = null;
-
-            if (_entryPointClass != null)
+            // First we search for a single "Main" method.
+            if (_entryPointMethod == null && asmMethods.Where(m => m.Name == "Main").Count() == 1)
             {
-                for (int i = 0; i < interfacesPriority.Length && foundInterface == null; i++)
+                _entryPointMethod = asmMethods.Where(m => m.Name == "Main").Single();
+                _entryPointClass = _entryPointMethod.DeclaringType;
+            }
+
+            // LEGACY ? Maybe we should use the Main() standard
+            // Then we search for templating interfaces (they all inherit from IBaseTemplate)
+            if (_entryPointClass == null)
+            {
+                var templateInterfaceTypes = asmTypes.Where(t => typeof(IBaseTemplate).IsAssignableFrom(t)).ToList();
+
+                // If there's a single class implementing IBaseTemplate
+                if (_entryPointClass == null && templateInterfaceTypes.Count() == 1)
                 {
-                    if (IsAssignableToType(_entryPointClass, interfacesPriority[i]))
+                    _entryPointClass = templateInterfaceTypes.Single();
+                    // Pick the best interface if it implements multiple
+                    for (int i = 0; i < interfacesPriority.Length && templatingInterface == null; i++)
                     {
-                        foundInterface = interfacesPriority[i];
+                        if (IsAssignableToType(_entryPointClass, interfacesPriority[i]))
+                            templatingInterface = interfacesPriority[i];
+                    }
+                }
+                else if (templateInterfaceTypes.Any()) // if multiple classes, find the best one by the best interface
+                {
+                    for (int i = 0; i < interfacesPriority.Length && _entryPointClass == null; i++)
+                    {
+                        IEnumerable<Type> types2;
+                        if ((types2 = templateInterfaceTypes.Where(t => IsAssignableToType(t, interfacesPriority[i]))).Count() == 1)
+                        {
+                            _entryPointClass = types2.Single();
+                            templatingInterface = interfacesPriority[i];
+                        }
                     }
                 }
             }
 
-            for (int i = 0; i < interfacesPriority.Length && _entryPointClass == null; i++)
-            {
-                if ((types2 = types.Where(t => IsAssignableToType(t, interfacesPriority[i]))).Count() == 1)
-                {
-                    _entryPointClass = types2.Single();
-                    foundInterface = interfacesPriority[i];
-                }
-            }
+            if (_entryPointMethod == null && templatingInterface != null)
+                _entryPointMethod = templatingInterface.GetMethod("Render", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public);
 
-            //TODO: [System.Runtime.InteropServices.DllImportAttribute]
 
-            if (_entryPointClass == null || foundInterface == null)
+            if (_entryPointClass == null || _entryPointMethod == null)
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find template entry-point in '{(_originallyInvokedTemplateFile ?? _templateFile).Name}'.");
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Template should implement ICodegenTemplate, ICodegenMultifileTemplate or ICodegenStringTemplate.");
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Template should have a method called Main() or should implement ICodegenTemplate, ICodegenMultifileTemplate or ICodegenStringTemplate.");
                 return new TemplateLoadResponse() { ReturnCode = -1 };
             }
 
-            if (IsAssignableToType(foundInterface, typeof(IBase1ModelTemplate<>)))
-                iBaseXModelTemplate = typeof(IBase1ModelTemplate<>);
-            else if (IsAssignableToType(foundInterface, typeof(IBase2ModelTemplate<,>)))
-                iBaseXModelTemplate = typeof(IBase2ModelTemplate<,>);
-            else if (IsAssignableToType(foundInterface, typeof(IBase0ModelTemplate)))
-                iBaseXModelTemplate = typeof(IBase0ModelTemplate);
-            else
-                throw new NotImplementedException();
+            await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Template entry-point: {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR}...");
 
-            if (IsAssignableToType(foundInterface, typeof(IBaseMultifileTemplate)))
-                _iTypeTemplate = typeof(IBaseMultifileTemplate);
-            else if (IsAssignableToType(foundInterface, typeof(IBaseSinglefileTemplate)))
-                _iTypeTemplate = typeof(IBaseSinglefileTemplate);
-            else if (IsAssignableToType(foundInterface, typeof(IBaseStringTemplate)))
-                _iTypeTemplate = typeof(IBaseStringTemplate);
-            else
-                throw new NotImplementedException();
-
-            entryPointMethod = foundInterface.GetMethod("Render", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public);
-
-            await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Template entry-point: {ConsoleColor.White}'{_entryPointClass.Name}.{entryPointMethod.Name}()'{PREVIOUS_COLOR}...");
-
-
-            if (iBaseXModelTemplate == typeof(IBase2ModelTemplate<,>))
+            if (templatingInterface != null)
             {
-                _expectedModels = 2;
-                _model1Type = _entryPointClass.GetInterfaces().Where(it => it.IsGenericType && it.GetGenericTypeDefinition() == iBaseXModelTemplate).ToList()[0].GetGenericArguments()[0];
-                _model2Type = _entryPointClass.GetInterfaces().Where(it => it.IsGenericType && it.GetGenericTypeDefinition() == iBaseXModelTemplate).ToList()[0].GetGenericArguments()[1];
-            }
-            else if (iBaseXModelTemplate == typeof(IBase1ModelTemplate<>))
-            {
-                _expectedModels = 1;
-                _model1Type = _entryPointClass.GetInterfaces().Where(it => it.IsGenericType && it.GetGenericTypeDefinition() == iBaseXModelTemplate).ToList()[0].GetGenericArguments()[0];
+                Type iBaseXModelTemplate = null;
+
+                if (IsAssignableToType(templatingInterface, typeof(IBase1ModelTemplate<>)))
+                    iBaseXModelTemplate = typeof(IBase1ModelTemplate<>);
+                else if (IsAssignableToType(templatingInterface, typeof(IBase2ModelTemplate<,>)))
+                    iBaseXModelTemplate = typeof(IBase2ModelTemplate<,>);
+                else if (IsAssignableToType(templatingInterface, typeof(IBase0ModelTemplate)))
+                    iBaseXModelTemplate = typeof(IBase0ModelTemplate);
+                else
+                    throw new NotImplementedException();
+
+                if (IsAssignableToType(templatingInterface, typeof(IBaseMultifileTemplate)))
+                    _iTypeTemplate = typeof(IBaseMultifileTemplate);
+                else if (IsAssignableToType(templatingInterface, typeof(IBaseSinglefileTemplate)))
+                    _iTypeTemplate = typeof(IBaseSinglefileTemplate);
+                else if (IsAssignableToType(templatingInterface, typeof(IBaseStringTemplate)))
+                    _iTypeTemplate = typeof(IBaseStringTemplate);
+                else
+                    throw new NotImplementedException();
+
+
+                if (iBaseXModelTemplate == typeof(IBase2ModelTemplate<,>))
+                {
+                    _expectedModels = 2;
+                    _model1Type = _entryPointClass.GetInterfaces().Where(it => it.IsGenericType && it.GetGenericTypeDefinition() == iBaseXModelTemplate).ToList()[0].GetGenericArguments()[0];
+                    _model2Type = _entryPointClass.GetInterfaces().Where(it => it.IsGenericType && it.GetGenericTypeDefinition() == iBaseXModelTemplate).ToList()[0].GetGenericArguments()[1];
+                }
+                else if (iBaseXModelTemplate == typeof(IBase1ModelTemplate<>))
+                {
+                    _expectedModels = 1;
+                    _model1Type = _entryPointClass.GetInterfaces().Where(it => it.IsGenericType && it.GetGenericTypeDefinition() == iBaseXModelTemplate).ToList()[0].GetGenericArguments()[0];
+                }
+                else
+                    _expectedModels = 0;
             }
             else
-                _expectedModels = 0;
+            {
+                // Models required by the entry point method 
+                var entrypointMethodModels = _entryPointMethod.GetParameters().Select(p => p.ParameterType).Where(p => IsAssignableToType(p, typeof(IInputModel))).ToList();
 
-            return new TemplateLoadResponse() { ReturnCode = 0, Model1Type = _model1Type, Model2Type = _model2Type  };
+                // Models required by the entrypoint class constructors
+                var ctorsWithModelParameters = _entryPointClass.GetConstructors().Select(ctor => new
+                {
+                    ctor,
+                    ModelArgs = ctor.GetParameters().Select(p => p.ParameterType).Where(p => IsAssignableToType(p, typeof(IInputModel))).ToList()
+                });
+
+                // if entrypoint method requires models, class should have at least one constructor NOT expecting any models.
+                if (entrypointMethodModels.Any())
+                {
+                    if (ctorsWithModelParameters.Any(c => c.ModelArgs.Any()))
+                    {
+                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with Main() entry-point may receive models in the entry-point or in the constructor, but not in both.");
+                        return new TemplateLoadResponse() { ReturnCode = -1 };
+                    }
+
+                    if (entrypointMethodModels.GroupBy(t => t).Max(g => g.Count()>1))
+                    {
+                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with Main() entry-point cannot receive 2 models of the same type.");
+                        return new TemplateLoadResponse() { ReturnCode = -1 };
+                    }
+
+                    _expectedModels = entrypointMethodModels.Count();
+                    if (_expectedModels >= 1)
+                        _model1Type = entrypointMethodModels[0];
+                    if (_expectedModels >= 2)
+                        _model1Type = entrypointMethodModels[1];
+                    if (_expectedModels >= 3)
+                    {
+                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates can expect a max of 2 models - but it's expecting {ConsoleColor.Yellow}'{string.Join("', '", entrypointMethodModels.Select(t => t.Name))}'{PREVIOUS_COLOR}");
+                        return new TemplateLoadResponse() { ReturnCode = -1 };
+                    }
+
+                    return new TemplateLoadResponse() { ReturnCode = 0, Model1Type = _model1Type, Model2Type = _model2Type };
+                }
+
+                if (!ctorsWithModelParameters.Any(c => c.ModelArgs.Count() == 0))
+                {
+                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with Main() entry-point may receive models in the entry-point or in the constructor, but not in both.");
+                    return new TemplateLoadResponse() { ReturnCode = -1 };
+                }
+
+                // Models are in constructor. Let's pick the one with most models.
+                var ctorAndParms = ctorsWithModelParameters.OrderByDescending(ctor => ctor.ModelArgs.Count()).First();
+
+                if (ctorAndParms.ModelArgs.GroupBy(t => t).Select(g => g?.Count() ?? 0).Count() > 1)
+                {
+                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with Main() entry-point cannot receive 2 models of the same type.");
+                    return new TemplateLoadResponse() { ReturnCode = -1 };
+                }
+
+                _expectedModels = ctorAndParms.ModelArgs.Count();
+                if (_expectedModels >= 1)
+                    _model1Type = ctorAndParms.ModelArgs[0];
+                if (_expectedModels >= 2)
+                    _model1Type = ctorAndParms.ModelArgs[1];
+                if (_expectedModels >= 3)
+                {
+                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates can expect a max of 2 models - but it's expecting {ConsoleColor.Yellow}'{string.Join("', '", ctorAndParms.ModelArgs.Select(t => t.Name))}'{PREVIOUS_COLOR}");
+                    return new TemplateLoadResponse() { ReturnCode = -1 };
+                }
+
+            }
+
+            return new TemplateLoadResponse() { ReturnCode = 0, Model1Type = _model1Type, Model2Type = _model2Type };
         }
 
         public async Task<int> ExecuteAsync(TemplateLauncherArgs _args, ParseResult parseResult)
@@ -234,12 +320,8 @@ namespace CodegenCS.TemplateLauncher
 
             _ctx.DefaultOutputFile.RelativePath = _defaultOutputFile;
 
-            var dependencyContainer = new DependencyContainer();
+            var dependencyContainer = _ctx.DependencyContainer; // TODO: is this correct? maybe _ctx.DependencyContainer should inherit scope (services) from this one?
             dependencyContainer.RegisterSingleton<ILogger>(_logger);
-            dependencyContainer.RegisterSingleton<ICodegenContext>(_ctx);
-            dependencyContainer.RegisterSingleton<ICodegenOutputFile>(_ctx.DefaultOutputFile);
-            dependencyContainer.RegisterSingleton<ICodegenTextWriter>(_ctx.DefaultOutputFile);
-            dependencyContainer.RegisterSingleton<TextWriter>((TextWriter)_ctx.DefaultOutputFile);
 
             // CommandLineArgs can be injected in the template constructor (or in any dependency like "TemplateArgs" nested class), and will bring all command-line arguments that were not captured by dotnet-codegencs tool
             CommandLineArgs cliArgs = new CommandLineArgs(_args.TemplateSpecificArguments);
@@ -291,9 +373,18 @@ namespace CodegenCS.TemplateLauncher
 
             #endregion
 
-            if (_expectedModels != _modelFiles.Count())
+            if (_expectedModels > _modelFiles.Count())
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Template entry-point {ConsoleColor.White}'{_entryPointClass.Name}.{entryPointMethod.Name}()'{PREVIOUS_COLOR} requires {ConsoleColor.White}{_expectedModels}{PREVIOUS_COLOR} model(s) but got only {ConsoleColor.White}{_modelFiles.Count()}{PREVIOUS_COLOR}.");
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Template entry-point {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR} requires {ConsoleColor.White}{_expectedModels}{PREVIOUS_COLOR} model(s) but got only {ConsoleColor.White}{_modelFiles.Count()}{PREVIOUS_COLOR}.");
+
+                if (parseResult != null)
+                    ShowParseResults(bindingContext, parseResult);
+                return -2;
+            }
+            if (_expectedModels < _modelFiles.Count())
+            {
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Template entry-point {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR} requires {ConsoleColor.White}{_expectedModels}{PREVIOUS_COLOR} model(s) and got {ConsoleColor.White}{_modelFiles.Count()}{PREVIOUS_COLOR}.");
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Maybe your model class is not implementing IInputModel? ");
 
                 if (parseResult != null)
                     ShowParseResults(bindingContext, parseResult);
@@ -321,10 +412,14 @@ namespace CodegenCS.TemplateLauncher
 
             for (int i = 0; i < _expectedModels; i++)
             {
-                Type modelType;
+                Type modelType = null;
                 try
                 {
-                    modelType = _entryPointClass.GetInterfaces().Where(itf => itf.IsGenericType
+                    if (i == 0)
+                        modelType = _model1Type;
+                    else if (i == 1)
+                        modelType = _model2Type;
+                    modelType = modelType ?? _entryPointClass.GetInterfaces().Where(itf => itf.IsGenericType
                         && (itf.GetGenericTypeDefinition() == typeof(IBase1ModelTemplate<>) || itf.GetGenericTypeDefinition() == typeof(IBase2ModelTemplate<,>)))
                         .Select(interf => interf.GetGenericArguments().Skip(i).First()).Distinct().Single();
                     await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} type is {ConsoleColor.White}'{modelType.FullName}'{PREVIOUS_COLOR}...");
@@ -336,9 +431,21 @@ namespace CodegenCS.TemplateLauncher
                 }
                 try
                 {
-                    object model = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText(_modelFiles[i].FullName), modelType);
+                    object model;
+                    if (_iTypeTemplate != null) // old templating interfaces - always expect a JSON model
+                        model = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText(_modelFiles[i].FullName), modelType);
+                    else if (IsAssignableToType(modelType, typeof(IJsonInputModel)))
+                        model = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText(_modelFiles[i].FullName), modelType);
+                    else if (IsAssignableToType(modelType, typeof(IInputModel))) // for now (no yaml yet) let's assume that all IInputModel are JSON
+                        model = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText(_modelFiles[i].FullName), modelType);
+                    else
+                    {
+                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not load Model{(_expectedModels > 1 ? (i + 1).ToString() : "")}: Unknown type. Maybe your model should implement IJsonInputModel?");
+                        return -1;
+                    }
                     await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} successfuly loaded from {ConsoleColor.White}'{_modelFiles[i].Name}'{PREVIOUS_COLOR}...");
                     modelArgs.Add(model);
+                    dependencyContainer.RegisterSingleton(modelType, model); // might be injected both in _entryPointClass ctor or _entryPointMethod args
                 }
                 catch (Exception ex)
                 {
@@ -377,21 +484,47 @@ namespace CodegenCS.TemplateLauncher
             if (_iTypeTemplate == typeof(IBaseMultifileTemplate)) // pass ICodegenContext
             {
                 modelArgs.Insert(0, _ctx);
-                (_entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(entryPointMethod.Name))
+                (_entryPointClass.GetMethod(_entryPointMethod.Name, _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(_entryPointMethod.Name))
                     .Invoke(instance, modelArgs.ToArray());
             }
             else if (_iTypeTemplate == typeof(IBaseSinglefileTemplate)) // pass ICodegenTextWriter
             {
                 modelArgs.Insert(0, _ctx.DefaultOutputFile);
-                var method = _entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray());
-                method = method ?? _entryPointClass.GetMethod(entryPointMethod.Name);
+                var method = _entryPointClass.GetMethod(_entryPointMethod.Name, _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray());
+                method = method ?? _entryPointClass.GetMethod(_entryPointMethod.Name);
                 method.Invoke(instance, modelArgs.ToArray());
             }
             else if (_iTypeTemplate == typeof(IBaseStringTemplate)) // get the FormattableString and write to DefaultOutputFile
             {
-                FormattableString fs = (FormattableString) (_entryPointClass.GetMethod(entryPointMethod.Name, entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(entryPointMethod.Name))
+                FormattableString fs = (FormattableString) (_entryPointClass.GetMethod(_entryPointMethod.Name, _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(_entryPointMethod.Name))
                     .Invoke(instance, modelArgs.ToArray());
                 _ctx.DefaultOutputFile.Write(fs);
+            }
+            else if (_iTypeTemplate == null && _entryPointMethod != null) // Main() entrypoint
+            {
+                var argTypes = _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray();
+                object[] entryPointMethodArgs = new object[argTypes.Length];
+                for (int i = 0; i < argTypes.Length; i++)
+                    entryPointMethodArgs[i] = dependencyContainer.Resolve(argTypes[i]);
+                if (_entryPointMethod.ReturnType == typeof(FormattableString))
+                {
+                    var fs = (FormattableString)_entryPointMethod.Invoke(instance, entryPointMethodArgs);
+                    _ctx.DefaultOutputFile.Write(fs);
+                }
+                else if (_entryPointMethod.ReturnType == typeof(FormattableString))
+                {
+                    var s = (string)_entryPointMethod.Invoke(instance, entryPointMethodArgs);
+                    _ctx.DefaultOutputFile.Write(s);
+                }
+                else
+                {
+                    object result = _entryPointMethod.Invoke(instance, entryPointMethodArgs);
+                    if (_entryPointMethod.ReturnType == typeof(int) && ((int)result) != 0)
+                    {
+                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"\nExiting with non-zero result code from template ({(int)result}). Nothing saved.");
+                        return (int)result;
+                    }
+                }
             }
 
             if (_ctx.Errors.Any())

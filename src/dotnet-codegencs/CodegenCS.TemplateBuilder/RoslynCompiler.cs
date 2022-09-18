@@ -1,11 +1,13 @@
 ﻿using CodegenCS.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CodegenCS.TemplateBuilder
@@ -14,7 +16,7 @@ namespace CodegenCS.TemplateBuilder
     {
         protected readonly HashSet<PortableExecutableReference> _references = new HashSet<PortableExecutableReference>();
         protected readonly HashSet<string> _namespaces = new HashSet<string>();
-        protected readonly CSharpCompilationOptions _compilationOptions;        
+        protected readonly CSharpCompilationOptions _compilationOptions;
         protected readonly CSharpParseOptions _parseOptions;
         protected readonly string _dotNetCoreDir;
         protected ILogger _logger;
@@ -189,6 +191,8 @@ namespace CodegenCS.TemplateBuilder
             // ParseText really better? https://stackoverflow.com/questions/16338131/using-roslyn-to-parse-transform-generate-code-am-i-aiming-too-high-or-too-low
             //SyntaxFactory.ParseSyntaxTree(SourceText.From(text, Encoding.UTF8), options, filename);
 
+            AddMissingUsings(syntaxTrees);
+
 
             //TODO: support for top-level statements?
             CSharpCompilation compilation = CSharpCompilation.Create("assemblyName", syntaxTrees,
@@ -256,6 +260,65 @@ namespace CodegenCS.TemplateBuilder
                 return true;
             }
 
+        }
+        void AddMissingUsings(List<SyntaxTree> trees)
+        {
+            for (int i = 0; i < trees.Count; i++)
+            {
+                var rootNode = trees[i].GetRoot() as CompilationUnitSyntax;
+                AddMissingUsing(ref rootNode, "CodegenCS");
+
+
+                string templateSource = rootNode.ToString(); //TODO: strip strings from CompilationUnitSyntax - we are only interested in checking the template control logic
+
+                // These namespaces probably won't conflict with anything
+                AddMissingUsing(ref rootNode, "System");
+                AddMissingUsing(ref rootNode, "System.Collections.Generic");
+                AddMissingUsing(ref rootNode, "System.Linq");
+                AddMissingUsing(ref rootNode, "System.IO");
+                AddMissingUsing(ref rootNode, "System.Runtime.CompilerServices");
+                AddMissingUsing(ref rootNode, "System.Text.RegularExpressions");
+                AddMissingUsing(ref rootNode, "Newtonsoft.Json"); // I doubt this might conflict with anything. Maybe should search for JsonConvert and some other classes
+
+                // To avoid type names conflict we only add some usings if we detect as required
+                // Most regex below are checking for non-fully-qualified typename (no leading dot).
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bDatabaseSchema\b"))
+                    AddMissingUsing(ref rootNode, "CodegenCS.DbSchema");
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bCommandLineArgs\b"))
+                    AddMissingUsing(ref rootNode, "CodegenCS.Utils");
+                else if (Regex.IsMatch(templateSource, @"(?<!\.)\bILogger\b") && Regex.IsMatch(templateSource, @"\bWriteLine(\w*)Async\b"))
+                    AddMissingUsing(ref rootNode, "CodegenCS.Utils");
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bIInputModel\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bIJsonInputModel\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bIValidatableJsonInputModel\b"))
+                    AddMissingUsing(ref rootNode, "CodegenCS.InputModels");
+
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bConfigureCommand\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bParseResult\b"))
+                    AddMissingUsing(ref rootNode, "System.CommandLine"); // System.CommandLine.Command, System.CommandLine.ParseResult
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bBindingContext\b"))
+                    AddMissingUsing(ref rootNode, "System.CommandLine.Binding");
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bInvocationContext\b"))
+                    AddMissingUsing(ref rootNode, "System.CommandLine.Invocation");
+
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bIF\(\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bIIF\(\b"))
+                    AddMissingUsing(ref rootNode, "CodegenCS.Symbols", true);
+
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bPREVIOUS_COLOR\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bPREVIOUS_BACKGROUND_COLOR\b"))
+                    AddMissingUsing(ref rootNode, "InterpolatedColorConsole.Symbols", true);
+
+                trees[i] = SyntaxFactory.SyntaxTree(rootNode, _parseOptions); // rootNode.SyntaxTree (without _parseOptions) would go back to C# 10 (and we need C# 11 preview)
+            }
+        }
+        void AddMissingUsing(ref CompilationUnitSyntax unit, string @namespace, bool isStatic = false)
+        {
+            var qualifiedName = SyntaxFactory.ParseName(@namespace);
+            if (!unit.Usings.Select(d => d.Name.ToString()).Any(u => u == qualifiedName.ToString()))
+            {
+                UsingDirectiveSyntax usingDirective;
+                if (isStatic)
+                    usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.Token(SyntaxKind.StaticKeyword), null, qualifiedName).NormalizeWhitespace();
+                else
+                    usingDirective = SyntaxFactory.UsingDirective(qualifiedName).NormalizeWhitespace();
+                unit = unit.AddUsings(usingDirective);
+           }
         }
         #endregion
 

@@ -22,6 +22,15 @@ namespace CodegenCS.Tests.TemplateTests
         TemplateLauncherArgs _launcherArgs;
         ILogger _logger = new DebugOutputLogger();
         CliCommandParser _cliCommandParser = new CliCommandParser();
+        string _dbschemaModelPath = Path.Combine(GetCurrentFolder(), @"..\..\..\..\Models\CodegenCS.DbSchema.SampleDatabases\AdventureWorksSchema.json");
+
+        [SetUp]
+        public void Setup()
+        {
+            Assert.That(File.Exists(_dbschemaModelPath));
+        }
+
+
 
         private async Task BuildAsync(FormattableString templateBody)
         {
@@ -39,7 +48,7 @@ namespace CodegenCS.Tests.TemplateTests
                 using static InterpolatedColorConsole.Symbols;
                 using System.CommandLine.Binding;
                 using System.CommandLine;
-                using CodegenCS.Templating;
+                using CodegenCS.Utils;
 
                 {{templateBody}}
                 """;
@@ -115,10 +124,7 @@ namespace CodegenCS.Tests.TemplateTests
         [Test]
         public void ForwardTemplateArgs()
         {
-            string tmpFolder = Path.Combine(Path.GetTempPath() ?? Directory.GetCurrentDirectory(), Guid.NewGuid().ToString());
-            var fakeModel = Path.Combine(tmpFolder, "model.json");
-            if (!File.Exists(fakeModel))
-                File.WriteAllText(fakeModel, ""); // parser will only accept models if they physically exist.
+            var fakeModel = _dbschemaModelPath; // parser will only accept models if they physically exist.
 
             //TODO: case insensitive?
             var args = new string[] { "template", "run", "template.cs", "--OutputFolder", @".\folder", "--File", "defaultfile.cs", fakeModel, "--verbose", "now", "comes", "template-specific", "options", "and", "args" };
@@ -259,7 +265,292 @@ namespace CodegenCS.Tests.TemplateTests
         }
 
 
-        //TODO: Autobinder!
+
+        [Test]
+        public async Task TestMainEntrypoint()
+        {
+            FormattableString template = $$"""
+                public class MyTemplate
+                {
+                    private static Argument<string> argNamespace = new Argument<string>("Namespace", description: "Namespace of generated POCOs") { Arity = ArgumentArity.ExactlyOne };
+                    public static void ConfigureCommand(Command command)
+                    {
+                        command.AddArgument(argNamespace);
+                    }
+                    public class MyTemplateArgs : IAutoBindCommandLineArgs
+                    {
+                        public string Namespace { get; set; }
+                    }
+                    MyTemplateArgs _args;
+                    public MyTemplate(MyTemplateArgs args)
+                    {
+                        _args = args;
+                    }
+                    void Main(ICodegenTextWriter writer)
+                    {
+                        writer.WriteLine(_args.Namespace);
+                    }
+                }
+                """;
+
+            await BuildAsync(template);
+
+            var exitCode = await LaunchAsync(templateArgs: new string[] { "arg1", "arg2" });
+            Assert.AreEqual(-2, exitCode); // unrecognized parameters
+
+            exitCode = await LaunchAsync(templateArgs: new string[] { });
+            Assert.AreEqual(-2, exitCode); // missing required argument (namespace)
+
+            exitCode = await LaunchAsync(templateArgs: new string[] { "MyNamespace" });
+
+            Assert.AreEqual(0, exitCode);
+            Assert.AreEqual(1, _context.OutputFiles.Count);
+            Assert.That(_context.OutputFilesPaths.Contains(_launcherArgs.DefaultOutputFile));
+            Assert.That(_context.OutputFiles[0].GetContents() == "MyNamespace" + "\r\n");
+        }
+
+        [Test]
+        public async Task TestMainEntrypointWithModel()
+        {
+            FormattableString template = $$"""
+                public class MyTemplate
+                {
+                    MyTemplateArgs _args;
+                    public MyTemplate(MyTemplateArgs args)
+                    {
+                        _args = args;
+                    }
+
+                    void Main(ICodegenTextWriter writer, DatabaseSchema schema)
+                    {
+                        writer.WriteLine(_args.Namespace);
+                        writer.WriteLine(schema.Tables.Count());
+                    }
+                
+                    private static Argument<string> argNamespace = new Argument<string>("Namespace", description: "Namespace of generated POCOs") { Arity = ArgumentArity.ExactlyOne };
+                    public static void ConfigureCommand(Command command)
+                    {
+                        command.AddArgument(argNamespace);
+                    }
+                    public class MyTemplateArgs : IAutoBindCommandLineArgs
+                    {
+                        public string Namespace { get; set; }
+                    }
+                }
+                """;
+
+            await BuildAsync(template);
+            var exitCode = await LaunchAsync(models: new string[] { _dbschemaModelPath }, templateArgs: new string[] { "MyNamespace" });
+
+            Assert.AreEqual(0, exitCode);
+            Assert.AreEqual(1, _context.OutputFiles.Count);
+            Assert.That(_context.OutputFilesPaths.Contains(_launcherArgs.DefaultOutputFile));
+            Assert.That(_context.OutputFiles[0].GetContents() == "MyNamespace" + "\r\n" + "91" + "\r\n");
+        }
+
+
+        [Test]
+        public async Task TestMainEntrypointWithCustomInputModel()
+        {
+            FormattableString template = $$"""
+                public class MyModel : IInputModel
+                {
+                    public string Value1 { get; set; }
+                }
+                public class MyTemplate
+                {
+                    void Main(ICodegenTextWriter writer, CommandLineArgs cliArgs, MyModel model)
+                    {
+                        string ns = cliArgs[0];
+                        writer.WriteLine(ns);
+                        writer.WriteLine(model.Value1);
+                    }
+                }
+                """;
+
+            await BuildAsync(template);
+
+            var fakeModel = Path.Combine(_tmpFolder, "model.json");
+            File.WriteAllText(fakeModel, """
+                {
+                    Value1: "MyOwnModel"
+                }
+                """);
+
+            var exitCode = await LaunchAsync(models: new string[] { fakeModel }, templateArgs: new string[] { "MyNamespace" });
+            Assert.AreEqual(0, exitCode);
+            Assert.AreEqual(1, _context.OutputFiles.Count);
+            Assert.That(_context.OutputFilesPaths.Contains(_launcherArgs.DefaultOutputFile));
+            Assert.That(_context.OutputFiles[0].GetContents() == "MyNamespace" + "\r\n" + "MyOwnModel" + "\r\n");
+        }
+
+        [Test]
+        public async Task TestMainEntrypointWithCustomInputModelAndReturnCode()
+        {
+            FormattableString template = $$"""
+                public class MyModel : IInputModel
+                {
+                    public string Value1 { get; set; }
+                }
+                public class MyTemplate
+                {
+                    int Main(ICodegenTextWriter writer, CommandLineArgs cliArgs, MyModel model)
+                    {
+                        if (cliArgs.Count() < 1)
+                        {
+                            Console.WriteLine("Should provide namespace");
+                            return -1;
+                        }
+                        string ns = cliArgs[0];
+                        writer.WriteLine(ns);
+                        writer.WriteLine(model.Value1);
+                        return 0;
+                    }
+                }
+                """;
+
+            await BuildAsync(template);
+
+            var fakeModel = Path.Combine(_tmpFolder, "model.json");
+            File.WriteAllText(fakeModel, """
+                {
+                    Value1: "MyOwnModel"
+                }
+                """);
+
+
+            var exitCode = await LaunchAsync(models: new string[] { fakeModel });
+            Assert.AreEqual(-1, exitCode); // template returning -1: lack of namespace arg
+
+            exitCode = await LaunchAsync(models: new string[] { fakeModel }, templateArgs: new string[] { "MyNamespace" });
+            Assert.AreEqual(0, exitCode);
+            Assert.AreEqual(1, _context.OutputFiles.Count);
+            Assert.That(_context.OutputFilesPaths.Contains(_launcherArgs.DefaultOutputFile));
+            Assert.That(_context.OutputFiles[0].GetContents() == "MyNamespace" + "\r\n" + "MyOwnModel" + "\r\n");
+        }
+
+
+        [Test]
+        public async Task TestSimpleTemplateWithCliArgs()
+        {
+            FormattableString template = $$$""""
+                public class MyModel : IJsonInputModel
+                {
+                    public string[] Tables { get; set; }
+                }
+                public class MyTemplate
+                {
+                    FormattableString Main(CommandLineArgs cliArgs, MyModel model)
+                    {
+                        return $$"""
+                            namespace {{ cliArgs[0] }}
+                            {
+                                {{ model.Tables.Select(t => GenerateTable(t)) }}
+                            }
+                            """;
+                    }
+                    FormattableString GenerateTable(string tableName)
+                    {
+                        return $$"""
+                            public class {{ tableName }}
+                            {
+                                // my properties...
+                            }
+                            """;
+                    }
+                }
+                """";
+
+            await BuildAsync(template);
+
+            var fakeModel = Path.Combine(_tmpFolder, "model.json");
+            File.WriteAllText(fakeModel, """
+                {
+                    "Tables": ["Users", "Products"]
+                }
+                """);
+
+            var exitCode = await LaunchAsync(models: new string[] { fakeModel }, templateArgs: new string[] { "MyNamespace" });
+            Assert.AreEqual(0, exitCode);
+            Assert.AreEqual(1, _context.OutputFiles.Count);
+            Assert.That(_context.OutputFilesPaths.Contains(_launcherArgs.DefaultOutputFile));
+            string expected = $$"""
+                namespace MyNamespace
+                {
+                    public class Users
+                    {
+                        // my properties...
+                    }
+
+                    public class Products
+                    {
+                        // my properties...
+                    }
+                }
+                """;
+            Assert.AreEqual(expected, _context.OutputFiles[0].GetContents());
+        }
+
+        [Test]
+        public async Task TestSimplestTemplateEver()
+        {
+            FormattableString template = $$$""""
+                public class MyModel : IJsonInputModel
+                {
+                    public string[] Tables { get; set; }
+                }
+                public class MyTemplate
+                {
+                    FormattableString Main(MyModel model)
+                    {
+                        return $$"""
+                            namespace MyNamespace
+                            {
+                                {{ model.Tables.Select(t => GenerateTable(t)) }}
+                            }
+                            """;
+                    }
+                    FormattableString GenerateTable(string tableName)
+                    {
+                        return $$"""
+                            public class {{ tableName }}
+                            {
+                                // my properties...
+                            }
+                            """;
+                    }
+                }
+                """";
+
+            await BuildAsync(template);
+
+            var fakeModel = Path.Combine(_tmpFolder, "model.json");
+            File.WriteAllText(fakeModel, """
+                {
+                    "Tables": ["Users", "Products"]
+                }
+                """);
+
+            var exitCode = await LaunchAsync(models: new string[] { fakeModel });
+            Assert.AreEqual(0, exitCode);
+            Assert.AreEqual(1, _context.OutputFiles.Count);
+            Assert.That(_context.OutputFilesPaths.Contains(_launcherArgs.DefaultOutputFile));
+            string expected = $$"""
+                namespace MyNamespace
+                {
+                    public class Users
+                    {
+                        // my properties...
+                    }
+
+                    public class Products
+                    {
+                        // my properties...
+                    }
+                }
+                """;
+            Assert.AreEqual(expected, _context.OutputFiles[0].GetContents());
+        }
 
 
 

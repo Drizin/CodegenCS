@@ -97,8 +97,6 @@ In other words this is our **"batteries included"** tool.
 
 dotnet-codegencs builds the templates **with C# 11** (using Roslyn) which means that **Raw String Literals are supported even if the target project is not yet using C# 11** (target project doesn't even have to be .NET, and doesn't even have to be a project, since templates can write to any kind of text output).
 
-dotnet-codegencs expects that your template implements one of the [possible templating interfaces](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS#template-interfaces). For more info check out [dotnet-codegencs documentation](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs).
-
 
 <hr/>
 

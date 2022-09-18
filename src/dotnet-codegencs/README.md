@@ -2,7 +2,7 @@
 
 Before anything else, don't forget to read the [Main Project Page](https://github.com/CodegenCS/CodegenCS/) to learn the basics (basic idea, basic features, and major components).
 
-This page is only about the **dotnet-codegencs tool**:
+This page is only about **CodegenCS Command-line Tool (dotnet-codegencs)**:
 - If you are **writing a template** (code generator) and want to learn more about CodegenCS features (and internals) then check out the [CodegenCS Core Library](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) documentation.
 - If you want to **compile and run templates** or **reverse-engineer a database schema** this is the right place.
 - If you want to **browse the sample templates** (POCO Generators, DAL generators, etc) check out [https://github.com/CodegenCS/Templates/](https://github.com/CodegenCS/Templates/)
@@ -14,10 +14,8 @@ This page is only about the **dotnet-codegencs tool**:
 [![Nuget](https://img.shields.io/nuget/v/dotnet-codegencs?label=dotnet-codegencs)](https://www.nuget.org/packages/dotnet-codegencs)
 [![Downloads](https://img.shields.io/nuget/dt/dotnet-codegencs.svg)](https://www.nuget.org/packages/dotnet-codegencs)
 
-**dotnet-codegencs** is a **[.NET Tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools)** that contains utilities to download, build and run templates.  
+**dotnet-codegencs** is a **[.NET Command-line Tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools)** that contains utilities to download, build and run templates.  
 It can also be used to extract models (reverse engineer) from existing sources, so that those models can be used with the templates.  
-
-# <a name="quickstart"></a>Quickstart
 
 ## Installation
 
@@ -26,6 +24,7 @@ It can also be used to extract models (reverse engineer) from existing sources, 
 - Install running this command: ```dotnet tool install -g dotnet-codegencs```  
    If your environment is configured to use private Nuget feeds (in addition to nuget.org) you may need `--ignore-failed-sources` option to ignore not-found errors.
 
+# <a name="quickstart"></a>Quickstart (Using existing Templates)
 
 ## Extract your Database Model
 
@@ -55,6 +54,95 @@ Let's download a simple template called **SimplePocos** that can generate POCOs 
 SimplePocos template requires [1 mandatory argument](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L49) which is the namespace for the generated POCOs, so it should be invoked like `dotnet-codegencs template run SimplePocos.dll <dbSchema.json> <namespace>`. Let's use the model extracted in the previous step and let's define the namespace as "MyEntities":
 
 `dotnet-codegencs template run SimplePocos.dll AdventureWorks.json MyEntities`
+
+<br/>
+<br/>
+
+# <a name="quickstart-custom"></a>Quickstart (Using your own JSON Model)
+
+## Create your input Model
+
+Use any text editor to create a JSON file (code below) and save as "MyModel.json":
+
+```json
+{
+    "Tables": ["Users", "Products"]
+}
+```
+
+## Create your Template
+
+Use any text editor to create a CS Template file (code below) and save as "MyTemplate.cs"
+
+```cs
+public class MyModel : IJsonInputModel
+{
+    public string[] Tables { get; set; }
+}
+public class MyTemplate
+{
+    FormattableString Main(MyModel model)
+    {
+        return $$"""
+            namespace MyNamespace
+            {
+                {{ model.Tables.Select(t => GenerateTable(t)) }}
+            }
+            """;
+    }
+    FormattableString GenerateTable(string tableName)
+    {
+        return $$"""
+            public class {{ tableName }}
+            {
+                // my properties...
+            }
+            """;
+    }
+}
+```
+
+## Run the Template and check the results
+
+`dotnet-codegencs template run MyTemplate.cs MyModel.json`
+
+Now open `MyTemplate.generated.cs` and you'll see the generated code:
+
+```cs
+namespace MyNamespace
+{
+    public class Users
+    {
+        // my properties...
+    }
+
+    public class Products
+    {
+        // my properties...
+    }
+}
+```
+
+## How it works
+
+When you run `dotnet-codegencs template run`:
+- It will search for an entrypoint method called `Main()` (in any class in the cs file)
+- It will automatically create an instance of that class and invoke that `Main()` method.
+- Both the class constructor and the `Main()` method may get automatically injected into them some important types: `ICodegenContext` (if you want to write to multiple files), `ICodegenTextWriter` (if you want to write to a single file), `CliArgs` (if your template needs to read custom command-line arguments), etc.
+- Both the class constructor and the `Main()` method may also get automatically injected into them the Input Models: any class that implements  `IJsonInputModel`. Any class that implements that interface will be automatically deserialized from a JSON file (so it must be provided in the command-line, after the template name) and injected as necessary.
+- `Main()` return type can be `void` - use this if you're manually writing to `ICodegenContext` or `ICodegenTextWriter`. Outputs are automatically saved.
+- `Main()` return type can also be `int` - it's exactly like `void` but the templates can return a nonzero result to indicate an error (and outputs wouldn't be saved).
+- `Main()` return type can also be `FormattableString` or `string` - it's a more "functional" approach - in this case that return is automatically written to the default output file (`ICodegenTextWriter`) - no need to call `writer.WriteLine()`
+- If multiple files were written (into a `ICodegenContext`) then they are all saved under current folder  
+  Different folder can be specified using option `--OutputFolder [OutputFolder]`
+- If a single file was written (into a `ICodegenTextWriter`) then it's saved under current folder as `<TemplateName>.generated.cs`  
+  Different file can be specified using option `--File [DefaultOutputFile]`
+- Using statements are automatically added to the script (if not there) to let templates be as simple as possible
+ 
+In the templates repository you'll find templates using the [legacy syntax](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L34) which requires templates to implements one of the [templating interfaces](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS#template-interfaces) (`ICodegenTemplate<TModel>`, `ICodegenMultifileTemplate<TModel>`, `ICodegenStringTemplate<TModel>`). That's legacy, now that it's possible (and easier) to just use a `Main()` method and inject whatever object you need.
+
+
+
 
 <br/>
 <br/>
@@ -101,7 +189,7 @@ As mentioned earlier, `template build` is totally optional since `template run` 
 If you're running templates directly from `.dll` and you have modified the `.cs` source then you can rebuild the dll using `dotnet-codegencs template build <template.cs>`.
 
 
-# <a name="writing-templates"></a>How to Write Templates
+<!-- # <a name="writing-templates"></a>How to Write Templates
 
 When you run `dotnet-codegencs template run` it expects that your template implements one of the [possible templating interfaces](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS#template-interfaces):
 - `ICodegenTemplate<TModel>`: This is the most common template interface - it gets a model (type TModel) and writes output to a ICodegenTextWriter (so it's a "single-file template"):
@@ -110,7 +198,7 @@ When you run `dotnet-codegencs template run` it expects that your template imple
 
 So basically `template run` load your template and detect which interface you have implemented ([example](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L34)), and then it will automatically load the model (deserialize it into the appropriate type) and pass it to your template.  
 
-There are other interfaces (e.g. you don't need to get a model, or you may expect two different models) but the 3 above are the most common. As an example, if your template uses 2 models (`SomeInterface<TModel1, TModel2>`) then `template run` would expect (and load) two input files.
+There are other interfaces (e.g. you don't need to get a model, or you may expect two different models) but the 3 above are the most common. As an example, if your template uses 2 models (`SomeInterface<TModel1, TModel2>`) then `template run` would expect (and load) two input files. -->
 
 <br/>
 <br/>

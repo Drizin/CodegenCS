@@ -40,16 +40,14 @@ dotnet clean
 dotnet pack  /p:PackageVersion=2.0.0-codegencs
 copy artifacts\packages\Debug\Shipping\System.CommandLine.2.0.0-codegencs.nupkg ..\..\packages-local
 copy artifacts\packages\Debug\Shipping\System.CommandLine.NamingConventionBinder.2.0.0-codegencs.nupkg ..\..\packages-local
-
-
 cd ..\..\
 
 
 
 # CodegenCS + nupkg/snupkg
-& $msbuild ".\CodegenCS\CodegenCS.csproj"                          `
+& $msbuild ".\Core\CodegenCS\CodegenCS.csproj"                          `
            /t:Restore /t:Build /t:Pack                             `
-           /p:PackageOutputPath="..\packages-local\"               `
+           /p:PackageOutputPath="..\..\packages-local\"               `
            '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
            /p:Configuration=$configuration                         `
            /p:IncludeSymbols=true                                  `
@@ -59,9 +57,9 @@ cd ..\..\
 
 
 # CodegenCS.DbSchema + nupkg/snupkg
-& $msbuild ".\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj"        `
+& $msbuild ".\Models\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj"        `
            /t:Restore /t:Build /t:Pack                             `
-           /p:PackageOutputPath="..\packages-local\"               `
+           /p:PackageOutputPath="..\..\packages-local\"               `
            '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
            /p:Configuration=$configuration                         `
            /p:IncludeSymbols=true                                  `
@@ -75,16 +73,16 @@ if ($configuration -eq "Release")
 {
     # Can clean again since dotnet-codegencs will use Nuget references
     dotnet clean
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\bin\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\obj\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\CodegenCS.DbSchema.Extractor\bin\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\CodegenCS.DbSchema.Extractor\obj\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\dotnet-codegencs\bin\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\dotnet-codegencs\obj\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.DbSchema.Extractor\bin\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.DbSchema.Extractor\obj\
 }
 
 
 # The following libraries are all part of dotnet-codegencs tool...
 
-& $msbuild ".\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj" `
+& $msbuild ".\Models\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj" `
            /t:Restore /t:Build                                                  `
            '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
            /p:Configuration=$configuration                                      `
@@ -94,17 +92,9 @@ if ($configuration -eq "Release")
            /p:ContinuousIntegrationBuild=true
 
 
-& $msbuild ".\CodegenCS.DbSchema.Templates\CodegenCS.DbSchema.Templates.csproj" `
-           /t:Restore /t:Build                                                  `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
-           /p:Configuration=$configuration                                      `
-           /p:IncludeSymbols=true                                               `
-           /p:SymbolPackageFormat=snupkg                                        `
-           /verbosity:minimal                                                   `
-           /p:ContinuousIntegrationBuild=true
-           
+          
 dotnet restore CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj
-& $msbuild ".\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj" `
+& $msbuild ".\dotnet-codegencs\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj" `
            /t:Restore /t:Build                                                  `
            '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
            /p:Configuration=$configuration                                      `
@@ -114,7 +104,7 @@ dotnet restore CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj
            /p:ContinuousIntegrationBuild=true
 
 dotnet restore CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj
-& $msbuild ".\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" `
+& $msbuild ".\dotnet-codegencs\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" `
            /t:Restore /t:Build                                                  `
            '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
            /p:Configuration=$configuration                                      `
@@ -126,9 +116,9 @@ dotnet restore CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj
 
 
 # dotnet-codegencs (DotnetTool nupkg/snupkg)
-& $msbuild ".\dotnet-codegencs\dotnet-codegencs.csproj"   `
+& $msbuild ".\dotnet-codegencs\dotnet-codegencs\dotnet-codegencs.csproj"   `
            /t:Restore /t:Build /t:Pack                             `
-           /p:PackageOutputPath="..\packages-local\"      `
+           /p:PackageOutputPath="..\..\packages-local\"      `
            '/p:targetFrameworks="net5.0"'                 `
            /p:Configuration=$configuration                `
            /p:IncludeSymbols=true                         `
@@ -145,5 +135,5 @@ dotnet-codegencs --version
 
 
 # Unit tests
-dotnet build -c $configuration CodegenCS.Tests\CodegenCS.Tests.csproj
+dotnet build -c $configuration .\Core\CodegenCS.Tests\CodegenCS.Tests.csproj
 #dotnet test  CodegenCS.Tests\CodegenCS.Tests.csproj

@@ -197,7 +197,7 @@ w.WriteLine($$"""
 To sum, CodegenCS gives you "hassle-free" indentation, and you always get the expected indentation.
 
 
-## The magic will be revealed
+## The magic revealed
 
 This is how Implicit Indent Control works internally:
 - The variable `myClass` is interpolated in the parent block and it's padded by 4 spaces (when compared to the parent block)
