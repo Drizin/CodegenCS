@@ -6,6 +6,7 @@ using System.Linq;
 using static InterpolatedColorConsole.Symbols;
 using System.Threading.Tasks;
 using CodegenCS.Utils;
+using System.Collections.Generic;
 
 namespace CodegenCS.TemplateBuilder
 {
@@ -46,6 +47,14 @@ namespace CodegenCS.TemplateBuilder
         {
             public int ReturnCode { get; set; }
             public string TargetFile { get; set; }
+            public IEnumerable<CompilationError> CompilationErrors { get; set; }
+        }
+
+        public class CompilationError
+        {
+            public string Message { get; set; }
+            public int? Line { get; set; }
+            public int? Column { get; set; }
         }
 
         public async Task<TemplateBuilderResponse> ExecuteAsync()
@@ -84,12 +93,12 @@ namespace CodegenCS.TemplateBuilder
 
             var targetFile = Utils.IOUtils.MakeRelativePath(Path.Combine(outputFolder, outputFileName));
 
-            bool success = await compiler.Compile(sources, targetFile);
+            var compilationResult = await compiler.Compile(sources, targetFile);
 
-            if (!success)
+            if (!compilationResult.success)
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Error while building '{string.Join(", ", inputFiles.Select(inp => inp.Name))}'.");
-                return new TemplateBuilderResponse() { ReturnCode = -1 };
+                return new TemplateBuilderResponse() { ReturnCode = -1, CompilationErrors = compilationResult.errors };
             }
 
             await _logger.WriteLineAsync(ConsoleColor.Green, $"\nSuccessfully built template into {ConsoleColor.White}'{targetFile}'{PREVIOUS_COLOR}.");

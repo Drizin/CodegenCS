@@ -1,4 +1,5 @@
 using CodegenCS;
+using CodegenCS.___InternalInterfaces___;
 using CodegenCS.DbSchema;
 using NUnit.Framework;
 using System;
@@ -207,6 +208,12 @@ namespace MyPocos
 
         #endregion
 
+        [Test]
+        public void EmptyBraces()
+        {
+            _w.Write($"{{}}");
+            Assert.AreEqual("{}", _w.GetContents());
+        }
 
     }
 

@@ -726,7 +726,7 @@ namespace CodegenCS
 
         #region InnerWriteFormattable: By using interpolated strings we can mix strings and action delegates, which will be lazy-evaluated (so will respect the order of execution)
         private static Regex _formattableArgumentRegex = new Regex(
-              "{(?<ArgPos>\\d*)(:(?<Format>[^}]*))?}",
+              "{(?<ArgPos>\\d+)(:(?<Format>[^}]*))?}",
             RegexOptions.IgnoreCase
             | RegexOptions.Singleline
             | RegexOptions.CultureInvariant

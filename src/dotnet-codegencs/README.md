@@ -24,39 +24,9 @@ It can also be used to extract models (reverse engineer) from existing sources, 
 - Install running this command: ```dotnet tool install -g dotnet-codegencs```  
    If your environment is configured to use private Nuget feeds (in addition to nuget.org) you may need `--ignore-failed-sources` option to ignore not-found errors.
 
-# <a name="quickstart"></a>Quickstart (Using existing Templates)
-
-## Extract your Database Model
-
-CodegenCS templates can be based on any JSON input model, but **if you want to generate a model based on a database** (which is probably the most popular use of code generators) you can use the out-of-the-box [DatabaseSchema model](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema/DbSchema) which represents the schema of a relational database.  
-
-To **extract the schema of a database** into a JSON file you can use the command `dotnet-codegencs model dbschema extract`, like this:  
-`dotnet-codegencs model dbschema extract <MSSQL or POSTGRESQL> <connectionString> <output.json>`
-
-Examples:
-- `dotnet-codegencs model dbschema extract mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json` (MSSQL using SQL authentication)
-- `dotnet-codegencs model dbschema extract mssql "Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json` (MSSQL using Windows authentication)
-- `dotnet-codegencs model dbschema extract postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json` (PostgreSQL)
-
-If you don't have a database and want a sample schema you can download AdventureWorks schema [here](https://raw.githubusercontent.com/CodegenCS/CodegenCS/master/src/Models/CodegenCS.DbSchema.SampleDatabases/AdventureWorksSchema.json).
-
-## Download a Template
-
-The `template clone` command is used to download a copy of any online template to your local folder.  
-Let's download a simple template called **SimplePocos** that can generate POCOs for all our database tables:
-
-`dotnet-codegencs template clone https://github.com/CodegenCS/Templates/SimplePocos/SimplePocos.cs`
-
-(You can browser other [sample templates here](https://github.com/CodegenCS/Templates/)).
-
-## Run the Template (Generate POCOs)
-
-SimplePocos template requires [1 mandatory argument](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L49) which is the namespace for the generated POCOs, so it should be invoked like `dotnet-codegencs template run SimplePocos.dll <dbSchema.json> <namespace>`. Let's use the model extracted in the previous step and let's define the namespace as "MyEntities":
-
-`dotnet-codegencs template run SimplePocos.dll AdventureWorks.json MyEntities`
-
 <br/>
 <br/>
+
 
 # <a name="quickstart-custom"></a>Quickstart (Using your own JSON Model)
 
@@ -123,7 +93,42 @@ namespace MyNamespace
 }
 ```
 
-## How it works
+# <a name="quickstart"></a>Quickstart (Using existing Templates)
+
+## Extract your Database Model
+
+CodegenCS templates can be based on any JSON input model, but **if you want to generate a model based on a database** (which is probably the most popular use of code generators) you can use the out-of-the-box [DatabaseSchema model](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema/DbSchema) which represents the schema of a relational database.  
+
+To **extract the schema of a database** into a JSON file you can use the command `dotnet-codegencs model dbschema extract`, like this:  
+`dotnet-codegencs model dbschema extract <MSSQL or POSTGRESQL> <connectionString> <output.json>`
+
+Examples:
+- `dotnet-codegencs model dbschema extract mssql "Server=MYSERVER; Database=AdventureWorks; User Id=myUsername;Password=MyPassword" AdventureWorks.json` (MSSQL using SQL authentication)
+- `dotnet-codegencs model dbschema extract mssql "Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json` (MSSQL using Windows authentication)
+- `dotnet-codegencs model dbschema extract postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json` (PostgreSQL)
+
+If you don't have a database and want a sample schema you can download AdventureWorks schema [here](https://raw.githubusercontent.com/CodegenCS/CodegenCS/master/src/Models/CodegenCS.DbSchema.SampleDatabases/AdventureWorksSchema.json).
+
+## Download a Template
+
+The `template clone` command is used to download a copy of any online template to your local folder.  
+Let's download a simple template called **SimplePocos** that can generate POCOs for all our database tables:
+
+`dotnet-codegencs template clone https://github.com/CodegenCS/Templates/SimplePocos/SimplePocos.cs`
+
+(You can browser other [sample templates here](https://github.com/CodegenCS/Templates/)).
+
+## Run the Template (Generate POCOs)
+
+SimplePocos template requires [1 mandatory argument](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L49) which is the namespace for the generated POCOs, so it should be invoked like `dotnet-codegencs template run SimplePocos.dll <dbSchema.json> <namespace>`. Let's use the model extracted in the previous step and let's define the namespace as "MyEntities":
+
+`dotnet-codegencs template run SimplePocos.dll AdventureWorks.json MyEntities`
+
+<br/>
+<br/>
+
+
+# How it works
 
 When you run `dotnet-codegencs template run`:
 - It will search for an entrypoint method called `Main()` (in any class in the cs file)

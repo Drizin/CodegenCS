@@ -76,9 +76,9 @@ namespace CodegenCS.TemplateLauncher
         }
 
 
-        public async Task<int> LoadAndExecuteAsync(string templateDll, TemplateLauncherArgs args, ParseResult parseResult)
+        public async Task<int> LoadAndExecuteAsync(TemplateLauncherArgs args, ParseResult parseResult)
         {
-            var loadResult = await LoadAsync(templateDll);
+            var loadResult = await LoadAsync(args.Template);
             if (loadResult.ReturnCode != 0)
                 return loadResult.ReturnCode;
             return await ExecuteAsync(args, parseResult);
@@ -384,7 +384,7 @@ namespace CodegenCS.TemplateLauncher
             if (_expectedModels < _modelFiles.Count())
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Template entry-point {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR} requires {ConsoleColor.White}{_expectedModels}{PREVIOUS_COLOR} model(s) and got {ConsoleColor.White}{_modelFiles.Count()}{PREVIOUS_COLOR}.");
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Maybe your model class is not implementing IInputModel? ");
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Maybe your template expects a model class and you forgot to use IInputModel interface? Or maybe you have provided an extra arg which is not expected?");
 
                 if (parseResult != null)
                     ShowParseResults(bindingContext, parseResult);

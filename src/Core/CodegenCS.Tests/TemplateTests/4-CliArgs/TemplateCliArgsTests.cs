@@ -93,7 +93,7 @@ namespace CodegenCS.Tests.TemplateTests
             _cliCommandParser = new CliCommandParser(); // HACK: this is modified in some places (fake parser) so we should better start fresh
             launcher.ParseCliUsingCustomCommand = _cliCommandParser._runTemplateCommandWrapper.ParseCliUsingCustomCommand;
             var parseResult = _cliCommandParser.Parser.Parse($"testhost template run {_launcherArgs.Template} {string.Join(" ", models?.Any() == true ? models : new string[0])} {string.Join(" ", templateArgs?.Any() == true ? templateArgs : new string[0])}");
-            int executeResult = await launcher.LoadAndExecuteAsync(_launcherArgs.Template, _launcherArgs, parseResult);
+            int executeResult = await launcher.LoadAndExecuteAsync(_launcherArgs, parseResult);
             return executeResult;
         }
 

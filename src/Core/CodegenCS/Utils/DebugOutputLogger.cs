@@ -139,7 +139,7 @@ namespace CodegenCS.Utils
         }
 
         private static Regex _formattableArgumentRegex = new Regex(
-              "{(?<ArgPos>\\d*)(:(?<Format>[^}]*))?}",
+              "{(?<ArgPos>\\d+)(:(?<Format>[^}]*))?}",
             RegexOptions.IgnoreCase
             | RegexOptions.Singleline
             | RegexOptions.CultureInvariant

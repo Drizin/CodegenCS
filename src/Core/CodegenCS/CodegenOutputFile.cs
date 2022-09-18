@@ -20,7 +20,7 @@ namespace CodegenCS
             set 
             {
                 if (_relativePath != value)
-                    _context?.OnOutputFileRenamed(_relativePath, value);  
+                    _context?.OnOutputFileRenamed(_relativePath, value, this);  
                 _relativePath = value; 
             } 
         }

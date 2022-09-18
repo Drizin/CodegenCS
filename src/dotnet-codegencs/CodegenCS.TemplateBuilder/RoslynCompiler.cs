@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static CodegenCS.TemplateBuilder.TemplateBuilder;
 
 namespace CodegenCS.TemplateBuilder
 {
@@ -48,6 +49,7 @@ namespace CodegenCS.TemplateBuilder
             _namespaces.Add("System.Linq");
             AddAssembly("System.Linq.dll");
             AddAssembly("System.Linq.Expressions.dll");
+            AddAssembly("System.Core.dll");
             #endregion
 
             #region System.Collections
@@ -185,7 +187,7 @@ namespace CodegenCS.TemplateBuilder
         #endregion
 
         #region Compile
-        public async Task<bool> Compile(string[] sources, string targetFile)
+        public async Task<(bool success, IEnumerable<CompilationError> errors)> Compile(string[] sources, string targetFile)
         {
             var syntaxTrees = sources.Select(source => CSharpSyntaxTree.ParseText(File.ReadAllText(source), _parseOptions)).ToList();
             // ParseText really better? https://stackoverflow.com/questions/16338131/using-roslyn-to-parse-transform-generate-code-am-i-aiming-too-high-or-too-low
@@ -199,6 +201,7 @@ namespace CodegenCS.TemplateBuilder
                 _references,
                 _compilationOptions);
 
+            var compilationErrors = new List<CompilationError>();
             using (var dllStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
             {
@@ -211,6 +214,7 @@ namespace CodegenCS.TemplateBuilder
                     var lineStart = diag.Location.GetLineSpan().StartLinePosition.Line;
                     var lineEnd = diag.Location.GetLineSpan().EndLinePosition.Line;
                     await _logger.WriteLineErrorAsync(color, $"  {diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
+                    compilationErrors.Add(new CompilationError() { Message = diag.GetMessage(), Line = lineStart, Column = diag.Location.GetLineSpan().StartLinePosition.Character });
                 };
                 var errors = emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
                 if (errors.Any())
@@ -237,7 +241,7 @@ namespace CodegenCS.TemplateBuilder
 
                 if (!emitResult.Success)
                 {
-                    return false;
+                    return (false, compilationErrors);
                 }
 
                 dllStream.Seek(0, SeekOrigin.Begin);
@@ -257,7 +261,7 @@ namespace CodegenCS.TemplateBuilder
                     pdbStream.CopyTo(fs);
                     fs.Flush();
                 }
-                return true;
+                return (true, null);
             }
 
         }

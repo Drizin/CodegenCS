@@ -24,15 +24,17 @@ namespace CodegenCS
         /// <inheritdoc />
         public IReadOnlyList<ICodegenOutputFile> OutputFiles => new ReadOnlyCollection<ICodegenOutputFile>(_outputFiles.Values.ToList());
 
-        public virtual bool OnOutputFileRenamed(string oldRelativePath, string newRelativePath)
+        public virtual bool OnOutputFileRenamed(string oldRelativePath, string newRelativePath, ICodegenOutputFile outputFile)
         {
             if (!_outputFiles.ContainsKey(oldRelativePath))
                 return false;
             if (oldRelativePath.Equals(newRelativePath))
                 return false;
-            var outputFile = _outputFiles[oldRelativePath];
-            _outputFiles.Remove(oldRelativePath);
-            _outputFiles.Add(newRelativePath, outputFile);
+            if (_outputFiles.ContainsKey(oldRelativePath))
+            {
+                _outputFiles.Remove(oldRelativePath);
+                _outputFiles.Add(newRelativePath, outputFile);
+            }
             return true;
         }
 
@@ -360,13 +362,13 @@ namespace CodegenCS
         #endregion
 
         #region Overrides
-        public override bool OnOutputFileRenamed(string oldRelativePath, string newRelativePath)
+        public override bool OnOutputFileRenamed(string oldRelativePath, string newRelativePath, ICodegenOutputFile outputFile)
         {
-            bool renamed = base.OnOutputFileRenamed(oldRelativePath, newRelativePath);
-            if (renamed)
+            bool renamed = base.OnOutputFileRenamed(oldRelativePath, newRelativePath, outputFile);
+            if (Path.GetExtension(oldRelativePath)?.ToLower() != Path.GetExtension(newRelativePath)?.ToLower())
             {
                 FT type = _getDefaultType(newRelativePath);
-                this[newRelativePath].FileType = type;
+                ((ICodegenOutputFile<FT>)outputFile).FileType = type;
             }
             return renamed;
         }

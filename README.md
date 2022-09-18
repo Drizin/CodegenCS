@@ -8,48 +8,45 @@
 
 CodegenCS is written in C# and the templates should be developed using plain C# - but the **templates can generate any text-based output** (you can write C#, Java, Javascript, Python, HTML, SQL Scripts, CSHTML, XML, Markdown, Terraform files, or anything else).
 
-This can be used as an alternative to [T4 Templates](https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates?view=vs-2022) or to any other code-generator tool based on templating engines like Razor/Handlebars/Liquid.  
+CodegenCS is an alternative to [T4 Templates](https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates?view=vs-2022) and to any other code-generator tool based on templating engines like Razor/Handlebars/Liquid, but it uses a very different approach.  
 
 
-# CodegenCS has a Different Approach
+# CodegenCS Approach
 
-The programming paradigm of T4 (and most other templating engines) is similar to PHP and Classic ASP:  
-You get a **single output stream** and you can write a huge string literal into that stream. By default whatever you have in the template goes directly to the output stream.  
-Then there are some escape characters to let you **mix control logic (and variables) within that huge-string-literal**, but it's primarily designed to write literal strings directly to the output stream.
+All templating engines (like T4, Razor and others) have a programming paradigm similar to PHP and Classic ASP: you get a **single output stream** and you can write a string block into that stream - by default whatever you write in the template goes directly to the output stream.   
+Then there are escape characters that let you **add control logic (and variables) mixed within a string**, but all those engines are primarily designed to have a huge string block piped directly to the output stream.
 
-CodegenCS uses the opposite approach: you get a **Magical TextWriter** (or multiple writers if writing to multiple files) and you have to **programmatically** write to it using plain C#.  
-
-The advantage of the programmatic approach is that **you don't need to learn a new syntax** and it also gives you more control/flexibility: You can use the well-established C# syntax (invoking methods, passing parameters, interpolating strings, looping, formatting, etc). 
-
-The disavantage of the programmatic approach (if you were writing to a regular TextWriter **without this library**) is that some things would be impossible or too complicated:
-- In a regular TextWriter you can't **embed a subtemplate using string interpolation** inside another template
-- In a regular TextWriter you can't **render a list of items** (either a simple list or invoking a subtemplate for each item) without "leaving" the literal and manually doing a foreach to append the items or run the subtemplates.
-- In a regular TextWriter (and also in any other templating engine) you have to **control indent on your own** (each inner block needs to know how many indent spaces should be added to be aligned with the parent block). 
+CodegenCS uses the opposite approach: **you get a TextWriter** (or multiple writers if writing to multiple files) and you have to **programmatically** write to it using plain C#.  
+The **advantage** of the programmatic approach is that **you don't need to learn a new syntax** and it also gives you more control/flexibility: You can use the well-established C# syntax (invoking methods, passing parameters, interpolating strings, looping, formatting, etc).  
+The **disavantage** of the programmatic approach (if you were writing to a regular TextWriter **without this library**) is that some tasks would be impossible or too complicated:
+- In a regular TextWriter you can't **embed a subtemplate inside another template using string interpolation**
+- In a regular TextWriter you can't **render a list of items** without "leaving" the block and manually running a "foreach". For subtemplates you'd have to run one by one, and even for a simple list you'd have to append one by one.
+- In a regular TextWriter you have to **control indent on your own** (each inner block needs to know how many indent spaces should be added to be aligned with the parent block). Even popular templating engines lack indent control.
 - In a regular TextWriter you can't embed simple `IF` conditions mixed within your text blocks
 
-**CodegenCS gives you the best of both worlds** (and a little more!):
-- You can **write templates using your favorite language (C#)** (**no need to learn a new syntax** for control flow, loops, variable assignments, etc)
+**CodegenCS provides a Magic TextWriter that gives you the best of both worlds** (and more):
+- You can **write templates using your favorite language (C#)** - **no need to learn a new syntax** for control flow, loops, variable assignments, etc.
 - You can **write templates using your favorite IDE (Visual Studio)** - with **intellisense**, **syntax highlighting**, and full **debugging** capabilities (most code generators lack decent intellisense/debugging)
-- Templates can leverage the powerful .NET and all **.NET libraries**  
+- Templates can **leverage the power of .NET** and any **.NET library**  
   (think Dapper, Newtonsoft, Swashbuckle, RestSharp, Humanizer, etc.)
 - Templates start with the **programmatic approach** and you can **use it whenever it makes sense**:  
-  It all starts with a regular C# method that gets a CodegenTextWriter (or a CodegenContext if writing to multiple files).  
-  Then you can read from any data source (or input model) and you can write to output using familiar methods like `Write()`, `WriteLine()`, etc.  
+  It all starts with a regular C# method that gets a CodegenTextWriter (or a CodegenContext if writing to multiple files).
+  Then you can read from any source and you can write to output using familiar methods like `Write()`, `WriteLine()`, etc.  
 - You can **break down complex templates** into smaller reusable methods (it's all C# anyway).  
-- You can write **interpolated strings** (or plain strings) when it makes sense. No need to learn new syntax for simple things like concatenating strings or formatting dates.  
-  Obviously you can write multiline blocks (no need to write line by line), and our textwriter will magically manage indentation for you.
-- It supports the powerful [C# 11 Raw String Literals](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-11#raw-string-literals) that allows multiline-blocks to be aligned (padded) wherever they look better, making templates **easier to read** since literals and control logic won't have **mixed indentation**.  
+- You can write **interpolated strings** (or plain strings) whenever it makes sense. No need to learn new syntax for simple things like concatenating strings or formatting dates.  
+  Obviously you can also write multiline blocks (no need to write line by line) and our textwriter will magically handle indentation.
+- It supports the powerful [C# 11 Raw String Literals](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-11#raw-string-literals) that allows multiline-blocks to be aligned (padded) wherever they look better, making templates **easier to read** since you won't see **mixed indentation** between strings and control logic.  
 - With Raw String Literals there is also **no need to escape special characters** like curly braces (mustaches), double-quotes, blackslashes, double-mustaches or any other.  
   It's just about using the right delimiters and then your literal can use any character without conflicting with the string delimiter: it's easier to write curly-braces (C#/C/Java/Javascript), double-mustaches (JSX/Angular), Razor/Blazor/ASPX, etc.
 - Implicit indent control (**indentation is magically controlled**) - you can embed any object in interpolated strings and writer will **preserve the parent indentation** and/or cursor position.
 - Supports **string interpolation of many object types** (other than strings): `Action<>`, `Func<>`, `IEnumerable<>` (lists), other templates, if blocks, etc.  
   **No need to "leave" the string block and go back to the programmatic approach** just to render a list or just to add a simple conditional block.  
-  But yet, when you need more control (**it's your choice!**) you can "leave" the string block and go back to the programmatic approach (it's as simple as interpolating an `Action` within your string)
-- In other words with our Magical TextWriter you can seamlessly **switch (back and forth) between programmatic mode** (imperative) and **literals mode** (string blocks).
+  But yet, whenever you need more control (**it's your choice!**) you can "leave" the string block and go back to the programmatic approach (it's as simple as interpolating an `Action` within your string)
+- In other words with our Magical TextWriter **you can seamlessly switch (back and forth) between programmatic mode** (imperative) and **text mode** (string blocks).
 <!-- - dotnet-codegencs tool lets you download/build/run templates
 - dotnet-codegencs can extract database models (reverse engineer from existing MSSQL/PostgreSQL databases into a JSON file) that can be used by your templates.   -->
 
-CodegenCS is the only code-generator where ["Simple things are simple, and Complex things are possible"](https://en.wikiquote.org/wiki/Alan_Kay).
+To sum, **CodegenCS is the only code-generator where ["Simple things are simple, and Complex things are possible"](https://en.wikiquote.org/wiki/Alan_Kay).**
 
 
 <br/><br/>  
@@ -70,7 +67,7 @@ There are basically 4 components (detailed below):
   
 [CodegenTextWriter](https://github.com/CodegenCS/CodegenCS/blob/master/src/Core/CodegenCS/CodegenTextWriter.cs) is the **heart of the library** - some people would say that it's just a custom TextWriter, but we prefer to say it's a **Magic TextWriter** (or a **TextWriter on Steroids**) since it solves lots of code generation issues and provides a lot of helpers:
 - Like with any TextWriter, **you are in control** - you can manually write to it using `Write()`, `WriteLine()`, etc, and using any C# constructs (`foreach`, `if`, etc).  
-- Like with any TextWriter, you can use interpolated strings (to mix variables within literals).  
+- Like with any TextWriter, you can use interpolated strings (to mix variables within strings).  
   But **CodegenTextWriter supports the interpolation of MANY other object types** other than strings: **you can interpolate `Action<>`, `Func<>`, `IEnumerable<>` (lists), other templates**, and any combination of those.  
   By using those different object types it's easier to organize complex templates as **clean, concise, and reusable code**.
 - It has **implicit indent control**, meaning that **indentation is magically controlled and preserved**.  
