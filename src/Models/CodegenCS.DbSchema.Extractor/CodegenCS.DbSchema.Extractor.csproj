@@ -34,10 +34,6 @@
     </Otherwise>
   </Choose>
 
-  <PropertyGroup>
-    <DefineConstants>DLL</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
 	<PackageReference Include="InterpolatedColorConsole" Version="1.0.2" />
     <PackageReference Include="Dapper.StrongName" Version="2.0.123" />

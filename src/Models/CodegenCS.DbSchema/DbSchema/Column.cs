@@ -1,11 +1,7 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 
-#if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
 namespace CodegenCS.DbSchema
 {
-#endif
     public class Column
     {
         public string ColumnName { get; set; }
@@ -50,6 +46,4 @@ namespace CodegenCS.DbSchema
 
         public string ColumnDescription { get; set; }
     }
-#if DLL
 }
-#endif

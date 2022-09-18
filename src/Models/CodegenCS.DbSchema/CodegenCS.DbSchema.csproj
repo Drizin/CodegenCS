@@ -8,7 +8,7 @@
     <Description>CodegenCS.DbSchema represents the schema (in json format) of a relational database (MSSQL or PostgreSQL)</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <DocumentationFile>CodegenCS.DbSchema.xml</DocumentationFile>
     <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -47,10 +47,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
-  <PropertyGroup>
-    <DefineConstants>DLL</DefineConstants>
-  </PropertyGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="dbschema.json" />

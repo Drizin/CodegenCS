@@ -7,11 +7,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-#if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
 namespace CodegenCS.DbSchema
 {
-#endif
-    public class DatabaseSchema : IJsonInputModel
+    public class DatabaseSchema : IJsonInputModel, IValidatableJsonInputModel
     {
         #region IJsonInputModel
         /// <inheritdoc/>
@@ -49,6 +47,4 @@ namespace CodegenCS.DbSchema
         public DateTimeOffset LastRefreshed { get; set; }
         public List<Table> Tables { get; set; }
     }
-#if DLL
 }
-#endif

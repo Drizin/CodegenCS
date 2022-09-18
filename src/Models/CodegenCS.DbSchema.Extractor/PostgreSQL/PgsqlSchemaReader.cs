@@ -2,54 +2,28 @@
 using Newtonsoft.Json;
 using System;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using CodegenCS.DbSchema;
 
-#if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
 namespace CodegenCS.DbSchema.Extractor.PostgreSQL
 {
-#endif
-
-public class PgsqlSchemaReader
-{
-    public Func<IDbConnection> CreateDbConnection { get; set; }
-
-    public PgsqlSchemaReader(Func<IDbConnection> createDbConnection)
+    public class PgsqlSchemaReader
     {
-        CreateDbConnection = createDbConnection;
+        public Func<IDbConnection> CreateDbConnection { get; set; }
 
-#if !DLL // if this is included in a CSX file we'll have to tricky some assembly resolutions to ignore versions
-        // Let Npgsql load ANY version of assemblies
-        AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
-#endif
-    }
-
-#if !DLL // if this is included in a CSX file we'll have to tricky some assembly resolutions to ignore versions
-    Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-    {
-        var name = new AssemblyName(args.Name);
-        if (name.Name == "System.Threading.Channels")
+        public PgsqlSchemaReader(Func<IDbConnection> createDbConnection)
         {
-            return typeof(System.Threading.Channels.Channel).Assembly;
+            CreateDbConnection = createDbConnection;
         }
-        if (name.Name == "System.Text.Json")
-        {
-            return typeof(System.Text.Json.JsonDocument).Assembly;
-        }
-        return null;
-    }
-#endif
 
-
-    public DatabaseSchema ExportSchemaToJSON()
-    {
-        Console.WriteLine("Reading Database...");
-        using (var cn = CreateDbConnection())
+        public DatabaseSchema ExportSchemaToJSON()
         {
-            Console.WriteLine("cn.Query<Table>...");
-            var tables = cn.Query<Table>(@"
+            Console.WriteLine("Reading Database...");
+            using (var cn = CreateDbConnection())
+            {
+                Console.WriteLine("cn.Query<Table>...");
+                var tables = cn.Query<Table>(@"
                     SELECT
                         current_database() as Database,
                         nsp.nspname as TableSchema, 
@@ -78,8 +52,8 @@ public class PgsqlSchemaReader
                     order by nsp.nspname, cls.relname;
                 ").AsList();
 
-            Console.WriteLine("cn.Query<ColumnTmp>...");
-            var allColumns = cn.Query<ColumnTmp>(@"
+                Console.WriteLine("cn.Query<ColumnTmp>...");
+                var allColumns = cn.Query<ColumnTmp>(@"
                     DROP TABLE IF EXISTS tmpForeignKeyColumns;
 
                     select DISTINCT kcu.table_schema, kcu.table_name, kcu.column_name
@@ -130,8 +104,8 @@ public class PgsqlSchemaReader
                     ORDER BY 1,2,3,OrdinalPosition ASC
             ").AsList();
 
-            Console.WriteLine("cn.Query<ForeignKey>...");
-            var fks = cn.Query<ForeignKey>(@"
+                Console.WriteLine("cn.Query<ForeignKey>...");
+                var fks = cn.Query<ForeignKey>(@"
                     SELECT DISTINCT
                         pkt.constraint_name as PrimaryKeyName,
                         tc.table_schema AS PKTableSchema,
@@ -157,8 +131,8 @@ public class PgsqlSchemaReader
                     WHERE tc.constraint_type = 'FOREIGN KEY';
             ").AsList();
 
-            Console.WriteLine("cn.Query<ForeignKeyMemberTmp>...");
-            var fkCols = cn.Query<ForeignKeyMemberTmp>(@"
+                Console.WriteLine("cn.Query<ForeignKeyMemberTmp>...");
+                var fkCols = cn.Query<ForeignKeyMemberTmp>(@"
                     SELECT 
                         pkt.constraint_name as PrimaryKeyName,
                         ccu.table_schema AS PKTableSchema,
@@ -182,8 +156,8 @@ public class PgsqlSchemaReader
                     WHERE tc.constraint_type = 'FOREIGN KEY';
             ").AsList();
 
-            Console.WriteLine("cn.Query<IndexTmp>...");
-            var indexes = cn.Query<IndexTmp>(@"
+                Console.WriteLine("cn.Query<IndexTmp>...");
+                var indexes = cn.Query<IndexTmp>(@"
 
                     select DISTINCT
                         ns.nspname as TableSchema,
@@ -220,8 +194,8 @@ public class PgsqlSchemaReader
                         1,2,3;
             ");
 
-            Console.WriteLine("cn.Query<IndexMemberTmp>...");
-            var indexesCols = cn.Query<IndexMemberTmp>(@"
+                Console.WriteLine("cn.Query<IndexMemberTmp>...");
+                var indexesCols = cn.Query<IndexMemberTmp>(@"
                     select
                         ns.nspname as TableSchema,
                         t.relname as TableName,
@@ -249,177 +223,175 @@ public class PgsqlSchemaReader
             ");
 
 
-            foreach (var fk in fks)
-            {
-                fk.Columns = fkCols.Where(c => c.ForeignKeyConstraintName == fk.ForeignKeyConstraintName && c.FKTableSchema == fk.FKTableSchema)
-                    .OrderBy(c => c.PKColumnOrdinalPosition)
-                    .Select(c => Map<ForeignKeyMember, ForeignKeyMemberTmp>(c))
-                    .ToList();
-            }
-
-            foreach (var index in indexes)
-            {
-                index.Columns = indexesCols.Where(c => c.TableSchema == index.TableSchema && c.TableName == index.TableName && c.IndexName == index.IndexName)
-                    .OrderBy(c => c.IndexOrdinalPosition)
-                    .Select(c => Map<IndexMember, IndexMemberTmp>(c))
-                    .ToList();
-            }
-
-            foreach (var table in tables)
-            {
-                table.Columns = allColumns.Where(c => c.TableSchema == table.TableSchema && c.TableName == table.TableName).Select(c => Map<Column, ColumnTmp>(c)).ToList();
-                foreach (var column in table.Columns)
+                foreach (var fk in fks)
                 {
-                    column.ClrType = GetClrType(table, column);
+                    fk.Columns = fkCols.Where(c => c.ForeignKeyConstraintName == fk.ForeignKeyConstraintName && c.FKTableSchema == fk.FKTableSchema)
+                        .OrderBy(c => c.PKColumnOrdinalPosition)
+                        .Select(c => Map<ForeignKeyMember, ForeignKeyMemberTmp>(c))
+                        .ToList();
                 }
 
-                // We copy FKs and remove redundant properties of the parent object (table) which we're attaching this FK into
-                table.ForeignKeys = Clone(fks.Where(fk => fk.FKTableSchema == table.TableSchema && fk.FKTableName == table.TableName).ToList());
-                table.ForeignKeys.ForEach(fk => { fk.FKTableSchema = null; fk.FKTableName = null; });
+                foreach (var index in indexes)
+                {
+                    index.Columns = indexesCols.Where(c => c.TableSchema == index.TableSchema && c.TableName == index.TableName && c.IndexName == index.IndexName)
+                        .OrderBy(c => c.IndexOrdinalPosition)
+                        .Select(c => Map<IndexMember, IndexMemberTmp>(c))
+                        .ToList();
+                }
 
-                // We copy FKs and remove redundant properties of the parent object (table) which we're attaching this FK into
-                table.ChildForeignKeys = Clone(fks.Where(fk => fk.PKTableSchema == table.TableSchema && fk.PKTableName == table.TableName).ToList());
-                table.ChildForeignKeys.ForEach(fk => { fk.PKTableSchema = null; fk.PKTableName = null; });
+                foreach (var table in tables)
+                {
+                    table.Columns = allColumns.Where(c => c.TableSchema == table.TableSchema && c.TableName == table.TableName).Select(c => Map<Column, ColumnTmp>(c)).ToList();
+                    foreach (var column in table.Columns)
+                    {
+                        column.ClrType = GetClrType(table, column);
+                    }
 
-                table.Indexes = indexes.Where(i => i.TableSchema == table.TableSchema && i.TableName == table.TableName)
-                    .Select(i => Map<CodegenCS.DbSchema.Index, IndexTmp>(i))
-                    .ToList();
+                    // We copy FKs and remove redundant properties of the parent object (table) which we're attaching this FK into
+                    table.ForeignKeys = Clone(fks.Where(fk => fk.FKTableSchema == table.TableSchema && fk.FKTableName == table.TableName).ToList());
+                    table.ForeignKeys.ForEach(fk => { fk.FKTableSchema = null; fk.FKTableName = null; });
+
+                    // We copy FKs and remove redundant properties of the parent object (table) which we're attaching this FK into
+                    table.ChildForeignKeys = Clone(fks.Where(fk => fk.PKTableSchema == table.TableSchema && fk.PKTableName == table.TableName).ToList());
+                    table.ChildForeignKeys.ForEach(fk => { fk.PKTableSchema = null; fk.PKTableName = null; });
+
+                    table.Indexes = indexes.Where(i => i.TableSchema == table.TableSchema && i.TableName == table.TableName)
+                        .Select(i => Map<CodegenCS.DbSchema.Index, IndexTmp>(i))
+                        .ToList();
+                }
+
+                DatabaseSchema schema = new DatabaseSchema()
+                {
+                    LastRefreshed = DateTimeOffset.Now,
+                    Tables = tables,
+                };
+                return schema;
             }
 
-            DatabaseSchema schema = new DatabaseSchema()
+        }
+
+        string GetClrType(Table table, Column column)
+        {
+            string sqlDataType = column.SqlDataType;
+            switch (sqlDataType)
             {
-                LastRefreshed = DateTimeOffset.Now,
-                Tables = tables,
-            };
-            return schema;
-        }
-       
-    }
+                case "bigint":
+                    return typeof(long).FullName;
+                case "smallint":
+                    return typeof(short).FullName;
+                case "int":
+                case "integer":
+                    return typeof(int).FullName;
+                case "uniqueidentifier":
+                case "uuid":
+                    return typeof(Guid).FullName;
+                case "smalldatetime":
+                case "datetime":
+                case "datetime2":
+                case "date":
+                case "time":
+                case "timestamp without time zone":
+                    return typeof(DateTime).FullName;
+                case "datetimeoffset":
+                    return typeof(DateTimeOffset).FullName;
+                case "float":
+                case "double precision":
+                    return typeof(double).FullName;
+                case "real":
+                    return typeof(float).FullName;
+                case "numeric":
+                case "smallmoney":
+                case "decimal":
+                case "money":
+                    return typeof(decimal).FullName;
+                case "tinyint":
+                    return typeof(byte).FullName;
+                case "bit":
+                case "boolean":
+                    return typeof(bool).FullName;
+                case "image":
+                case "binary":
+                case "varbinary":
+                case "timestamp":
+                case "bytea":
+                    return typeof(byte[]).FullName;
+                case "nvarchar":
+                case "varchar":
+                case "nchar":
+                case "char":
+                case "text":
+                case "ntext":
+                case "xml":
+                case "character varying":
+                case "character":
+                    return typeof(string).FullName;
+                case "time without time zone":
+                    return typeof(TimeSpan).FullName;
+                default:
+                    Console.WriteLine($"Unknown sqlDataType for {table.TableName}.{column.ColumnName}: {sqlDataType}");
+                    return null;
 
-    string GetClrType(Table table, Column column)
-    {
-        string sqlDataType = column.SqlDataType;
-        switch (sqlDataType)
+                    // Vendor-specific types
+            }
+        }
+
+        public static T Clone<T>(T source)
         {
-            case "bigint":
-                return typeof(long).FullName;
-            case "smallint":
-                return typeof(short).FullName;
-            case "int":
-            case "integer":
-                return typeof(int).FullName;
-            case "uniqueidentifier":
-            case "uuid":
-                return typeof(Guid).FullName;
-            case "smalldatetime":
-            case "datetime":
-            case "datetime2":
-            case "date":
-            case "time":
-            case "timestamp without time zone":
-                return typeof(DateTime).FullName;
-            case "datetimeoffset":
-                return typeof(DateTimeOffset).FullName;
-            case "float":
-            case "double precision":
-                return typeof(double).FullName;
-            case "real":
-                return typeof(float).FullName;
-            case "numeric":
-            case "smallmoney":
-            case "decimal":
-            case "money":
-                return typeof(decimal).FullName;
-            case "tinyint":
-                return typeof(byte).FullName;
-            case "bit":
-            case "boolean":
-                return typeof(bool).FullName;
-            case "image":
-            case "binary":
-            case "varbinary":
-            case "timestamp":
-            case "bytea":
-                return typeof(byte[]).FullName;
-            case "nvarchar":
-            case "varchar":
-            case "nchar":
-            case "char":
-            case "text":
-            case "ntext":
-            case "xml":
-            case "character varying":
-            case "character":
-                return typeof(string).FullName;
-            case "time without time zone":
-                return typeof(TimeSpan).FullName;
-            default:
-                Console.WriteLine($"Unknown sqlDataType for {table.TableName}.{column.ColumnName}: {sqlDataType}");
-                return null;
-
-                // Vendor-specific types
+            var serialized = JsonConvert.SerializeObject(source);
+            return JsonConvert.DeserializeObject<T>(serialized);
         }
-    }
-
-    public static T Clone<T>(T source)
-    {
-        var serialized = JsonConvert.SerializeObject(source);
-        return JsonConvert.DeserializeObject<T>(serialized);
-    }
-    public static T Map<T, S>(S source)
-    {
-        var serialized = JsonConvert.SerializeObject(source);
-        return JsonConvert.DeserializeObject<T>(serialized);
-    }
-
-    #region Temporary Classes used just for Bulk Loads
-    class ColumnTmp : Column
-    {
-        public string Database { get; set; }
-        public string TableSchema { get; set; }
-        public string TableName { get; set; }
-
-    }
-    class IndexTmp : CodegenCS.DbSchema.Index
-    {
-        public string Database { get; set; }
-
-        public string TableSchema { get; set; }
-
-        public string TableName { get; set; }
-    }
-    class ForeignKeyMemberTmp : ForeignKeyMember
-    {
-        public string ForeignKeyConstraintName { get; set; }
-        public string FKTableSchema { get; set; }
-    }
-    class IndexMemberTmp : IndexMember
-    {
-        public string Database { get; set; }
-        public string TableSchema { get; set; }
-        public string TableName { get; set; }
-        public string IndexName { get; set; }
-        public int IndexId { get; set; }
-
-    }
-    #endregion
-
-    public void DebugError()
-    {
-        try
+        public static T Map<T, S>(S source)
         {
-            var cn2 = CreateDbConnection();
-            cn2.Open();
+            var serialized = JsonConvert.SerializeObject(source);
+            return JsonConvert.DeserializeObject<T>(serialized);
         }
-        catch (Exception ex)
+
+        #region Temporary Classes used just for Bulk Loads
+        class ColumnTmp : Column
         {
-            Console.WriteLine(ex.Message);
-            Console.WriteLine(ex.InnerException.Message);
+            public string Database { get; set; }
+            public string TableSchema { get; set; }
+            public string TableName { get; set; }
+
         }
+        class IndexTmp : CodegenCS.DbSchema.Index
+        {
+            public string Database { get; set; }
+
+            public string TableSchema { get; set; }
+
+            public string TableName { get; set; }
+        }
+        class ForeignKeyMemberTmp : ForeignKeyMember
+        {
+            public string ForeignKeyConstraintName { get; set; }
+            public string FKTableSchema { get; set; }
+        }
+        class IndexMemberTmp : IndexMember
+        {
+            public string Database { get; set; }
+            public string TableSchema { get; set; }
+            public string TableName { get; set; }
+            public string IndexName { get; set; }
+            public int IndexId { get; set; }
+
+        }
+        #endregion
+
+        public void DebugError()
+        {
+            try
+            {
+                var cn2 = CreateDbConnection();
+                cn2.Open();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.InnerException.Message);
+            }
+        }
+
+
     }
-
-
 }
-#if DLL
-}
-#endif

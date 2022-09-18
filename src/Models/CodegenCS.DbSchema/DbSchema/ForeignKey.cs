@@ -1,12 +1,8 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
-#if DLL // if this is included in a CSX file we don't want namespaces, because most Roslyn engines don't play well with namespaces
 namespace CodegenCS.DbSchema
 {
-#endif
     public class ForeignKey
     {
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] // when constraint is serialized under parent table we don't need to serialize redundant attributes
@@ -47,6 +43,4 @@ namespace CodegenCS.DbSchema
 
         public List<ForeignKeyMember> Columns { get; set; }
     }
-#if DLL
 }
-#endif
