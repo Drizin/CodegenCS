@@ -6,7 +6,7 @@ This page is only about **CodegenCS Command-line Tool (dotnet-codegencs)**:
 - If you are **writing a template** (code generator) and want to learn more about CodegenCS features (and internals) then check out the [CodegenCS Core Library](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) documentation.
 - If you want to **compile and run templates** or **reverse-engineer a database schema** this is the right place.
 - If you want to **browse the sample templates** (POCO Generators, DAL generators, etc) check out [https://github.com/CodegenCS/Templates/](https://github.com/CodegenCS/Templates/)
-<!-- - If you just want to **download the Visual Studio Extension** check out... (Pending)   -->
+- If you just want to **download the Visual Studio Extension** check out the [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VSExtensions/)
 
 
 # <a name="dotnet-codegencs"></a>CodegenCS Command-Line Tool (dotnet-codegencs)

@@ -76,11 +76,19 @@ cd ..\..\
 if ($configuration -eq "Release")
 {
     # Can clean again since dotnet-codegencs will use Nuget references
-    dotnet clean
     Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\dotnet-codegencs\bin\
     Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\dotnet-codegencs\obj\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\CodegenCS.TemplateBuilder\bin\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\CodegenCS.TemplateBuilder\obj\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\CodegenCS.TemplateLauncher\bin\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\CodegenCS.TemplateLauncher\obj\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\CodegenCS.TemplateDownloader\bin\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\CodegenCS.TemplateDownloader\obj\
+	Remove-Item -Recurse -Force -ErrorAction Ignore  .\VSExtensions\RunTemplate\bin\
+	Remove-Item -Recurse -Force -ErrorAction Ignore  .\VSExtensions\RunTemplate\obj\
     Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.DbSchema.Extractor\bin\
     Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.DbSchema.Extractor\obj\
+    dotnet clean
 }
 
 
@@ -140,4 +148,17 @@ dotnet-codegencs --version
 
 # Unit tests
 dotnet build -c $configuration .\Core\CodegenCS.Tests\CodegenCS.Tests.csproj
-#dotnet test  CodegenCS.Tests\CodegenCS.Tests.csproj
+#dotnet test  Core\CodegenCS.Tests\CodegenCS.Tests.csproj
+
+# VSExtension (not working with Release yet - error NU1106: Unable to satisfy conflicting requests)
+& $msbuild ".\VSExtensions\RunTemplate\RunTemplate.csproj"   `
+           /t:Restore /t:Build                                     `
+           '/p:targetFrameworks="net472"'                 `
+           /p:Configuration='Debug'                `
+           /verbosity:minimal                             
+
+# How to Reset the Visual Studio 2022 Experimental Instance:
+# & cmd /C "C:\Program Files\Microsoft Visual Studio\2022\Professional\VSSDK\VisualStudioIntegration\Tools\Bin\CreateExpInstance.exe" /Reset /VSInstance=17.0_defe2a84 /RootSuffix=Exp 
+
+# How to install VSIX extension:
+# & "C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\VSIXInstaller.exe" /quiet VSExtensions\RunTemplate\bin\Debug\RunTemplate.vsix

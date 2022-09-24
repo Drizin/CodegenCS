@@ -56,6 +56,7 @@ To sum, **CodegenCS is the only code-generator where ["Simple things are simple,
 There are basically 4 components (detailed below):
 - CodegenCS Core Library: class library that contains the "Magic TextWriter" and related stuff
 - CodegenCS Command-line Tool (dotnet-codegencs): command-line tool that can be used to download, build, and run templates.
+- Visual Studio Extension
 - Models: you can use your own input models, but we provide some out-of-the-box models for common tasks
 - Templates: ready-to-use templates
 
@@ -93,6 +94,13 @@ In other words this is our **"batteries included"** tool.
 **Most users should only need this tool** (won't need to download or interact directly with CodegenCS library).  
 
 dotnet-codegencs builds the templates **with C# 11** (using Roslyn) which means that **Raw String Literals are supported even if the target project is not yet using C# 11** (target project doesn't even have to be .NET, and doesn't even have to be a project, since templates can write to any kind of text output).
+
+
+<hr/>
+
+## Visual Studio Extension
+
+Our [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VSExtensions/) allows running templates directly from Visual Studio, either by right-clicking the templates or by automatically running it after each save (Custom Tool).
 
 
 <hr/>

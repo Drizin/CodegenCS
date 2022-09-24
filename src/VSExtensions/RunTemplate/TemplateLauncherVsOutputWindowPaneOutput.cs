@@ -1,5 +1,4 @@
-﻿using CodegenCS;
-using CodegenCS.Utils;
+﻿/*
 using InterpolatedColorConsole.SpecialSymbols;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -9,108 +8,57 @@ using System.Threading.Tasks;
 
 namespace RunTemplate
 {
-    internal class VsOutputWindowPaneOutputLogger : ILogger
+    internal class TemplateLauncherVsOutputWindowPaneOutput : CodegenCS.TemplateLauncher.Output.IOutput
     {
         protected IVsOutputWindowPane _windowPane;
-        internal VsOutputWindowPaneOutputLogger(IVsOutputWindowPane windowPane)
+        internal TemplateLauncherVsOutputWindowPaneOutput(IVsOutputWindowPane windowPane)
         {
             _windowPane = windowPane;
         }
 
-        public async Task WriteLineAsync()
+        public async Task WriteAsync(FormattableString value)
         {
-            //ThreadHelper.ThrowIfNotOnUIThread();
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            _windowPane.OutputStringThreadSafe(Environment.NewLine);
-            await RefreshUIAsync();
-        }
-
-        public async Task WriteLineAsync(FormattableString value)
-        {
-            //ThreadHelper.ThrowIfNotOnUIThread();
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            WriteInterpolatedString(value);
-            _windowPane.OutputStringThreadSafe(Environment.NewLine);
-            await RefreshUIAsync();
-        }
-
-        public async Task WriteLineAsync(RawString value)
-        {
-            //ThreadHelper.ThrowIfNotOnUIThread();
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            _windowPane.OutputStringThreadSafe(value);
-            _windowPane.OutputStringThreadSafe(Environment.NewLine);
-            await RefreshUIAsync();
+            await WriteInterpolatedStringAsync(value);
         }
 
         public async Task WriteLineAsync(ConsoleColor foregroundColor, FormattableString value)
         {
-            await WriteLineAsync(value);
+            await WriteInterpolatedStringAsync(value);
+            await WriteInterpolatedStringAsync($"\r\n");
         }
 
-        public async Task WriteLineAsync(ConsoleColor foregroundColor, ConsoleColor backgroundColor, FormattableString value)
+        public async Task WriteLineAsync(FormattableString value)
         {
-            await WriteLineAsync(value);
+            await WriteInterpolatedStringAsync(value);
+            await WriteInterpolatedStringAsync($"\r\n");
         }
 
-        public async Task WriteLineAsync(ConsoleColor foregroundColor, RawString value)
+        public async Task WriteLineAsync()
         {
-            await WriteLineAsync(value);
-        }
-
-        public async Task WriteLineAsync(ConsoleColor foregroundColor, ConsoleColor backgroundColor, RawString value)
-        {
-            await WriteLineAsync(value);
-        }
-
-        public async Task WriteLineErrorAsync()
-        {
-            await WriteLineAsync();
-        }
-
-        public async Task WriteLineErrorAsync(FormattableString value)
-        {
-            await WriteLineAsync(value);
-        }
-
-        public async Task WriteLineErrorAsync(RawString value)
-        {
-            await WriteLineAsync(value);
+            await WriteInterpolatedStringAsync($"\r\n");
         }
 
         public async Task WriteLineErrorAsync(ConsoleColor foregroundColor, FormattableString value)
         {
-            await WriteLineAsync(value);
+            await WriteInterpolatedStringAsync(value);
+            await WriteInterpolatedStringAsync($"\r\n");
         }
 
-        public async Task WriteLineErrorAsync(ConsoleColor foregroundColor, ConsoleColor backgroundColor, FormattableString value)
+        public async Task WriteLineErrorAsync(FormattableString value)
         {
-            await WriteLineAsync(value);
+            await WriteInterpolatedStringAsync(value);
+            await WriteInterpolatedStringAsync($"\r\n");
         }
-
-        public async Task WriteLineErrorAsync(ConsoleColor foregroundColor, RawString value)
-        {
-            await WriteLineAsync(value);
-        }
-
-        public async Task WriteLineErrorAsync(ConsoleColor foregroundColor, ConsoleColor backgroundColor, RawString value)
-        {
-            await WriteLineAsync(value);
-        }
-
-        private async Task RefreshUIAsync()
-        {
-            await Task.Delay(1);
-        }
-
 
         #region Interpolated Strings Parsing and Stripping Embedded colors
         /// <summary>
         /// <see cref="CodegenCS.TemplateBuilder"/> and <see cref="CodegenCS.TemplateLauncher"/> write to IOutput which for the CLI is is an adapter to to <see cref="InterpolatedColorConsole.ColoredConsole"/> .
         /// This adapter (used only in VS Extensions) write to <see cref="IVsOutputWindowPane"/> and therefore it should strip embedded colors.
         /// </summary>
-        private void WriteInterpolatedString(FormattableString value)
+        private async Task WriteInterpolatedStringAsync(FormattableString value)
         {
+            //ThreadHelper.ThrowIfNotOnUIThread();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var arguments = value.GetArguments();
             var matches = _formattableArgumentRegex.Matches(value.Format);
             int lastPos = 0;
@@ -125,14 +73,16 @@ namespace RunTemplate
                 string argFormat = matches[i].Groups["Format"].Value;
                 object arg = arguments[argPos];
 
-                InnerWriteFormattableArgument(arg, argFormat);
+                await InnerWriteFormattableArgumentAsync(arg, argFormat);
             }
             string lastPart = value.Format.Substring(lastPos).Replace("{{", "{").Replace("}}", "}");
             _windowPane.OutputStringThreadSafe(lastPart);
+            await Task.Delay(1); // let UI refresh
         }
-
-        private void InnerWriteFormattableArgument(object arg, string format)
+        private async Task InnerWriteFormattableArgumentAsync(object arg, string format)
         {
+            //ThreadHelper.ThrowIfNotOnUIThread();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             if (arg is ConsoleColor && (format == "background" || format == "bg"))
             {
                 //_previousBackgroundColors.Push(Console.BackgroundColor);
@@ -169,6 +119,7 @@ namespace RunTemplate
             );
 
         #endregion
-
     }
 }
+
+*/

@@ -2,7 +2,7 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="RunTemplate.368f85b0-96cf-488d-b962-4c7314ad032d" Version="1.0" Language="en-US" Publisher="Rick Drizin" />
-    <DisplayName>CodegenCS - Run Templates VS Extension</DisplayName>
+    <DisplayName>CodegenCS - Run Code-Generation Templates</DisplayName>
     <Description>Run CodegenCS Templates from Visual Studio.</Description>
   </Metadata>
   <Installation>
@@ -19,5 +19,12 @@
   </Prerequisites>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="CodegenCS" Path="|CodegenCS|" AssemblyName="|CodegenCS;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="CodegenCS.DbSchema" Path="|CodegenCS.DbSchema|" AssemblyName="|CodegenCS.DbSchema;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="CodegenCS.TemplateLauncher" Path="|CodegenCS.TemplateLauncher|" AssemblyName="|CodegenCS.TemplateLauncher;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="CodegenCS.TemplateBuilder" Path="|CodegenCS.TemplateBuilder|" AssemblyName="|CodegenCS.TemplateBuilder;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="..\..\Core\CodegenCS\bin\Debug\net472\Newtonsoft.Json.dll" AssemblyName="Newtonsoft.Json, Version=13.0.1.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="..\..\Core\CodegenCS\bin\Debug\net472\NJsonSchema.dll" AssemblyName="NJsonSchema, Version=10.5.2.0, Culture=neutral, PublicKeyToken=c2f9c3bdfae56102" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="..\..\Core\CodegenCS\bin\Debug\net472\Namotion.Reflection.dll" AssemblyName="Namotion.Reflection, Version=2.0.3.0, Culture=neutral, PublicKeyToken=c2f9c3bdfae56102" />
   </Assets>
 </PackageManifest>

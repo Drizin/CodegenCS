@@ -75,7 +75,7 @@ namespace RunTemplate.CustomToolGenerator // copied from Microsoft.Samples.Visua
         /// <summary>
         /// Demand-creates a ServiceProvider
         /// </summary>
-        private ServiceProvider SiteServiceProvider
+        protected ServiceProvider SiteServiceProvider
         {
             get
             {

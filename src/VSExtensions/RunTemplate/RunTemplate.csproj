@@ -12,20 +12,22 @@
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   -->
-  
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <PropertyGroup>
         <AssemblyOriginatorKeyFile>..\..\debug.snk</AssemblyOriginatorKeyFile>
+        <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
+        <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
         <AssemblyOriginatorKeyFile>..\..\release.snk</AssemblyOriginatorKeyFile>
+        <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+        <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -38,11 +40,10 @@
     <RootNamespace>RunTemplate</RootNamespace>
     <AssemblyName>RunTemplate</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <LangVersion>preview</LangVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <UseCodebase>true</UseCodebase>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
-    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
-    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
     <StartAction>Program</StartAction>
@@ -72,7 +73,11 @@
     <Compile Include="RunTemplatePackage.cs" />
     <Compile Include="CustomToolGenerator\BaseCodeGenerator.cs" />
     <Compile Include="CustomToolGenerator\BaseCodeGeneratorWithSite.cs" />
-    <Compile Include="CustomToolGenerator\RunTemplateCustomToolGenerator.cs" />
+    <Compile Include="CustomToolGenerator\CodegenCSCodeGenerator.cs" />
+    <Compile Include="RunTemplateWrapper.cs" />
+    <Compile Include="TemplateLauncherVsOutputWindowPaneOutput.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="VsOutputWindowPaneOutputLogger.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -91,6 +96,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.2.2186" />
+    <PackageReference Include="InterpolatedColorConsole" Version="1.0.3" />
+    <PackageReference Include="NETStandard.Library">
+      <Version>2.0.3</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\RunTemplateCommand.png" />
@@ -104,6 +113,40 @@
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
     </EmbeddedResource>
+  </ItemGroup>
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <ItemGroup>
+		<ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.csproj">
+		  <Project>{51de0970-e84d-4f96-ae80-bc17e28b2736}</Project>
+		  <Name>CodegenCS</Name>
+		</ProjectReference>
+		<ProjectReference Include="..\..\Models\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj">
+		  <Project>{8b3282f8-0080-4526-8ece-45346beb1d20}</Project>
+		  <Name>CodegenCS.DbSchema</Name>
+		</ProjectReference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="CodegenCS" Version="2.*" />
+        <PackageReference Include="CodegenCS.DbSchema" Version="2.*" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  <ItemGroup>
+    <ProjectReference Include="..\..\dotnet-codegencs\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj">
+      <Project>{20234722-dc8f-4b0d-b12a-3df606d181da}</Project>
+      <Name>CodegenCS.TemplateBuilder</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\dotnet-codegencs\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj">
+      <Project>{82df9b4a-88ab-4a98-af7c-de21fdcda13b}</Project>
+      <Name>CodegenCS.TemplateLauncher</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Models\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj">
+      <Project>{280c1697-59e5-4a63-9d82-ab01ead3297c}</Project>
+      <Name>CodegenCS.DbSchema.Extractor</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
