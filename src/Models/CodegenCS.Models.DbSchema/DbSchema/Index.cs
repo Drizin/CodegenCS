@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CodegenCS.DbSchema
+namespace CodegenCS.Models.DbSchema
 {
     public class Index
     {
@@ -42,6 +42,8 @@ namespace CodegenCS.DbSchema
         public string IndexDescription { get; set; }
 
         public List<IndexMember> Columns { get; set; }
+
+        public override string ToString() => IndexName; // If someone renders the object (index) instead of using the right property
 
     }
 }

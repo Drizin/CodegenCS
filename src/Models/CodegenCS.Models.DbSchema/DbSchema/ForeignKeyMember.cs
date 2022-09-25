@@ -1,4 +1,4 @@
-﻿namespace CodegenCS.DbSchema
+﻿namespace CodegenCS.Models.DbSchema
 {
     public class ForeignKeyMember
     {

@@ -5,7 +5,7 @@ using System.Data;
 using System.IO;
 using System.Text;
 
-namespace CodegenCS.DbSchema.Extractor
+namespace CodegenCS.Models.DbSchema.Extractor
 {
     public class ExtractWizard
     {

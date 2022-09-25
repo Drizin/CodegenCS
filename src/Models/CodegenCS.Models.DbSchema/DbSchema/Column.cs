@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
+using System.Reflection;
 
-namespace CodegenCS.DbSchema
+namespace CodegenCS.Models.DbSchema
 {
     public class Column
     {
@@ -45,5 +46,7 @@ namespace CodegenCS.DbSchema
         public bool IsForeignKeyMember { get; set; }
 
         public string ColumnDescription { get; set; }
+
+        public override string ToString() => ColumnName; // If someone renders the column object instead of using the right property
     }
 }

@@ -1,4 +1,4 @@
-# CodegenCS.DbSchema
+# CodegenCS.Models.DbSchema
 
 This is an InputModel (Schema) to be used with CodegenCS code generator, which allows CodegenCS to generate code based on a Database Schema. 
 
@@ -7,7 +7,7 @@ Basically it contains classes to represent the Database Schema, and there's anot
 Check out the [main project](https://github.com/CodegenCS/CodegenCS) to see more information.
 
 ## Code
-[https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema)
+[https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema)
 
 ## License
 MIT License

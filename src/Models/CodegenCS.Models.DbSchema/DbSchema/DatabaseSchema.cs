@@ -1,4 +1,4 @@
-﻿using CodegenCS.InputModels;
+﻿using CodegenCS.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace CodegenCS.DbSchema
+namespace CodegenCS.Models.DbSchema
 {
     public class DatabaseSchema : IJsonInputModel, IValidatableJsonInputModel
     {
@@ -19,7 +19,7 @@ namespace CodegenCS.DbSchema
         static Lazy<string> _jsonSchema = new Lazy<string>(() =>
         {
             var _assembly = Assembly.GetExecutingAssembly();
-            var _textStreamReader = new StreamReader(_assembly.GetManifestResourceStream("CodegenCS.DbSchema.dbschema.json"));
+            var _textStreamReader = new StreamReader(_assembly.GetManifestResourceStream("CodegenCS.Models.DbSchema.dbschema.json"));
             return _textStreamReader.ReadToEnd();
         });
         #endregion

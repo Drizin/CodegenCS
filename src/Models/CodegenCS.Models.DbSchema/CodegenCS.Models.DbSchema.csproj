@@ -4,12 +4,12 @@
     <TargetFrameworks>netstandard2.0;net472;net5.0</TargetFrameworks>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/tree/master/src/CodegenCS.DbSchema</PackageProjectUrl>
-    <Description>CodegenCS.DbSchema represents the schema (in json format) of a relational database (MSSQL or PostgreSQL)</Description>
+    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema</PackageProjectUrl>
+    <Description>CodegenCS.Models.DbSchema represents the schema (in json format) of a relational database (MSSQL or PostgreSQL)</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>2.1.0</Version>
-    <DocumentationFile>CodegenCS.DbSchema.xml</DocumentationFile>
+    <Version>3.0.0</Version>
+    <DocumentationFile>CodegenCS.Models.DbSchema.xml</DocumentationFile>
     <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -41,7 +41,7 @@
   <ItemGroup>
     <None Include="NuGetReadMe.md" Pack="true" PackagePath="\" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="NJsonSchema" Version="10.5.2" />
+    <PackageReference Include="NJsonSchema" Version="10.8.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -55,12 +55,14 @@
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <ItemGroup>
-        <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.csproj" />
+        <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj" />
+    <ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="CodegenCS" Version="2.*" />
+        <PackageReference Include="CodegenCS.Core" Version="3.*" />
+        <PackageReference Include="CodegenCS.Models" Version="3.*" />
       </ItemGroup>
     </Otherwise>
   </Choose>

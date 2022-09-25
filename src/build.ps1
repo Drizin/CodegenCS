@@ -26,6 +26,7 @@ $msbuild = (
 Remove-Item -Recurse -Force -ErrorAction Ignore ".\packages-local"
 Remove-Item -Recurse -Force -ErrorAction Ignore "$env:HOMEDRIVE$env:HOMEPATH\.nuget\packages\codegencs"
 Remove-Item -Recurse -Force -ErrorAction Ignore "$env:HOMEDRIVE$env:HOMEPATH\.nuget\packages\codegencs.dbschema"
+Remove-Item -Recurse -Force -ErrorAction Ignore "$env:HOMEDRIVE$env:HOMEPATH\.nuget\packages\codegencs.models.dbschema"
 
 New-Item -ItemType Directory -Force -Path ".\packages-local"
 
@@ -48,8 +49,41 @@ cd ..\..\
 
 
 
-# CodegenCS + nupkg/snupkg
-& $msbuild ".\Core\CodegenCS\CodegenCS.csproj"                          `
+# CodegenCS.Core + nupkg/snupkg
+& $msbuild ".\Core\CodegenCS\CodegenCS.Core.csproj"                          `
+           /t:Restore /t:Build /t:Pack                             `
+           /p:PackageOutputPath="..\..\packages-local\"               `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
+           /p:Configuration=$configuration                         `
+           /p:IncludeSymbols=true                                  `
+           /p:SymbolPackageFormat=snupkg                           `
+           /verbosity:minimal                                      `
+           /p:ContinuousIntegrationBuild=true
+
+# CodegenCS.Models + nupkg/snupkg
+& $msbuild ".\Core\CodegenCS.Models\CodegenCS.Models.csproj"                          `
+           /t:Restore /t:Build /t:Pack                             `
+           /p:PackageOutputPath="..\..\packages-local\"               `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
+           /p:Configuration=$configuration                         `
+           /p:IncludeSymbols=true                                  `
+           /p:SymbolPackageFormat=snupkg                           `
+           /verbosity:minimal                                      `
+           /p:ContinuousIntegrationBuild=true
+
+# CodegenCS.Runtime + nupkg/snupkg
+& $msbuild ".\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj"                          `
+           /t:Restore /t:Build /t:Pack                             `
+           /p:PackageOutputPath="..\..\packages-local\"               `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
+           /p:Configuration=$configuration                         `
+           /p:IncludeSymbols=true                                  `
+           /p:SymbolPackageFormat=snupkg                           `
+           /verbosity:minimal                                      `
+           /p:ContinuousIntegrationBuild=true
+
+# CodegenCS.DotNet + nupkg/snupkg
+& $msbuild ".\Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj"                          `
            /t:Restore /t:Build /t:Pack                             `
            /p:PackageOutputPath="..\..\packages-local\"               `
            '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
@@ -60,8 +94,8 @@ cd ..\..\
            /p:ContinuousIntegrationBuild=true
 
 
-# CodegenCS.DbSchema + nupkg/snupkg
-& $msbuild ".\Models\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj"        `
+# CodegenCS.Models.DbSchema + nupkg/snupkg
+& $msbuild ".\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj"        `
            /t:Restore /t:Build /t:Pack                             `
            /p:PackageOutputPath="..\..\packages-local\"               `
            '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
@@ -86,15 +120,17 @@ if ($configuration -eq "Release")
     Remove-Item -Recurse -Force -ErrorAction Ignore  .\dotnet-codegencs\CodegenCS.TemplateDownloader\obj\
 	Remove-Item -Recurse -Force -ErrorAction Ignore  .\VSExtensions\RunTemplate\bin\
 	Remove-Item -Recurse -Force -ErrorAction Ignore  .\VSExtensions\RunTemplate\obj\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.DbSchema.Extractor\bin\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.DbSchema.Extractor\obj\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.DbSchema.Extractor\bin\ # old name
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.DbSchema.Extractor\obj\ # old name
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.Models.DbSchema.Extractor\bin\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.Models.DbSchema.Extractor\obj\
     dotnet clean
 }
 
 
 # The following libraries are all part of dotnet-codegencs tool...
 
-& $msbuild ".\Models\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj" `
+& $msbuild ".\Models\CodegenCS.Models.DbSchema.Extractor\CodegenCS.Models.DbSchema.Extractor.csproj" `
            /t:Restore /t:Build                                                  `
            '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
            /p:Configuration=$configuration                                      `

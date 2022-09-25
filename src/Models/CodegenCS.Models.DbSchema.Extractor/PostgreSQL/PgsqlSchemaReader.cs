@@ -4,9 +4,9 @@ using System;
 using System.Data;
 using System.Linq;
 using System.Reflection;
-using CodegenCS.DbSchema;
+using CodegenCS.Models.DbSchema;
 
-namespace CodegenCS.DbSchema.Extractor.PostgreSQL
+namespace CodegenCS.Models.DbSchema.Extractor.PostgreSQL
 {
     public class PgsqlSchemaReader
     {
@@ -256,7 +256,7 @@ namespace CodegenCS.DbSchema.Extractor.PostgreSQL
                     table.ChildForeignKeys.ForEach(fk => { fk.PKTableSchema = null; fk.PKTableName = null; });
 
                     table.Indexes = indexes.Where(i => i.TableSchema == table.TableSchema && i.TableName == table.TableName)
-                        .Select(i => Map<CodegenCS.DbSchema.Index, IndexTmp>(i))
+                        .Select(i => Map<CodegenCS.Models.DbSchema.Index, IndexTmp>(i))
                         .ToList();
                 }
 
@@ -354,7 +354,7 @@ namespace CodegenCS.DbSchema.Extractor.PostgreSQL
             public string TableName { get; set; }
 
         }
-        class IndexTmp : CodegenCS.DbSchema.Index
+        class IndexTmp : CodegenCS.Models.DbSchema.Index
         {
             public string Database { get; set; }
 

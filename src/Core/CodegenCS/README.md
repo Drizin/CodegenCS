@@ -688,7 +688,7 @@ A simple implementation would be like:
 
 ```cs
 using CodegenCS;
-using CodegenCS.DbSchema;
+using CodegenCS.Models.DbSchema;
 using System.Linq;
 
 class MyPocoTemplate : ICodegenTemplate<Table>
@@ -723,7 +723,7 @@ A simple implementation would be like:
 
 ```cs
 using CodegenCS;
-using CodegenCS.DbSchema;
+using CodegenCS.Models.DbSchema;
 using System.Linq;
 
 class MyPocoTemplate : ICodegenMultifileTemplate<DatabaseSchema>

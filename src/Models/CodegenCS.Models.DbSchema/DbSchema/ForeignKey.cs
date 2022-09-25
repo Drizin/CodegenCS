@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace CodegenCS.DbSchema
+namespace CodegenCS.Models.DbSchema
 {
     public class ForeignKey
     {
@@ -42,5 +42,7 @@ namespace CodegenCS.DbSchema
         public bool IsNotEnforced { get; set; }
 
         public List<ForeignKeyMember> Columns { get; set; }
+
+        public override string ToString() => ForeignKeyConstraintName; // If someone renders the object (FK) instead of using the right property
     }
 }

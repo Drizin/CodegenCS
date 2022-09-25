@@ -232,7 +232,7 @@ Let's say we have a template implementing `ICodegenTemplate<TModel>` (a "single-
 
 ```cs
 using CodegenCS;
-using CodegenCS.DbSchema;
+using CodegenCS.Models.DbSchema;
 using System.Linq;
 
 class MyPocoTemplate : ICodegenTemplate<Table>
@@ -256,7 +256,7 @@ The template above could be programatically loaded and invoked directly from `Co
 
 ```cs
 using CodegenCS;
-using CodegenCS.DbSchema;
+using CodegenCS.Models.DbSchema;
 using System.Linq;
 
 class MyGenerator

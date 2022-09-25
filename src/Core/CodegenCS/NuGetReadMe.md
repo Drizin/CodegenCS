@@ -469,7 +469,7 @@ interface ICodegenTemplate<TModel>
 A simple implementation would be like:
 ```cs
 using CodegenCS;
-using CodegenCS.DbSchema;
+using CodegenCS.Models.DbSchema;
 using System.Linq;
 
 class MyPocoTemplate : ICodegenTemplate<Table>
@@ -495,7 +495,7 @@ The template above could be used in different ways...
 
 ```cs
 using CodegenCS;
-using CodegenCS.DbSchema;
+using CodegenCS.Models.DbSchema;
 using System.Linq;
 
 class MyGenerator
@@ -584,7 +584,7 @@ Example:
 A simple implementation would be like:
 ```cs
 using CodegenCS;
-using CodegenCS.DbSchema;
+using CodegenCS.Models.DbSchema;
 using System.Linq;
 
 class MyPocoTemplate : ICodegenMultifileTemplate<DatabaseSchema>

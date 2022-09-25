@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Core", "Core\Code
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Tests", "Core\CodegenCS.Tests\CodegenCS.Tests.csproj", "{B035062F-1F6D-470B-8FB7-46F77A6A6E9B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.DbSchema", "Models\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj", "{8B3282F8-0080-4526-8ECE-45346BEB1D20}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Models.DbSchema", "Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj", "{8B3282F8-0080-4526-8ECE-45346BEB1D20}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.DbSchema.Extractor", "Models\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj", "{280C1697-59E5-4A63-9D82-AB01EAD3297C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Models.DbSchema.Extractor", "Models\CodegenCS.Models.DbSchema.Extractor\CodegenCS.Models.DbSchema.Extractor.csproj", "{280C1697-59E5-4A63-9D82-AB01EAD3297C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-codegencs", "dotnet-codegencs\dotnet-codegencs\dotnet-codegencs.csproj", "{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}"
 EndProject

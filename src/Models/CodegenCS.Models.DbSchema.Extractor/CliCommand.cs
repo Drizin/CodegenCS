@@ -5,7 +5,7 @@ using System.CommandLine.Invocation;
 using System.Reflection;
 using Console = InterpolatedColorConsole.ColoredConsole;
 
-namespace CodegenCS.DbSchema.Extractor
+namespace CodegenCS.Models.DbSchema.Extractor
 {
     public static class CliCommand
     {

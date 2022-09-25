@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CodegenCS.DbSchema
+namespace CodegenCS.Models.DbSchema
 {
     public class Table
     {

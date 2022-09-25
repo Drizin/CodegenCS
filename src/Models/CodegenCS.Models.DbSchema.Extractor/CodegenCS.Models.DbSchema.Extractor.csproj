@@ -5,7 +5,7 @@
     <TargetFrameworks>netstandard2.0;net472;net5.0</TargetFrameworks>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/tree/master/src/CodegenCS.DbSchema.Extractor</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema.Extractor</PackageProjectUrl>
     <Description>Methods to extract schema from MSSQL/PostgreSQL database into json files.</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
@@ -35,7 +35,7 @@
   </Choose>
 
   <ItemGroup>
-	<PackageReference Include="InterpolatedColorConsole" Version="1.0.2" />
+	<PackageReference Include="InterpolatedColorConsole" Version="1.0.3" />
     <PackageReference Include="Dapper.StrongName" Version="2.0.123" />
     <PackageReference Include="Npgsql" Version="5.0.3" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-codegencs" />
@@ -50,12 +50,12 @@
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <ItemGroup>
-        <ProjectReference Include="..\..\Models\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
+        <ProjectReference Include="..\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="CodegenCS.DbSchema" Version="2.*" />
+        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.*" />
       </ItemGroup>
     </Otherwise>
   </Choose>
