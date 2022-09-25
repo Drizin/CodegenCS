@@ -1,4 +1,5 @@
 ﻿using CodegenCS.___InternalInterfaces___;
+using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -78,8 +79,6 @@ namespace CodegenCS
             var newOutputFile = _outputFileFactory(relativePath, this);
 
             // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context (into ICodegenOutputFile dependency container)
-            newOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
-            newOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
             newOutputFile.SetContext(this);
 
             //this._outputFiles[relativePath] = newOutputFile; 
@@ -123,8 +122,6 @@ namespace CodegenCS
                     var newOutputFile = _outputFileFactory(relativePath, this);
 
                     // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context (into ICodegenOutputFile dependency container)
-                    newOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
-                    newOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
                     newOutputFile.SetContext(this);
 
                     this._outputFiles[relativePath] = newOutputFile;
@@ -342,8 +339,6 @@ namespace CodegenCS
                     var newOutputFile = _outputFileFactory(relativePath, fileType, this);
 
                     // After creating ANY ICodegenOutputFile/ICodegenTextWriter we have to register the parent context (into ICodegenOutputFile dependency container)
-                    newOutputFile.DependencyContainer.RegisterSingleton<ICodegenContext>(this);
-                    newOutputFile.DependencyContainer.RegisterSingleton<CodegenContext>(this);
                     newOutputFile.SetContext(this);
                     newOutputFile.FileType = fileType;
 

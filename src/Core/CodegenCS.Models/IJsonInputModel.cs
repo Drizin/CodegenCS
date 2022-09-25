@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace CodegenCS.InputModels
+namespace CodegenCS.Models
 {
     /// <summary>
     /// JSON-based Input Models that are loaded by Command-line tool (dotnet-codegencs) (deserialized from a JSON file)

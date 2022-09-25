@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>CodegenCS</id>
-    <title>CodegenCS</title>
+    <id>CodegenCS.Core</id>
+    <title>CodegenCS.Core</title>
     <authors>Rick Drizin</authors>
     <owners>Rick Drizin</owners>
     <license type="expression">MIT</license>
@@ -10,12 +10,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>C# Library for Code Generation</description>
     <copyright>Copyright Rick Drizin 2019</copyright>
-    <dependencies>
-		<dependency id="NJsonSchema" version="[10.0.0" include="All" />
-    </dependencies>
   </metadata>
   <files>
-    <file src="bin\$configuration$\CodegenCS.*" target="lib\net472" />
-    <file src="bin\$configuration$\CodegenCS.*" target="lib\netstandard2.0" />
+    <file src="bin\$configuration$\CodegenCS.Core.*" target="lib\net472" />
+    <file src="bin\$configuration$\CodegenCS.Core.*" target="lib\netstandard2.0" />
   </files>
 </package>

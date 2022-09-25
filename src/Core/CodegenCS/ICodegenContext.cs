@@ -1,4 +1,5 @@
 ﻿using CodegenCS.___InternalInterfaces___;
+using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using System;
 using System.Collections.Generic;
 using System.Text;

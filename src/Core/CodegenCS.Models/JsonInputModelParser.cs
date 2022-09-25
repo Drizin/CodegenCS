@@ -5,13 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CodegenCS.InputModels
+namespace CodegenCS.Models
 {
     /// <summary>
     /// Parser for JsonInputModels
     /// </summary>
     public class JsonInputModelParser
-
     {
         /// <summary>
         /// Returns if a given model is valid according to Json Schema

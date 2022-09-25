@@ -1,5 +1,6 @@
 ﻿using CodegenCS.___InternalInterfaces___;
 using CodegenCS.ControlFlow;
+using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using static CodegenCS.Utils.TypeUtils;
 
 namespace CodegenCS
 {
@@ -1537,32 +1539,6 @@ namespace CodegenCS
         protected virtual void OnWritten(string writtenValue)
         {
             Written?.Invoke(this, new WrittenEventArgs(writtenValue));
-        }
-        #endregion
-
-        #region Utils
-        protected bool IsInstanceOfGenericType(Type genericType, object instance)
-        {
-            Type type = instance.GetType();
-            return IsAssignableToGenericType(type, genericType);
-        }
-        protected bool IsAssignableToGenericType(Type givenType, Type genericType)
-        {
-            var interfaceTypes = givenType.GetInterfaces();
-
-            foreach (var it in interfaceTypes)
-            {
-                if (it.IsGenericType && it.GetGenericTypeDefinition() == genericType)
-                    return true;
-            }
-
-            if (givenType.IsGenericType && givenType.GetGenericTypeDefinition() == genericType)
-                return true;
-
-            Type baseType = givenType.BaseType;
-            if (baseType == null) return false;
-
-            return IsAssignableToGenericType(baseType, genericType);
         }
         #endregion
     }

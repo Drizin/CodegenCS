@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace CodegenCS.Utils
+namespace CodegenCS.Runtime
 {
     /// <summary>
     /// Reusable tools should write all output to this interface.

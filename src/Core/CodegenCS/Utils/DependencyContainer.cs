@@ -1,21 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.CommandLine.Binding;
-using System.CommandLine.NamingConventionBinder;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using static CodegenCS.Utils.TypeUtils;
 
-namespace CodegenCS
+namespace CodegenCS.Utils
 {
     /// <summary>
     /// Dependency Injection Container which can create types (in our case mostly for Templates) 
     /// and will automatically resolve (inject) ICodegenContext, CodegenOutputFile, and any other registered dependency.
     /// </summary>
-    /// 
     public class DependencyContainer
     {
         private readonly Dictionary<Type, Func<object>> regs = new Dictionary<Type, Func<object>>();
+        private readonly List<ITypeResolver> _customTypeResolvers = new List<ITypeResolver>();
+        public DependencyContainer ParentContainer { get; set; } = null; // TODO: replace this by Autofac scopes
+        public DependencyContainer() 
+        {
+        }
+        public DependencyContainer(DependencyContainer parentContainer)
+        {
+            ParentContainer = parentContainer;
+        }
 
         public T Resolve<T>(params object[] otherDependencies)
         {
@@ -25,8 +31,8 @@ namespace CodegenCS
         public object Resolve(Type type, params object[] otherDependencies)
         {
             // If type is registered (either as singleton or per instance)
-            if (regs.TryGetValue(type, out Func<object> fac)) 
-                return fac();
+            if (TryGetValue(type, out object value)) 
+                return value;
 
             // Else try to create..
             var obj = CreateInstance(type, otherDependencies);
@@ -47,7 +53,7 @@ namespace CodegenCS
 
             if (Nullable.GetUnderlyingType(type) != null)
             {
-                var underlyingTypeInstance = CreateInstance(Nullable.GetUnderlyingType(type), otherDependencies);
+                var underlyingTypeInstance = Resolve(Nullable.GetUnderlyingType(type), otherDependencies);
                 if (underlyingTypeInstance != null)
                     return underlyingTypeInstance;
             }
@@ -58,26 +64,6 @@ namespace CodegenCS
                 throw new InvalidOperationException("Can't create simple type " + type);
             if (type.IsArray && IsSimpleType(type.GetElementType()))
                 throw new InvalidOperationException("Can't create simple type " + type);
-
-
-            if (typeof(IAutoBindCommandLineArgs).IsAssignableFrom(type))
-            {
-                var binder = new ModelBinder(type);
-                try
-                {
-                    BindingContext bindingContext = null;
-                    if (regs.TryGetValue(typeof(BindingContext), out Func<object> fac))
-                        bindingContext = (BindingContext)fac();
-                    if (bindingContext != null)
-                    {
-                        // create an instance of MyTemplateArgs based on the parsed command line
-                        var instance = binder.CreateInstance(bindingContext);
-                        return instance;
-                    }
-                }
-                catch { }
-            }
-
 
             // Prioritize the constructor with more parameters
             var ctors = type.GetConstructors().OrderByDescending(c => c.GetParameters().Length).ToList();
@@ -94,14 +80,14 @@ namespace CodegenCS
                 {
                     var parmInfo = parmInfos[i];
 
-                    if (regs.TryGetValue(parmInfo.ParameterType, out Func<object> fac)) // type is registered
-                        objects[i] = fac();
+                    if (TryGetValue(parmInfo.ParameterType, out object value))
+                        objects[i] = value;
                     else if (parmInfo.HasDefaultValue) // not registered but has a default value (might be null)
                         objects[i] = parmInfo.DefaultValue;
                     else
                         try
                         {
-                            objects[i] = CreateInstance(parmInfo.ParameterType, otherDependencies); // try to create (result might also be null)
+                            objects[i] = Resolve(parmInfo.ParameterType, otherDependencies); // try to create (result might also be null)
                         }
                         catch (Exception)
                         {
@@ -132,22 +118,30 @@ namespace CodegenCS
             return null;
         }
 
-        public static bool IsSimpleType(Type type)
+        /// <summary>
+        /// Tries to resolve the given type in this dependency container and in parent scopes.
+        /// </summary>
+        protected bool TryGetValue(Type type, out object value)
         {
-            return
-                type.IsPrimitive ||
-                new Type[] {
-            typeof(string),
-            typeof(decimal),
-            typeof(DateTime),
-            typeof(DateTimeOffset),
-            typeof(TimeSpan),
-            typeof(Guid)
-                }.Contains(type) ||
-                type.IsEnum ||
-                Convert.GetTypeCode(type) != TypeCode.Object ||
-                (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && IsSimpleType(type.GetGenericArguments()[0]));
+            var scope = this;
+            while (scope != null)
+            {
+                if (scope.regs.TryGetValue(type, out Func<object> fac))
+                {
+                    value = fac();
+                    return true;
+                }
+                var customResolver = scope._customTypeResolvers.FirstOrDefault(r => r.CanResolveType(type));
+                if (customResolver != null && customResolver.TryResolveType(type, this, out value))
+                {
+                    return true;
+                }
+                scope = scope.ParentContainer;
+            }
+            value = null;
+            return false;
         }
+
 
         /// <summary>
         /// Transient means that a new instance is always created
@@ -186,6 +180,22 @@ namespace CodegenCS
         {
             var lazy = new Lazy<TService>(factory);
             regs.Add(typeof(TService), () => lazy.Value); // exactly like RegisterTransient, but the lambda will always return the same lazy instance.
+        }
+
+        public void RegisterCustomTypeResolver(ITypeResolver typeResolver)
+        {
+            _customTypeResolvers.Add(typeResolver);
+        }
+
+
+        /// <summary>
+        /// Type resolvers are more powerful because they can be used to TEST if a given type should be resolved by this resolver,
+        /// so as an example it can be used to build multiple different types that implement a given interface
+        /// </summary>
+        public interface ITypeResolver
+        {
+            bool CanResolveType(Type targetType);
+            bool TryResolveType(Type targetType, DependencyContainer dependencyContainer, out object value);
         }
 
     }

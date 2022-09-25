@@ -41,6 +41,7 @@ namespace CodegenCS
         public void SetContext(ICodegenContext context)
         {
             _context = context;
+            _dependencyContainer.ParentContainer = context.DependencyContainer;
         }
     }
 

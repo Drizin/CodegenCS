@@ -1,5 +1,6 @@
 ﻿using System;
 using CodegenCS.___InternalInterfaces___;
+using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 
 namespace CodegenCS
 {
