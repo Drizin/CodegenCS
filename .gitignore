@@ -332,8 +332,8 @@ ASALocalRun/
 .mfractor/
 
 # XmlDoc
-/src/CodegenCS/CodegenCS.xml
-/src/CodegenCS.Models.DbSchema/CodegenCS.Models.DbSchema.xml
+/src/Core/CodegenCS/CodegenCS.xml
+/src/Models/CodegenCS.Models.DbSchema/CodegenCS.Models.DbSchema.xml
 
 /src/packages-local
 /src/release.snk
