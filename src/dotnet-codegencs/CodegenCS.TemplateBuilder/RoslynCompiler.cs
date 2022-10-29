@@ -1,4 +1,5 @@
-﻿using CodegenCS.Utils;
+﻿using CodegenCS.Runtime;
+using CodegenCS.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -101,11 +102,21 @@ namespace CodegenCS.TemplateBuilder
             AddAssembly("System.ComponentModel.Primitives.dll");
 
 
-            // CodegenCS / CodegenCS.DbSchema
+            // CodegenCS / CodegenCS.Runtime / CodegenCS.Models.DbSchema
             AddAssembly(MetadataReference.CreateFromFile(typeof(CodegenCS.CodegenContext).GetTypeInfo().Assembly.Location));
-            AddAssembly(MetadataReference.CreateFromFile(typeof(CodegenCS.DbSchema.DatabaseSchema).GetTypeInfo().Assembly.Location));
+            AddAssembly(MetadataReference.CreateFromFile(typeof(CodegenCS.Runtime.ExecutionContext).GetTypeInfo().Assembly.Location));
+            AddAssembly(MetadataReference.CreateFromFile(typeof(CodegenCS.Models.IInputModel).GetTypeInfo().Assembly.Location));
+            AddAssembly(MetadataReference.CreateFromFile(typeof(CodegenCS.DotNet.DotNetCodegenContext).GetTypeInfo().Assembly.Location));
+            AddAssembly(MetadataReference.CreateFromFile(typeof(CodegenCS.Models.DbSchema.DatabaseSchema).GetTypeInfo().Assembly.Location));
             _namespaces.Add("CodegenCS");
-            _namespaces.Add("CodegenCS.DbSchema");
+            _namespaces.Add("CodegenCS.Runtime");
+            _namespaces.Add("CodegenCS.Models");
+            _namespaces.Add("CodegenCS.DotNet");
+            _namespaces.Add("CodegenCS.Models.DbSchema");
+
+            AddAssembly(MetadataReference.CreateFromFile(typeof(NSwag.OpenApiDocument).GetTypeInfo().Assembly.Location)); // NSwag.Core
+            AddAssembly(MetadataReference.CreateFromFile(typeof(NSwag.OpenApiYamlDocument).GetTypeInfo().Assembly.Location)); // NSwag.Core.Yaml
+            AddAssembly(MetadataReference.CreateFromFile(typeof(NJsonSchema.JsonSchema).GetTypeInfo().Assembly.Location)); // NJsonSchema
 
             // Newtonsoft
             _namespaces.Add("Newtonsoft.Json");
@@ -287,13 +298,20 @@ namespace CodegenCS.TemplateBuilder
                 // To avoid type names conflict we only add some usings if we detect as required
                 // Most regex below are checking for non-fully-qualified typename (no leading dot).
                 if (Regex.IsMatch(templateSource, @"(?<!\.)\bDatabaseSchema\b"))
-                    AddMissingUsing(ref rootNode, "CodegenCS.DbSchema");
-                if (Regex.IsMatch(templateSource, @"(?<!\.)\bCommandLineArgs\b"))
-                    AddMissingUsing(ref rootNode, "CodegenCS.Utils");
+                    AddMissingUsing(ref rootNode, "CodegenCS.Models.DbSchema");
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bOpenApiDocument\b"))
+                    AddMissingUsing(ref rootNode, "NSwag");
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bCommandLineArgs\b")
+                    || Regex.IsMatch(templateSource, @"(?<!\.)\bIAutoBindCommandLineArgs\b"))
+                    AddMissingUsing(ref rootNode, "CodegenCS.Runtime");
                 else if (Regex.IsMatch(templateSource, @"(?<!\.)\bILogger\b") && Regex.IsMatch(templateSource, @"\bWriteLine(\w*)Async\b"))
                     AddMissingUsing(ref rootNode, "CodegenCS.Utils");
-                if (Regex.IsMatch(templateSource, @"(?<!\.)\bIInputModel\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bIJsonInputModel\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bIValidatableJsonInputModel\b"))
-                    AddMissingUsing(ref rootNode, "CodegenCS.InputModels");
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bIInputModel\b") 
+                    || Regex.IsMatch(templateSource, @"(?<!\.)\bIJsonInputModel\b") 
+                    || Regex.IsMatch(templateSource, @"(?<!\.)\bIValidatableJsonInputModel\b")
+                    || Regex.IsMatch(templateSource, @"(?<!\.)\bIModelFactory\b")
+                    )
+                    AddMissingUsing(ref rootNode, "CodegenCS.Models");
 
                 if (Regex.IsMatch(templateSource, @"(?<!\.)\bConfigureCommand\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bParseResult\b"))
                     AddMissingUsing(ref rootNode, "System.CommandLine"); // System.CommandLine.Command, System.CommandLine.ParseResult

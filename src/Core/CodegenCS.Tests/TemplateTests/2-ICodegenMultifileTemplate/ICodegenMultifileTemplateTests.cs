@@ -1,7 +1,5 @@
 ﻿using NUnit.Framework;
-using CodegenCS;
-using CodegenCS.DbSchema;
-using System.IO;
+using CodegenCS.Models.DbSchema;
 
 namespace CodegenCS.Tests.TemplateTests;
 

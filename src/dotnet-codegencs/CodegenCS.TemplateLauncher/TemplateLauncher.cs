@@ -12,7 +12,10 @@ using System.CommandLine.Binding;
 using System.CommandLine.Invocation;
 using System.CommandLine.Help;
 using System.CommandLine.IO;
-using CodegenCS.InputModels;
+using CodegenCS.Models.NSwagAdapter;
+using static CodegenCS.Utils.TypeUtils;
+using CodegenCS.Runtime;
+using CodegenCS.Models;
 
 namespace CodegenCS.TemplateLauncher
 {
@@ -32,10 +35,12 @@ namespace CodegenCS.TemplateLauncher
         protected FileInfo[] _modelFiles = null;
         protected Type _iTypeTemplate = null;
         protected string _outputFolder = null;
+        protected string _executionFolder = null;
         public bool VerboseMode { get; set; }
         public Func<BindingContext, HelpBuilder> HelpBuilderFactory = null;
         public delegate ParseResult ParseCliUsingCustomCommandDelegate(string filePath, Type model1Type, Type model2Type, DependencyContainer dependencyContainer, MethodInfo configureCommand, ParseResult parseResult);
         public ParseCliUsingCustomCommandDelegate ParseCliUsingCustomCommand = null;
+        protected IModelFactory _modelFactory = new ModelFactory(new List<IInputModelAdapter>() { new OpenApiDocumentAdapter() });
 
         public TemplateLauncher(ILogger logger, ICodegenContext ctx, bool verboseMode)
         {
@@ -65,6 +70,11 @@ namespace CodegenCS.TemplateLauncher
             /// </summary>
             public string OutputFolder { get; set; }
 
+            /// <summary>
+            /// Folder where execution will happen. Before template is executed the current folder is changed to this (if defined).
+            /// Useful for loading files (e.g. IModelFactory.LoadModelFromFile{TModel}(path)) with relative paths.
+            /// </summary>
+            public string ExecutionFolder { get; set; }
 
             /// <summary>
             /// DefaultOutputFile. If not defined will be based on the Template DLL path, adding CS extension.
@@ -220,13 +230,13 @@ namespace CodegenCS.TemplateLauncher
             else
             {
                 // Models required by the entry point method 
-                var entrypointMethodModels = _entryPointMethod.GetParameters().Select(p => p.ParameterType).Where(p => IsAssignableToType(p, typeof(IInputModel))).ToList();
+                var entrypointMethodModels = _entryPointMethod.GetParameters().Select(p => p.ParameterType).Where(p => _modelFactory.CanCreateModel(p)).ToList();
 
                 // Models required by the entrypoint class constructors
                 var ctorsWithModelParameters = _entryPointClass.GetConstructors().Select(ctor => new
                 {
                     ctor,
-                    ModelArgs = ctor.GetParameters().Select(p => p.ParameterType).Where(p => IsAssignableToType(p, typeof(IInputModel))).ToList()
+                    ModelArgs = ctor.GetParameters().Select(p => p.ParameterType).Where(p => _modelFactory.CanCreateModel(p)).ToList()
                 });
 
                 // if entrypoint method requires models, class should have at least one constructor NOT expecting any models.
@@ -310,10 +320,12 @@ namespace CodegenCS.TemplateLauncher
 
             string providedTemplateName = _originallyInvokedTemplateFile?.Name ?? _templateFile?.Name ?? _args.Template;
 
-            _outputFolder = Directory.GetCurrentDirectory();
+            _outputFolder = _executionFolder = Directory.GetCurrentDirectory();
             _defaultOutputFile = Path.GetFileNameWithoutExtension(providedTemplateName) + ".generated.cs";
             if (!string.IsNullOrWhiteSpace(_args.OutputFolder))
                 _outputFolder = Path.GetFullPath(_args.OutputFolder);
+            if (!string.IsNullOrWhiteSpace(_args.ExecutionFolder))
+                _executionFolder = Path.GetFullPath(_args.ExecutionFolder);
             if (!string.IsNullOrWhiteSpace(_args.DefaultOutputFile))
                 _defaultOutputFile = _args.DefaultOutputFile;
 
@@ -322,6 +334,7 @@ namespace CodegenCS.TemplateLauncher
 
             var dependencyContainer = _ctx.DependencyContainer; // TODO: is this correct? maybe _ctx.DependencyContainer should inherit scope (services) from this one?
             dependencyContainer.RegisterSingleton<ILogger>(_logger);
+            dependencyContainer.RegisterSingleton<IModelFactory>(_modelFactory);
 
             // CommandLineArgs can be injected in the template constructor (or in any dependency like "TemplateArgs" nested class), and will bring all command-line arguments that were not captured by dotnet-codegencs tool
             CommandLineArgs cliArgs = new CommandLineArgs(_args.TemplateSpecificArguments);
@@ -330,6 +343,13 @@ namespace CodegenCS.TemplateLauncher
 
 
             #region If template has a method "public static void ConfigureCommand(Command)" then we can use it to parse the command-line arguments or to ShowHelp()
+            // If template defines a method "public static void ConfigureCommand(Command command)", then this method can be used to configure (describe) the template custom Arguments and Options.
+            // In this case dotnet-codegencs will pass an empty command to this configuration method, will create a Parser for the Command definition,
+            // will parse the command line to extract/validate those extra arguments/options, and if there's any parse error it will invoke the regular ShowHelp() for the Command definition.
+            // If there are no errors it will create and register (in the Dependency Injection container) ParseResult, BindingContext and InvocationContext.
+            // Those objects (ParseResult/BindingContext/InvocationContext) can be used to get the args/options that the template needs.
+            // Example: TemplateOptions constructor can take ParseResult and extract it's values using parseResult.CommandResult.GetValueForArgument and parseResult.CommandResult.GetValueForOption.
+
             var methods = _entryPointClass.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.InvokeMethod);
             MethodInfo configureCommand = methods.Where(m => m.Name == "ConfigureCommand" && m.GetParameters().Count()==1 && m.GetParameters()[0].ParameterType == typeof(Command)).SingleOrDefault();
 
@@ -434,10 +454,10 @@ namespace CodegenCS.TemplateLauncher
                     object model;
                     if (_iTypeTemplate != null) // old templating interfaces - always expect a JSON model
                         model = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText(_modelFiles[i].FullName), modelType);
-                    else if (IsAssignableToType(modelType, typeof(IJsonInputModel)))
-                        model = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText(_modelFiles[i].FullName), modelType);
-                    else if (IsAssignableToType(modelType, typeof(IInputModel))) // for now (no yaml yet) let's assume that all IInputModel are JSON
-                        model = Newtonsoft.Json.JsonConvert.DeserializeObject(File.ReadAllText(_modelFiles[i].FullName), modelType);
+                    else if (_modelFactory.CanCreateModel(modelType))
+                    {
+                        model = await _modelFactory.LoadModelFromFileAsync(modelType, _modelFiles[i].FullName);
+                    }
                     else
                     {
                         await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not load Model{(_expectedModels > 1 ? (i + 1).ToString() : "")}: Unknown type. Maybe your model should implement IJsonInputModel?");
@@ -481,50 +501,63 @@ namespace CodegenCS.TemplateLauncher
                 return -1;
             }
 
-            if (_iTypeTemplate == typeof(IBaseMultifileTemplate)) // pass ICodegenContext
+            string previousFolder = Directory.GetCurrentDirectory();
+            try
             {
-                modelArgs.Insert(0, _ctx);
-                (_entryPointClass.GetMethod(_entryPointMethod.Name, _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(_entryPointMethod.Name))
-                    .Invoke(instance, modelArgs.ToArray());
-            }
-            else if (_iTypeTemplate == typeof(IBaseSinglefileTemplate)) // pass ICodegenTextWriter
-            {
-                modelArgs.Insert(0, _ctx.DefaultOutputFile);
-                var method = _entryPointClass.GetMethod(_entryPointMethod.Name, _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray());
-                method = method ?? _entryPointClass.GetMethod(_entryPointMethod.Name);
-                method.Invoke(instance, modelArgs.ToArray());
-            }
-            else if (_iTypeTemplate == typeof(IBaseStringTemplate)) // get the FormattableString and write to DefaultOutputFile
-            {
-                FormattableString fs = (FormattableString) (_entryPointClass.GetMethod(_entryPointMethod.Name, _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(_entryPointMethod.Name))
-                    .Invoke(instance, modelArgs.ToArray());
-                _ctx.DefaultOutputFile.Write(fs);
-            }
-            else if (_iTypeTemplate == null && _entryPointMethod != null) // Main() entrypoint
-            {
-                var argTypes = _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray();
-                object[] entryPointMethodArgs = new object[argTypes.Length];
-                for (int i = 0; i < argTypes.Length; i++)
-                    entryPointMethodArgs[i] = dependencyContainer.Resolve(argTypes[i]);
-                if (_entryPointMethod.ReturnType == typeof(FormattableString))
+                if (_executionFolder != null)
+                    Directory.SetCurrentDirectory(_executionFolder);
+                #region Invoking template
+                if (_iTypeTemplate == typeof(IBaseMultifileTemplate)) // pass ICodegenContext
                 {
-                    var fs = (FormattableString)_entryPointMethod.Invoke(instance, entryPointMethodArgs);
+                    modelArgs.Insert(0, _ctx);
+                    (_entryPointClass.GetMethod(_entryPointMethod.Name, _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(_entryPointMethod.Name))
+                        .Invoke(instance, modelArgs.ToArray());
+                }
+                else if (_iTypeTemplate == typeof(IBaseSinglefileTemplate)) // pass ICodegenTextWriter
+                {
+                    modelArgs.Insert(0, _ctx.DefaultOutputFile);
+                    var method = _entryPointClass.GetMethod(_entryPointMethod.Name, _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray());
+                    method = method ?? _entryPointClass.GetMethod(_entryPointMethod.Name);
+                    method.Invoke(instance, modelArgs.ToArray());
+                }
+                else if (_iTypeTemplate == typeof(IBaseStringTemplate)) // get the FormattableString and write to DefaultOutputFile
+                {
+                    FormattableString fs = (FormattableString)(_entryPointClass.GetMethod(_entryPointMethod.Name, _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray()) ?? _entryPointClass.GetMethod(_entryPointMethod.Name))
+                        .Invoke(instance, modelArgs.ToArray());
                     _ctx.DefaultOutputFile.Write(fs);
                 }
-                else if (_entryPointMethod.ReturnType == typeof(FormattableString))
+                else if (_iTypeTemplate == null && _entryPointMethod != null) // Main() entrypoint
                 {
-                    var s = (string)_entryPointMethod.Invoke(instance, entryPointMethodArgs);
-                    _ctx.DefaultOutputFile.Write(s);
-                }
-                else
-                {
-                    object result = _entryPointMethod.Invoke(instance, entryPointMethodArgs);
-                    if (_entryPointMethod.ReturnType == typeof(int) && ((int)result) != 0)
+                    var argTypes = _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray();
+                    object[] entryPointMethodArgs = new object[argTypes.Length];
+                    for (int i = 0; i < argTypes.Length; i++)
+                        entryPointMethodArgs[i] = dependencyContainer.Resolve(argTypes[i]);
+                    if (_entryPointMethod.ReturnType == typeof(FormattableString))
                     {
-                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"\nExiting with non-zero result code from template ({(int)result}). Nothing saved.");
-                        return (int)result;
+                        var fs = (FormattableString)_entryPointMethod.Invoke(instance, entryPointMethodArgs);
+                        _ctx.DefaultOutputFile.Write(fs);
+                    }
+                    else if (_entryPointMethod.ReturnType == typeof(FormattableString))
+                    {
+                        var s = (string)_entryPointMethod.Invoke(instance, entryPointMethodArgs);
+                        _ctx.DefaultOutputFile.Write(s);
+                    }
+                    else
+                    {
+                        object result = _entryPointMethod.Invoke(instance, entryPointMethodArgs);
+                        if (_entryPointMethod.ReturnType == typeof(int) && ((int)result) != 0)
+                        {
+                            await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"\nExiting with non-zero result code from template ({(int)result}). Nothing saved.");
+                            return (int)result;
+                        }
                     }
                 }
+                #endregion
+            }
+            finally
+            {
+                if (_executionFolder != null)
+                    Directory.SetCurrentDirectory(previousFolder);
             }
 
             if (_ctx.Errors.Any())
@@ -570,47 +603,6 @@ namespace CodegenCS.TemplateLauncher
 
 
         #region Utils
-        protected bool IsInstanceOfGenericType(Type genericType, object instance)
-        {
-            Type type = instance.GetType();
-            return IsAssignableToGenericType(type, genericType);
-        }
-
-        /// <summary>
-        /// Determines whether the current type can be assigned to a variable of the specified Generic type targetType.
-        /// </summary>
-        protected bool IsAssignableToGenericType(Type currentType, Type targetType)
-        {
-            var interfaceTypes = currentType.GetInterfaces();
-
-            foreach (var it in interfaceTypes)
-            {
-                if (it.IsGenericType && it.GetGenericTypeDefinition() == targetType)
-                    return true;
-            }
-
-            if (currentType.IsGenericType && currentType.GetGenericTypeDefinition() == targetType)
-                return true;
-
-            Type baseType = currentType.BaseType;
-            if (baseType == null) return false;
-
-            return IsAssignableToGenericType(baseType, targetType);
-        }
-
-
-
-        /// <summary>
-        /// Determines whether the current type can be assigned to a variable of the specified targetType.
-        /// </summary>
-        protected bool IsAssignableToType(Type currentType, Type targetType)
-        {
-            if (targetType.IsGenericType)
-                return IsAssignableToGenericType(currentType, targetType);
-
-            return targetType.IsAssignableFrom(currentType);
-        }
-
         private static int GetConsoleWidth()
         {
             int windowWidth;

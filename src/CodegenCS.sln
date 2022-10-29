@@ -40,6 +40,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Runtime", "Core\C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.DotNet", "Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj", "{7E79D7A5-B919-48B0-B5E9-620BE086B399}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Models.NSwagAdapter", "Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj", "{684AB71F-4D08-4D72-8161-67ECDAF440EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -94,6 +96,10 @@ Global
 		{7E79D7A5-B919-48B0-B5E9-620BE086B399}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E79D7A5-B919-48B0-B5E9-620BE086B399}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E79D7A5-B919-48B0-B5E9-620BE086B399}.Release|Any CPU.Build.0 = Release|Any CPU
+		{684AB71F-4D08-4D72-8161-67ECDAF440EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{684AB71F-4D08-4D72-8161-67ECDAF440EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{684AB71F-4D08-4D72-8161-67ECDAF440EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{684AB71F-4D08-4D72-8161-67ECDAF440EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -111,6 +117,7 @@ Global
 		{21F897CA-25A6-49F8-95A0-A191AACC2B2C} = {91BD35EC-39D1-4D9E-BFAA-FB062F46E84F}
 		{3A765F42-3C03-4C1C-9A03-B490EA94911B} = {91BD35EC-39D1-4D9E-BFAA-FB062F46E84F}
 		{7E79D7A5-B919-48B0-B5E9-620BE086B399} = {91BD35EC-39D1-4D9E-BFAA-FB062F46E84F}
+		{684AB71F-4D08-4D72-8161-67ECDAF440EC} = {FC913A61-41B5-49AE-AC94-6D3354265E0B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AB589EF0-8B1A-4791-A8B5-F3ED178AF34F}

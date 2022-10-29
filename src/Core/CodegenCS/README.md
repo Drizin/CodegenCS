@@ -461,7 +461,7 @@ void Generate()
 }
 ```
 
-PS: The examples above (and other examples later) use the [DatabaseSchema Model](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema), which is one of the out-of-the-box models that our toolkit provides. Basically it represents the schema of a relational database. You can use any model with our library (and with our command-line tool) but for simplicity many examples in the documentation use this specific model. For more information about models please check out the [Main Project Page](https://github.com/CodegenCS/CodegenCS/).
+PS: The examples above (and other examples later) use the [DatabaseSchema Model](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema), which is one of the out-of-the-box models that our toolkit provides. Basically it represents the schema of a relational database. You can use any model with our library (and with our command-line tool) but for simplicity many examples in the documentation use this specific model. For more information about models please check out the [Main Project Page](https://github.com/CodegenCS/CodegenCS/).
 
 <br />
 <br />

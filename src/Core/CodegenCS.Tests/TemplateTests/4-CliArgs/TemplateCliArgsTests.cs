@@ -9,6 +9,7 @@ using System.Linq;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using CodegenCS.DotNetTool;
+using CodegenCS.Runtime;
 
 namespace CodegenCS.Tests.TemplateTests
 {
@@ -22,7 +23,7 @@ namespace CodegenCS.Tests.TemplateTests
         TemplateLauncherArgs _launcherArgs;
         ILogger _logger = new DebugOutputLogger();
         CliCommandParser _cliCommandParser = new CliCommandParser();
-        string _dbschemaModelPath = Path.Combine(GetCurrentFolder(), @"..\..\..\..\Models\CodegenCS.DbSchema.SampleDatabases\AdventureWorksSchema.json");
+        string _dbschemaModelPath = Path.Combine(GetCurrentFolder(), @"..\..\..\..\Models\CodegenCS.Models.DbSchema.SampleDatabases\AdventureWorksSchema.json");
 
         [SetUp]
         public void Setup()
@@ -36,7 +37,7 @@ namespace CodegenCS.Tests.TemplateTests
         {
             FormattableString template = $$"""
                 using CodegenCS;
-                using CodegenCS.DbSchema;
+                using CodegenCS.Models.DbSchema;
                 using System;
                 using System.Collections.Generic;
                 using System.IO;
@@ -75,6 +76,14 @@ namespace CodegenCS.Tests.TemplateTests
             models ??= new string[0];
             templateArgs ??= new string[0];
             _context = new CodegenContext();
+
+            // Faking TemplateRunCommand, which also provides this context info
+            var executionContext = new ExecutionContext(@"C:\FakeTemplate.csx");
+            var dependencyContainer = new DependencyContainer();
+            dependencyContainer.RegisterSingleton<ExecutionContext>(() => executionContext);
+            dependencyContainer.RegisterCustomTypeResolver(new CodegenCS.Runtime.AutoBindCommandLineArgsTypeResolver());
+            _context.DependencyContainer.ParentContainer = dependencyContainer;
+
             _launcherArgs = new TemplateLauncherArgs()
             {
                 Template = _builderArgs.Output,

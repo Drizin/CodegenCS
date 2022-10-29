@@ -1,5 +1,6 @@
 ﻿using CodegenCS;
 using CodegenCS.DotNet;
+using CodegenCS.Runtime;
 using CodegenCS.TemplateBuilder;
 using EnvDTE;
 using EnvDTE80;
@@ -139,7 +140,10 @@ namespace RunTemplate
                     IVsHierarchy hierarchyItem; // error tasks need to be associated to a project 
                     solution.GetProjectOfUniqueName(projectUniqueName, out hierarchyItem);
 
-                    var runTemplateWrapper = new RunTemplateWrapper(_dte, package.JoinableTaskFactory, package, templateItem, templateItemPath, templateDir, hierarchyItem);
+                    string solutionPath; solution.GetSolutionInfo(out _, out solutionPath, out _);
+                    string projectPath = project.FullName;
+                    var executionContext = new VSExecutionContext(templateItemPath, projectPath, solutionPath);
+                    var runTemplateWrapper = new RunTemplateWrapper(_dte, package.JoinableTaskFactory, package, templateItem, templateItemPath, templateDir, templateDir, hierarchyItem, executionContext);
 
                     _ = package.JoinableTaskFactory.RunAsync(runTemplateWrapper.RunAsync);
                 }

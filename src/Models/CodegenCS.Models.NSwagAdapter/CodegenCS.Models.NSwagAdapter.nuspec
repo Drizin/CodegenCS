@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>CodegenCS.Models.NSwagAdapter</id>
+    <title>CodegenCS.Models.NSwagAdapter</title>
+    <authors>Rick Drizin</authors>
+    <owners>Rick Drizin</owners>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>This is a Model Adapter that allow CodegenCS templates to read OpenAPI models (JSON or YAML format) using NSWag</description>
+    <copyright>Copyright Rick Drizin 2019</copyright>
+    <dependencies>
+		<dependency id="CodegenCS.Core" version="[3.0.0" include="All" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\CodegenCS.Models.NSwagAdapter.*" target="lib\net472" />
+    <file src="bin\$configuration$\CodegenCS.Models.NSwagAdapter.*" target="lib\netstandard2.0" />
+  </files>
+</package>

@@ -1,13 +1,6 @@
-using CodegenCS;
-using CodegenCS.DbSchema;
-using CodegenCS.DotNet;
-using CodegenCS.InputModels;
-using Newtonsoft.Json;
+using CodegenCS.Models.DbSchema;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -21,7 +14,7 @@ namespace CodegenCS.Tests.SchemaTests
         public async Task LoadValidDatabaseSchema()
         {
             string folder = GetCurrentFolder();
-            string jsonPath = Path.Combine(folder, @"..\..\..\Models\CodegenCS.DbSchema.SampleDatabases\AdventureWorksSchema.json");
+            string jsonPath = Path.Combine(folder, @"..\..\..\Models\CodegenCS.Models.DbSchema.SampleDatabases\AdventureWorksSchema.json");
             string jsonModel = File.ReadAllText(jsonPath);
             var dbSchema = await DatabaseSchema.TryParseAsync(jsonModel);
             //File.WriteAllText(jsonPath, JsonConvert.SerializeObject(dbSchema, Formatting.Indented));

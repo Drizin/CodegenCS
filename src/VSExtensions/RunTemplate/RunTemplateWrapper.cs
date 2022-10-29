@@ -1,4 +1,7 @@
-﻿using CodegenCS.DotNet;
+﻿using CodegenCS;
+using CodegenCS.DotNet;
+using CodegenCS.Runtime;
+using CodegenCS.Utils;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -27,7 +30,9 @@ namespace RunTemplate
         private ProjectItem _templateItem;
         private string _templateItemPath;
         private string _outputFolder;
+        private string _executionFolder;
         private IVsHierarchy _hierarchyItem;
+        private VSExecutionContext _executionContext;
 
         static RunTemplateWrapper()
         {
@@ -40,7 +45,7 @@ namespace RunTemplate
             _logger ??= new VsOutputWindowPaneOutputLogger(_customPane);
         }
 
-        internal RunTemplateWrapper(DTE2 dte, JoinableTaskFactory joinableTaskFactory, IServiceProvider serviceProvider, ProjectItem templateItem, string templateItemPath, string outputFolder, IVsHierarchy hierarchyItem)
+        internal RunTemplateWrapper(DTE2 dte, JoinableTaskFactory joinableTaskFactory, IServiceProvider serviceProvider, ProjectItem templateItem, string templateItemPath, string executionFolder, string outputFolder, IVsHierarchy hierarchyItem, VSExecutionContext executionContext)
         {
             _dte = dte;
             _joinableTaskFactory = joinableTaskFactory;
@@ -48,8 +53,10 @@ namespace RunTemplate
             _templateItem = templateItem;
             _templateItemPath = templateItemPath;
             _outputFolder = outputFolder;
+            _executionFolder = executionFolder;
             _hierarchyItem = hierarchyItem;
             _codegenContext = new DotNetCodegenContext();
+            _executionContext = executionContext;
         }
 
         private static IVsOutputWindowPane CreateCustomPane()
@@ -84,26 +91,45 @@ namespace RunTemplate
             // check https://stackoverflow.com/questions/50108631/what-is-the-proper-usage-of-joinabletaskfactory-runasync
             _ = _joinableTaskFactory.RunAsync(async () =>
             {
-                var builderResult = await BuildTemplateAsync(_templateItemPath);
-
-                if (builderResult.ReturnCode != 0)
+                try
                 {
-                    foreach(var error in builderResult.CompilationErrors)
-                        AddError(error.Message, TaskCategory.BuildCompile, error.Line ?? 0, error.Column ?? 0);
-                    _dte.ToolWindows.ErrorList.ShowErrors = true;
-                    _errorListProvider.Show();
-                    //_errorListProvider.ForceShowErrors(); ?
-                    _errorListProvider.BringToFront();
-                    return;
+                    var builderResult = await BuildTemplateAsync(_templateItemPath);
+
+                    if (builderResult.ReturnCode != 0)
+                    {
+                        foreach (var error in builderResult.CompilationErrors)
+                            AddError(error.Message, TaskCategory.BuildCompile, error.Line ?? 0, error.Column ?? 0);
+                        _dte.ToolWindows.ErrorList.ShowErrors = true;
+                        _errorListProvider.Show();
+                        //_errorListProvider.ForceShowErrors(); ?
+                        _errorListProvider.BringToFront();
+                        return builderResult.ReturnCode;
+                    }
+
+                    string defaultOutputFile = Path.GetFileNameWithoutExtension(_templateItemPath) + ".generated.cs";
+                    string templateDll = builderResult.TargetFile;
+                    var runResult = await RunTemplateAsync(templateDll, defaultOutputFile);
+                    if (runResult != 0)
+                    {
+                        _customPane.OutputStringThreadSafe($"CodegenCS - error running template\r\n");
+                        AddError($"CodegenCS - error running template\r\n", TaskCategory.Misc, -1, -1);
+                        _dte.ToolWindows.ErrorList.ShowErrors = true;
+                        _errorListProvider.Show();
+                        //_errorListProvider.ForceShowErrors(); ?
+                        _errorListProvider.BringToFront();
+                        return runResult;
+                    }
+                    _customPane.OutputStringThreadSafe("CodegenCS - run template successfully finished. Updating Solution Explorer tree...\r\n");
+
+                    await AddFilesToSolutionAsync(_outputFolder, _templateItem);
+                    _customPane.OutputStringThreadSafe("CodegenCS - finished updating Solution Explorer.\r\n");
+                    return 0;
                 }
-
-                string defaultOutputFile = Path.GetFileNameWithoutExtension(_templateItemPath) + ".generated.cs";
-                string templateDll = builderResult.TargetFile;
-                await RunTemplateAsync(defaultOutputFile, templateDll, _outputFolder);
-                _customPane.OutputStringThreadSafe("CodegenCS - run template successfully finished. Updating Solution Explorer tree...\r\n");
-
-                await AddFilesToSolutionAsync(_outputFolder, _templateItem);
-                _customPane.OutputStringThreadSafe("CodegenCS - finished updating Solution Explorer.\r\n");
+                catch (Exception ex)
+                {
+                    _customPane.OutputStringThreadSafe($"CodegenCS - error running template: {ex.GetBaseException().Message}\r\n");
+                    return -1;
+                }
             });
         }
 
@@ -127,18 +153,38 @@ namespace RunTemplate
             await Task.Delay(1); // let UI refresh
             return builderResult;
         }
-        async Task<int> RunTemplateAsync(string defaultOutputFile, string templateDll, string outputFolder)
+        async Task<int> RunTemplateAsync(string templateDll, string defaultOutputFile)
         {
             var launcherArgs = new CodegenCS.TemplateLauncher.TemplateLauncher.TemplateLauncherArgs()
             {
                 Template = templateDll,
                 Models = new string[0],
-                OutputFolder = outputFolder,
+                OutputFolder = _outputFolder,
+                ExecutionFolder = _executionFolder,
                 DefaultOutputFile = defaultOutputFile,
             };
+
+            var dependencyContainer = new DependencyContainer();
+            dependencyContainer.RegisterSingleton<ExecutionContext>(() => _executionContext);
+            dependencyContainer.RegisterSingleton<VSExecutionContext>(() => _executionContext as VSExecutionContext);
+            _codegenContext.DependencyContainer.ParentContainer = dependencyContainer;
+
             var launcher = new CodegenCS.TemplateLauncher.TemplateLauncher(_logger, _codegenContext, verboseMode: false);
 
-            int statusCode = await launcher.LoadAndExecuteAsync(launcherArgs, null);
+            int statusCode;
+            try
+            {
+                statusCode = await launcher.LoadAndExecuteAsync(launcherArgs, null);
+            }
+            catch (Exception ex)
+            {
+                AddError($"CodegenCS - error running template: {ex.GetBaseException().Message}\r\n", TaskCategory.Misc, -1, -1);
+                _dte.ToolWindows.ErrorList.ShowErrors = true;
+                _errorListProvider.Show();
+                //_errorListProvider.ForceShowErrors(); ?
+                _errorListProvider.BringToFront();
+                return -3;
+            }
 
             if (_codegenContext?.Errors.Any() == true)
             {
@@ -153,7 +199,7 @@ namespace RunTemplate
             
             if (statusCode != 0)
             {
-                if (statusCode != -2) // invalid template args
+                if (statusCode != -2) // invalid template args has already shown the help page
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     _customPane.OutputStringThreadSafe("TemplateLauncher (dotnet-codegencs template run) Failed.\r\n");
@@ -247,18 +293,14 @@ namespace RunTemplate
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var name = new AssemblyName(args.Name);
-            if (name.Name == "CodegenCS.DbSchema")
-            {
-                return typeof(CodegenCS.DbSchema.DatabaseSchema).Assembly;
-            }
-            if (name.Name == "CodegenCS")
-            {
+            if (name.Name == "CodegenCS.Models.DbSchema")
+                return typeof(CodegenCS.Models.DbSchema.DatabaseSchema).Assembly;
+            if (name.Name == "CodegenCS.Models")
+                return typeof(CodegenCS.Models.IInputModel).Assembly;
+            if (name.Name == "CodegenCS.Core")
                 return typeof(CodegenCS.ICodegenContext).Assembly;
-            }
             if (name.Name == "InterpolatedColorConsole")
-            {
                 return typeof(InterpolatedColorConsole.ColoredConsole).Assembly;
-            }
             if (name.Name.Contains("CoreLib"))
             {
                 var asm = Assembly.LoadFrom(@"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.17\System.Private.CoreLib.dll");

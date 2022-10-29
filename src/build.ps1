@@ -48,6 +48,18 @@ copy artifacts\packages\Debug\Shipping\System.CommandLine.NamingConventionBinder
 cd ..\..\
 
 
+if ($configuration -eq "Release")
+{
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS\bin\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS\obj\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.Runtime\bin\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.Runtime\obj\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.Models\bin\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.Models\obj\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.DotNet\bin\
+    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.DotNet\obj\
+}
+
 
 # CodegenCS.Core + nupkg/snupkg
 & $msbuild ".\Core\CodegenCS\CodegenCS.Core.csproj"                          `
@@ -105,6 +117,16 @@ cd ..\..\
            /verbosity:minimal                                      `
            /p:ContinuousIntegrationBuild=true
 
+# CodegenCS.Models.NSwagAdapter + nupkg/snupkg
+& $msbuild ".\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj"        `
+           /t:Restore /t:Build /t:Pack                             `
+           /p:PackageOutputPath="..\..\packages-local\"               `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
+           /p:Configuration=$configuration                         `
+           /p:IncludeSymbols=true                                  `
+           /p:SymbolPackageFormat=snupkg                           `
+           /verbosity:minimal                                      `
+           /p:ContinuousIntegrationBuild=true
 
 
 if ($configuration -eq "Release")
@@ -124,7 +146,7 @@ if ($configuration -eq "Release")
     Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.DbSchema.Extractor\obj\ # old name
     Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.Models.DbSchema.Extractor\bin\
     Remove-Item -Recurse -Force -ErrorAction Ignore  .\Models\CodegenCS.Models.DbSchema.Extractor\obj\
-    dotnet clean
+    dotnet clean CodegenCS.sln
 }
 
 

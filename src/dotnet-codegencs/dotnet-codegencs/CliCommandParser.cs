@@ -23,7 +23,7 @@ namespace CodegenCS.DotNetTool
 
         private readonly Command _modelCommands = new Command("model");
         private readonly Command _modelDbSchemaCommands = new Command("dbschema");
-        internal readonly Command _modelDbSchemaExtractCommand = DbSchema.Extractor.CliCommand.GetCommand();
+        internal readonly Command _modelDbSchemaExtractCommand = Models.DbSchema.Extractor.CliCommand.GetCommand();
 
         internal static readonly Option HelpOption = new Option<bool>(new[] { "--help", "-?", "/?", "/help", "--?" }, "\nShow Help"); // default lib will also track "-h" 
         internal static readonly Option VerboseOption = new Option<bool>(new[] { "--verbose", "--debug" }, getDefaultValue: () => false, "Verbose mode") { }; // verbose output, detailed exceptions

@@ -1,5 +1,6 @@
 ﻿using CodegenCS;
 using CodegenCS.DotNet;
+using CodegenCS.Runtime;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -43,7 +44,10 @@ namespace RunTemplate.CustomToolGenerator
             RunTemplateWrapper._customPane.Clear();
             //RunTemplateWrapper._customPane.Activate();
 
-            var runTemplateWrapper = new RunTemplateWrapper(dte, ThreadHelper.JoinableTaskFactory, base.SiteServiceProvider, templateItem, templateItemPath, templateDir, hierarchyItem);
+            string solutionPath; solution.GetSolutionInfo(out _, out solutionPath, out _);
+            string projectPath = project.FullName;
+            var executionContext = new VSExecutionContext(templateItemPath, projectPath, solutionPath);
+            var runTemplateWrapper = new RunTemplateWrapper(dte, ThreadHelper.JoinableTaskFactory, base.SiteServiceProvider, templateItem, templateItemPath, templateDir, templateDir, hierarchyItem, executionContext);
             ThreadHelper.JoinableTaskFactory.Run(runTemplateWrapper.RunAsync);
 
             // if GenerateCode returns null then int IVsSingleFileGenerator.Generate returns VSConstants.E_FAIL and this isn't even called.

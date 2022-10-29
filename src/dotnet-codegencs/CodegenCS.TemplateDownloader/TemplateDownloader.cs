@@ -7,6 +7,7 @@ using CodegenCS.Utils;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Net;
+using CodegenCS.Runtime;
 
 namespace CodegenCS.TemplateDownloader
 {

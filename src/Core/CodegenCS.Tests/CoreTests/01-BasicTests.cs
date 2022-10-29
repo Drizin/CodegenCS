@@ -1,9 +1,6 @@
-using CodegenCS;
-using CodegenCS.___InternalInterfaces___;
-using CodegenCS.DbSchema;
+using CodegenCS.Models.DbSchema;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace CodegenCS.Tests.CoreTests

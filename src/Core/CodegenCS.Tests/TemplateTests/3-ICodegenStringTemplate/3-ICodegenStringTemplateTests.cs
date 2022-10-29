@@ -1,5 +1,5 @@
 ﻿using CodegenCS;
-using CodegenCS.DbSchema;
+using CodegenCS.Models.DbSchema;
 using NUnit.Framework;
 using System;
 using System.IO;

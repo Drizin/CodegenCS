@@ -10,7 +10,7 @@
 // Load third-party libraries by their relative paths, relative to "$Env:userprofile\.nuget\packages\"
 #r "dapper\2.0.35\lib\netstandard2.0\Dapper.dll"
 #r "newtonsoft.json\13.0.1\lib\netstandard2.0\Newtonsoft.Json.dll"
-#r "codegencs.models.dbschema\3.0.0\lib\netstandard2.0\CodegenCS.DbSchema.dll"
+#r "codegencs.models.dbschema\3.0.0\lib\netstandard2.0\CodegenCS.Models.DbSchema.dll"
 
 // CS files are better than CSX because Intellisense and Compile-time checks works better. 
 
@@ -33,5 +33,5 @@ string connectionString = @"Data Source=WIN10VM2021\SQLEXPRESS;
                             Integrated Security=True;";
 
 Func<IDbConnection> connectionFactory = () => new SqlConnection(connectionString);
-var reader = new SqlServerSchemaReader(connectionFactory); // CodegenCS.DbSchema.dll
+var reader = new SqlServerSchemaReader(connectionFactory); // CodegenCS.Models.DbSchema.dll
 reader.ExportSchemaToJSON(outputJsonSchema);

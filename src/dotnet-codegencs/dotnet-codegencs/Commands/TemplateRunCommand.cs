@@ -12,6 +12,9 @@ using System.CommandLine.Binding;
 using CodegenCS.Utils;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Threading;
+using CodegenCS.Runtime;
+using ExecutionContext = CodegenCS.Runtime.ExecutionContext;
 
 namespace CodegenCS.DotNetTool.Commands
 {
@@ -248,12 +251,18 @@ namespace CodegenCS.DotNetTool.Commands
                     TemplateSpecificArguments = cliArgs.TemplateArgs,
                 };
 
+                var executionContext = new ExecutionContext(_templateFile.FullName);
+                var dependencyContainer = new DependencyContainer();
+                dependencyContainer.RegisterSingleton<ExecutionContext>(() => executionContext);
+                dependencyContainer.RegisterCustomTypeResolver(new CodegenCS.Runtime.AutoBindCommandLineArgsTypeResolver());
+                _ctx.DependencyContainer.ParentContainer = dependencyContainer;
+
 
                 statusCode = await _launcher.ExecuteAsync(launcherArgs, parseResult);
 
                 if (statusCode != 0)
                 {
-                    if (statusCode != -2) // invalid template args
+                    if (statusCode != -2) // invalid template args has already shown the help page
                         Console.WriteLineError(ConsoleColor.Red, $"TemplateLauncher ({ConsoleColor.Yellow}'{currentCommand}'{PREVIOUS_COLOR}) Failed.");
                     return -1;
                 }

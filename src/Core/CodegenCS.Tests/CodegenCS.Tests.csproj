@@ -29,7 +29,7 @@
   <ItemGroup>
     <Compile Remove="**\*-TestsOutput\**" />
     <Content Include="**\*-TestsOutput\**" />
-	  <Compile Include="..\CodegenCS.DbSchema.Templates\SimplePOCOGenerator\SampleOutput\*.cs">
+	  <Compile Include="..\CodegenCS.Models.DbSchema.Templates\SimplePOCOGenerator\SampleOutput\*.cs">
 		  <Link>POCOTests\GeneratedPOCOs\%(Filename)%(Extension)</Link>
 	  </Compile>
   </ItemGroup>
@@ -53,14 +53,20 @@
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <ItemGroup>
-        <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.csproj" />
-        <ProjectReference Include="..\..\Models\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj" />
+        <ProjectReference Include="..\CodegenCS\CodegenCS.Core.csproj" />
+        <ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj" />
+        <ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj" />
+        <ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj" />
+        <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="CodegenCS" Version="2.*" />
-        <PackageReference Include="CodegenCS.DbSchema" Version="2.*" />
+        <PackageReference Include="CodegenCS.Core" Version="3.*" />
+        <PackageReference Include="CodegenCS.Runtime" Version="3.*" />
+        <PackageReference Include="CodegenCS.Models" Version="3.*" />
+        <PackageReference Include="CodegenCS.DotNet" Version="3.*" />
+        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.*" />
       </ItemGroup>
     </Otherwise>
   </Choose>

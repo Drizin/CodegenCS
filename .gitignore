@@ -339,3 +339,4 @@ ASALocalRun/
 /src/release.snk
 
 *.generated.cs
+/src/Models/CodegenCS.Models.NSwagAdapter/CodegenCS.Models.NSwagAdapter.xml

@@ -117,20 +117,35 @@
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <ItemGroup>
-		<ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.csproj">
-		  <Project>{51de0970-e84d-4f96-ae80-bc17e28b2736}</Project>
-		  <Name>CodegenCS</Name>
+        <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj">
+          <Project>{51de0970-e84d-4f96-ae80-bc17e28b2736}</Project>
+          <Name>CodegenCS.Core</Name>
+        </ProjectReference>
+		<ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj">
+		  <Project>{3a765f42-3c03-4c1c-9a03-b490ea94911b}</Project>
+		  <Name>CodegenCS.Runtime</Name>
 		</ProjectReference>
-		<ProjectReference Include="..\..\Models\CodegenCS.DbSchema\CodegenCS.DbSchema.csproj">
-		  <Project>{8b3282f8-0080-4526-8ece-45346beb1d20}</Project>
-		  <Name>CodegenCS.DbSchema</Name>
+		<ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj">
+		  <Project>{7e79d7a5-b919-48b0-b5e9-620be086b399}</Project>
+		  <Name>CodegenCS.DotNet</Name>
 		</ProjectReference>
+		<ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj">
+		  <Project>{21f897ca-25a6-49f8-95a0-a191aacc2b2c}</Project>
+		  <Name>CodegenCS.Models</Name>
+		</ProjectReference>
+        <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj">
+          <Project>{8b3282f8-0080-4526-8ece-45346beb1d20}</Project>
+          <Name>CodegenCS.Models.DbSchema</Name>
+        </ProjectReference>
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="CodegenCS" Version="2.*" />
-        <PackageReference Include="CodegenCS.DbSchema" Version="2.*" />
+        <PackageReference Include="CodegenCS.Core" Version="3.*" />
+        <PackageReference Include="CodegenCS.Runtime" Version="3.*" />
+		<PackageReference Include="CodegenCS.DotNet" Version="3.*" />
+        <PackageReference Include="CodegenCS.Models" Version="3.*" />
+        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.*" />
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -143,9 +158,9 @@
       <Project>{82df9b4a-88ab-4a98-af7c-de21fdcda13b}</Project>
       <Name>CodegenCS.TemplateLauncher</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Models\CodegenCS.DbSchema.Extractor\CodegenCS.DbSchema.Extractor.csproj">
+    <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema.Extractor\CodegenCS.Models.DbSchema.Extractor.csproj">
       <Project>{280c1697-59e5-4a63-9d82-ab01ead3297c}</Project>
-      <Name>CodegenCS.DbSchema.Extractor</Name>
+      <Name>CodegenCS.Models.DbSchema.Extractor</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
