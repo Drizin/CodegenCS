@@ -1,12 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="RunTemplate.368f85b0-96cf-488d-b962-4c7314ad032d" Version="1.0" Language="en-US" Publisher="Rick Drizin" />
+    <Identity Id="RunTemplate.368f85b0-96cf-488d-b962-4c7314ad032d" Version="3.0" Language="en-US" Publisher="Rick Drizin" />
     <DisplayName>CodegenCS - Run Code-Generation Templates</DisplayName>
     <Description>Run CodegenCS Templates from Visual Studio.</Description>
   </Metadata>
-  <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 18.0)">
+  <Installation InstalledByMsi="false">
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,17.0)">
+      <ProductArchitecture>x86</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">
       <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>
   </Installation>
