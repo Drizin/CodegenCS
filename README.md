@@ -1,41 +1,52 @@
 [![Nuget](https://img.shields.io/nuget/v/dotnet-codegencs?label=dotnet-codegencs)](https://www.nuget.org/packages/dotnet-codegencs)
 [![Downloads](https://img.shields.io/nuget/dt/dotnet-codegencs.svg)](https://www.nuget.org/packages/dotnet-codegencs)  
-[![Nuget](https://img.shields.io/nuget/v/CodegenCS?label=CodegenCS)](https://www.nuget.org/packages/CodegenCS)
-[![Downloads](https://img.shields.io/nuget/dt/CodegenCS.svg)](https://www.nuget.org/packages/CodegenCS)
+[![Nuget](https://img.shields.io/nuget/v/CodegenCS.Core?label=CodegenCS.Core)](https://www.nuget.org/packages/CodegenCS.Core)
+[![Downloads](https://img.shields.io/nuget/dt/CodegenCS.Core.svg)](https://www.nuget.org/packages/CodegenCS.Core)
 
 
-**CodegenCS is a Toolkit for doing Code Generation using plain C#**
+# CodegenCS Toolkit
 
-CodegenCS is written in C# and the templates should be developed using plain C# - but the **templates can generate any text-based output** (you can write C#, Java, Javascript, Python, HTML, SQL Scripts, CSHTML, XML, Markdown, Terraform files, or anything else).
+**CodegenCS is a Code Generation Toolkit where templates are written using plain C#** (no need to learn a new syntax).
 
-CodegenCS is an alternative to [T4 Templates](https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates?view=vs-2022) and to any other code-generator tool based on templating engines like Razor/Handlebars/Liquid, but it uses a very different approach.  
+It's an alternative to [T4 Templates](https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates?view=vs-2022), but much more powerful and yet much easier to use, with many cool features for writing reusable/concise/maintanable templates.
+
+**Templates are written using C# but they can generate any text-based output**: you can generate C#, Java, Javascript, Python, HTML, SQL Scripts, CSHTML, XML, Markdown, Terraform files, or any text-based language.
+
+Templates can read from any input, and there are some ready-to-use models for common tasks like generating code based on a database schema or based on a REST API definition.
 
 
-# CodegenCS Approach
+# Text-Blocks Approach vs Imperative Approach
 
-All templating engines (like T4, Razor and others) have a programming paradigm similar to PHP and Classic ASP: you get a **single output stream** and you can write a string block into that stream - by default whatever you write in the template goes directly to the output stream.   
-Then there are escape characters that let you **add control logic (and variables) mixed within a string**, but all those engines are primarily designed to have a huge string block piped directly to the output stream.
+Code generators like T4 toolkit work like PHP pages (or Razor): You get a **single output stream** and you can write a text block into that stream (HTML or anything), and by default whatever you write in the template goes directly to the output stream.  
+Then they all have some escape characters that let you **add control logic (and variables) mixed within a text block** (e.g. add control blocks mixed with HTML tags), but yet they were all primarily designed to be **"text-block oriented"**, while control logic is a second-class citizen.
 
-CodegenCS uses the opposite approach: **you get a TextWriter** (or multiple writers if writing to multiple files) and you have to **programmatically** write to it using plain C#.  
-The **advantage** of the programmatic approach is that **you don't need to learn a new syntax** and it also gives you more control/flexibility: You can use the well-established C# syntax (invoking methods, passing parameters, interpolating strings, looping, formatting, etc).  
+CodegenCS uses the opposite approach - it's primarily designed to be used with imperative programming: **you get a TextWriter** (or multiple writers if writing to multiple files) and you have to **programmatically** write to it using plain C#.  
+The programmatic approach gives a lot of **advantages** like more control/flexibility/extensibility, and **no need to learn a new syntax** - you can rely on the well-established C# syntax (invoking methods, passing parameters, interpolating strings, looping, formatting, LINQ expressions, etc).  
 The **disavantage** of the programmatic approach (if you were writing to a regular TextWriter **without this library**) is that some tasks would be impossible or too complicated:
 - In a regular TextWriter you can't **embed a subtemplate inside another template using string interpolation**
 - In a regular TextWriter you can't **render a list of items** without "leaving" the block and manually running a "foreach". For subtemplates you'd have to run one by one, and even for a simple list you'd have to append one by one.
 - In a regular TextWriter you have to **control indent on your own** (each inner block needs to know how many indent spaces should be added to be aligned with the parent block). Even popular templating engines lack indent control.
 - In a regular TextWriter you can't embed simple `IF` conditions mixed within your text blocks
 
-**CodegenCS provides a Magic TextWriter that gives you the best of both worlds** (and more):
+CodegenCS has a magic TextWriter that leverages string interpolation to solve the aforementioned issues and allows us to seamlessly switch between imperative and text-block approach.  
+
+In other words, **CodegenCS toolkit gives the best of both worlds** (and much more!).
+
+
+# CodegenCS Features and Advantages
+
 - You can **write templates using your favorite language (C#)** - **no need to learn a new syntax** for control flow, loops, variable assignments, etc.
 - You can **write templates using your favorite IDE (Visual Studio)** - with **intellisense**, **syntax highlighting**, and full **debugging** capabilities (most code generators lack decent intellisense/debugging)
 - Templates can **leverage the power of .NET** and any **.NET library**  
-  (think Dapper, Newtonsoft, Swashbuckle, RestSharp, Humanizer, etc.)
+  (think LINQ, Dapper, Newtonsoft, Swashbuckle, RestSharp, Humanizer, etc.)
 - Templates start with the **programmatic approach** and you can **use it whenever it makes sense**:  
-  It all starts with a regular C# method that gets a CodegenTextWriter (or a CodegenContext if writing to multiple files).
+  It all starts with a regular C# method that gets a CodegenTextWriter (or a CodegenContext if writing to multiple files).  
   Then you can read from any source and you can write to output using familiar methods like `Write()`, `WriteLine()`, etc.  
 - You can **break down complex templates** into smaller reusable methods (it's all C# anyway).  
 - You can write **interpolated strings** (or plain strings) whenever it makes sense. No need to learn new syntax for simple things like concatenating strings or formatting dates.  
   Obviously you can also write multiline blocks (no need to write line by line) and our textwriter will magically handle indentation.
-- It supports the powerful [C# 11 Raw String Literals](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-11#raw-string-literals) that allows multiline-blocks to be aligned (padded) wherever they look better, making templates **easier to read** since you won't see **mixed indentation** between strings and control logic.  
+- It supports the powerful [C# 11 Raw String Literals](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-11#raw-string-literals) that allows multiline-blocks to be aligned (padded) wherever they look better, making templates **cleaner and easier to read** since you won't see **mixed indentation** between strings and control logic.  
+  Works even in legacy projects using C# 10 or older (templates are always built using C# 11, no matter your project version)
 - With Raw String Literals there is also **no need to escape special characters** like curly braces (mustaches), double-quotes, blackslashes, double-mustaches or any other.  
   It's just about using the right delimiters and then your literal can use any character without conflicting with the string delimiter: it's easier to write curly-braces (C#/C/Java/Javascript), double-mustaches (JSX/Angular), Razor/Blazor/ASPX, etc.
 - Implicit indent control (**indentation is magically controlled**) - you can embed any object in interpolated strings and writer will **preserve the parent indentation** and/or cursor position.
@@ -43,8 +54,9 @@ The **disavantage** of the programmatic approach (if you were writing to a regul
   **No need to "leave" the string block and go back to the programmatic approach** just to render a list or just to add a simple conditional block.  
   But yet, whenever you need more control (**it's your choice!**) you can "leave" the string block and go back to the programmatic approach (it's as simple as interpolating an `Action` within your string)
 - In other words with our Magical TextWriter **you can seamlessly switch (back and forth) between programmatic mode** (imperative) and **text mode** (string blocks).
-<!-- - dotnet-codegencs tool lets you download/build/run templates
-- dotnet-codegencs can extract database models (reverse engineer from existing MSSQL/PostgreSQL databases into a JSON file) that can be used by your templates.   -->
+- Native dependency injection support: you can inject (in the template constructor or in an entrypoint method) classes like `ICodegenTextWriter` (to write to standard output), `ICodegenContext` (to write to multiple files), `CommandLineArgs` (to get command-line arguments), `ExecutionContext` (to get info about the template being executed), `VSExecutionContext` (get info about the hosting Visual Studio Project and Solution), and others.
+- You can inject our [**out-of-the-box models**](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models) like `DatabaseSchema`, `OpenApiDocument`, or even your own model based on a JSON file.
+- Tools to reverse engineer a `DatabaseSchema` from existing MSSQL/PostgreSQL databases into a JSON model.
 
 To sum, **CodegenCS is the only code-generator where ["Simple things are simple, and Complex things are possible"](https://en.wikiquote.org/wiki/Alan_Kay).**
 
@@ -54,15 +66,15 @@ To sum, **CodegenCS is the only code-generator where ["Simple things are simple,
 # Project Components
 
 There are basically 4 components (detailed below):
-- CodegenCS Core Library: class library that contains the "Magic TextWriter" and related stuff
-- CodegenCS Command-line Tool (dotnet-codegencs): command-line tool that can be used to download, build, and run templates.
-- Visual Studio Extension
-- Models: you can use your own input models, but we provide some out-of-the-box models for common tasks
-- Templates: ready-to-use templates
+- **Core Library**: class library that contains the "Magic TextWriter" and related stuff
+- **Command-line Tool** (dotnet-codegencs): command-line tool that can be used to download, build, and run templates.
+- **Visual Studio Extension**: can be used to run templates directly from Visual Studio (output files are automatically added to your project)
+- **Models**: you can use your own input models, but we provide some out-of-the-box models for common tasks
+- **Templates**: ready-to-use templates
 
 <hr/>
 
-## CodegenCS Core Library
+## Core Library
 
 [CodegenCS Core Library](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) is a .NET class library for doing code generation using plain C# and it's the backbone of the toolkit.  
   
@@ -75,51 +87,44 @@ There are basically 4 components (detailed below):
   Whatever object that you embed in your interpolated strings (even if it's a multiline string or if it's a callback/template that will render into multiple lines) the indentation of the outer block will still be preserved.  
   In most other engines the inner blocks (nested blocks) need to know "how much padding" should be added according to the parent block.  
   In CodegenCS it's just magically captured from the interpolated strings.
-- It supports the powerful [C# 11 Raw String Literals](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-11#raw-string-literals) which makes templates much cleaner and easier to read
 - Supports interpolation of special symbols like `IF/ELSE/ENDIF` or `IIF` can be used to write simple control blocks within your interpolated strings. No need to "leave" the literal and go back to C# programming for simple stuff.
 
-[CodegenContext](https://github.com/CodegenCS/CodegenCS/blob/master/src/Core/CodegenCS/CodegenContext.cs) is the second most important class - basically it manages multiple in-memory TextWriters so we can save them into multiple files.  
-T4 Templates have [poor support](https://stackoverflow.com/questions/33575419/how-to-create-multiple-output-files-from-a-single-t4-template-using-tangible-edi) for managing multiple files (basically T4 has a single output stream and requires some hacks/workarounds to save the output buffer into individual files).
+[CodegenContext](https://github.com/CodegenCS/CodegenCS/blob/master/src/Core/CodegenCS/CodegenContext.cs) is the second most important class - basically it manages multiple in-memory TextWriters so we can save them into multiple files. T4 Templates have [poor support](https://stackoverflow.com/questions/33575419/how-to-create-multiple-output-files-from-a-single-t4-template-using-tangible-edi) for managing multiple files (basically T4 has a single output stream and requires some hacks/workarounds to save the output buffer into individual files).
 
-Check out [CodegenCS library documentation](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) to learn more about CodegenTextWriter (and how indenting is magically controlled), CodegenContext (and how to write multiple files), learn how to write clean and reusable templates using String Interpolation / Raw String Literals / IEnumerables.
+
+Check out [CodegenCS Core library documentation](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) to learn more about CodegenTextWriter (and how indenting is magically controlled), CodegenContext (and how to write multiple files), learn how to write clean and reusable templates using String Interpolation / Raw String Literals / IEnumerables.
+
+Most users won't ever need to download or interact directly with CodegenCS library - most likely all they need is the **Visual Studio Extension or Command-line Tool**.
+
   
 <hr/>
 
-## CodegenCS Command-line Tool (dotnet-codegencs)
+## Command-line Tool (dotnet-codegencs)
 
 [dotnet-codegencs](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs) is a .NET tool (command-line tool) that can be used to download, build, and run templates.  
 It can also be used to extract models (reverse engineer) from existing sources.  
 In other words this is our **"batteries included"** tool.  
 
-**Most users should only need this tool** (won't need to download or interact directly with CodegenCS library).  
-
-dotnet-codegencs builds the templates **with C# 11** (using Roslyn) which means that **Raw String Literals are supported even if the target project is not yet using C# 11** (target project doesn't even have to be .NET, and doesn't even have to be a project, since templates can write to any kind of text output).
-
-
 <hr/>
 
 ## Visual Studio Extension
 
-Our [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VSExtensions/) allows running templates directly from Visual Studio, either by right-clicking the templates or by automatically running it after each save (Custom Tool).
+Our [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VSExtensions/) allows running templates directly from Visual Studio.
 
 
 <hr/>
 
 ## Models
 
-When you use dotnet-codegencs to run a template you can pass one ore more input models to your template (`dotnet-codegencs template run <template> <model>`).  
-Those models are expected to be a file in JSON format, and dotnet-codegencs will load/deserialize them according to the type expected by the template.
+Templates can read from any data source (a file or a database or anything else) but **Models** are our built-in mechanism for easily providing inputs to templates:
 
-Templates can be based on any Model (data source / data provider), but dotnet-codegencs currently expects models to be a JSON-serialized file.
+- Templates don't need boilerplate code to read from a file, deserialize it, check if file exists, etc
+- You can rely on our [**out-of-the-box models**](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models) for common tasks like generating code based on a [Database Schema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema/DbSchema) or based on a [REST API specification](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter) - so you don't have to reinvent the wheel
+- You can write your own model types
 
-We provide some **out-of-the-box models** ([here](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models)) which are ready to use in your templates:
-- [DatabaseSchema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema/DbSchema) represents the **schema of a relational database**.  
-  The dotnet-codegencs tool has commands to **extract** a database schema (rever engineer) creating a json model from existing **MSSQL or PostgreSQL** databases
-- (Pending - work in progress) **OpenAPI model** (Swagger API) will allow templates to be based on a REST API model.  
+Click [**here**](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models) to learn more about our **Out-of-the-box Models** or learn **How to Write a Custom Model**
 
-We're still working in more models (feel free to collaborate if you want to add support for a new database vendor or create any other models). But keep in mind that:
-- `dotnet-codegencs run template` can load any JSON file (as long as you have it defined in your template), so your templates can be based on any data data source (not necessarily a database or an API)
-- CodegenCS Core library can be used without dotnet-codegencs tool - so you can virtually use any data source (e.g. Roslyn Syntax Trees, SqlClient or EF data source, etc.)
+
 
 <hr/>
 
@@ -127,15 +132,16 @@ We're still working in more models (feel free to collaborate if you want to add 
 
 Our [Templates repository (https://github.com/CodegenCS/Templates)](https://github.com/CodegenCS/Templates) contains some **sample fully-functional templates** that you can use, customize, or use as a reference for building your own templates.  
 
-Current templates are all based on the [DatabaseSchema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema/DbSchema) model (see above), but you modify those templates to use your own data models (by defining the class inside the template).
-
 <hr/>
 
 <br/><br/>
 
 # Quickstart
 
-Check [dotnet-codegencs](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs#quickstart) quickstart.
+- To start using the command-line tool, check out [dotnet-codegencs Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs#quickstart)
+- To start using the Visual Studio Extension, check out [Visual Studio Extension Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/VSExtensions#quickstart)
+- To generate code based on a database, check out [DbSchema Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema#quickstart)
+- To generate code based on a REST API, check out [NSwagAdapter Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter#quickstart)
 
 # FAQ
 

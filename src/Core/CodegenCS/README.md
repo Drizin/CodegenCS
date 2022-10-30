@@ -11,8 +11,8 @@ This page is only about the **CodegenCS Core Library**:
 
 # CodegenCS Core Library
 
-[![Nuget](https://img.shields.io/nuget/v/CodegenCS?label=CodegenCS)](https://www.nuget.org/packages/CodegenCS)
-[![Downloads](https://img.shields.io/nuget/dt/CodegenCS.svg)](https://www.nuget.org/packages/CodegenCS)
+[![Nuget](https://img.shields.io/nuget/v/CodegenCS.Core?label=CodegenCS.Core)](https://www.nuget.org/packages/CodegenCS.Core)
+[![Downloads](https://img.shields.io/nuget/dt/CodegenCS.Core.svg)](https://www.nuget.org/packages/CodegenCS.Core)
 
 CodegenCS Core Library is a .NET class library for doing code generation using plain C#.  
 It's the backbone of the command-line tool [dotnet-codegencs](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs), but you can also use the library without the command-line tool.

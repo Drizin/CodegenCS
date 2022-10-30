@@ -13,7 +13,11 @@ This page is only about **CodegenCS Visual Studio Extension**:
 ## Quickstart
 
 - Install it from Visual Studio (Tools - Extensions - search for "CodegenCS") or download it [here](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS)
-- Create a new file with `csx` extension. See some sample templates below.
+- Create a new file with `csx` extension. See some sample templates below
+- To run your template right-click the template (in Solution Explorer) and select "Run Template"
+- To make the template run automatically after each save select the template (in Solution Explorer) and in Properties set the "Custom Tool" to be "CodegenCS"
+
+Sample Template:
 
 ```cs
 // Single-file output, where `Main()` returns directly the main template
@@ -42,6 +46,8 @@ public class MyTemplate
 }
 ```
 
+Sample Template:
+
 ```cs
 // Multiple-files output, with programmatic approach
 public class MyTemplate
@@ -69,13 +75,15 @@ public class MyTemplate
 }
 ```
 
+Sample Template:
+
 ```cs
 // Reading model from JSON file
 public class MyTemplate
 {
-    void Main(ICodegenContext context)
+    void Main(ICodegenContext context, IModelFactory factory)
     {
-        var model = JsonConvert.DeserializeObject<DatabaseSchema>(File.ReadAllText("AdventureWorks.json"));
+        var model = factory.LoadModelFromFile<DatabaseSchema>("AdventureWorks.json");
         foreach (var table in model.Tables)
             context[table.TableName + ".cs"].WriteLine(GenerateTable(table));
     }
@@ -90,6 +98,33 @@ public class MyTemplate
                 }
             }
             """;
+    }
+}
+```
+
+Sample Template:
+
+```cs
+// Reading model from JSON file with explicit writing to files
+public class MyTemplate
+{
+    void Main(ICodegenContext context, IModelFactory factory)
+    {
+        var model = factory.LoadModelFromFile<DatabaseSchema>("AdventureWorks.json");
+        foreach (var table in model.Tables)
+            GenerateTable(context[table.TableName + ".cs"], table);
+    }
+    void GenerateTable(ICodegenTextWriter writer, Table table)
+    {
+        writer.WriteLine($$"""
+            namespace MyNamespace
+            {
+                public class {{table.TableName}}
+                {
+                    // my properties...
+                }
+            }
+            """);
     }
 }
 ```
