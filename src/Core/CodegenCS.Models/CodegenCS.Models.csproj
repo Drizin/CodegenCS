@@ -9,7 +9,7 @@
     <Description>Class Library and Toolkit for Code Generation using plain C#</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>3.0.0</Version>
+    <Version>3.0.1</Version>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
@@ -54,8 +54,6 @@
 
   <ItemGroup>
     <PackageReference Include="NJsonSchema" Version="10.8.0" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-codegencs" />
-    <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-codegencs" />
   </ItemGroup>
 
 </Project>

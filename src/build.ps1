@@ -71,6 +71,8 @@ if ($configuration -eq "Release")
            /p:SymbolPackageFormat=snupkg                           `
            /verbosity:minimal                                      `
            /p:ContinuousIntegrationBuild=true
+if (! $?) { throw "msbuild failed" }
+		   
 
 # CodegenCS.Models + nupkg/snupkg
 & $msbuild ".\Core\CodegenCS.Models\CodegenCS.Models.csproj"                          `
@@ -82,6 +84,7 @@ if ($configuration -eq "Release")
            /p:SymbolPackageFormat=snupkg                           `
            /verbosity:minimal                                      `
            /p:ContinuousIntegrationBuild=true
+if (! $?) { throw "msbuild failed" }
 
 # CodegenCS.Runtime + nupkg/snupkg
 & $msbuild ".\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj"                          `
@@ -104,6 +107,7 @@ if ($configuration -eq "Release")
            /p:SymbolPackageFormat=snupkg                           `
            /verbosity:minimal                                      `
            /p:ContinuousIntegrationBuild=true
+if (! $?) { throw "msbuild failed" }
 
 
 # CodegenCS.Models.DbSchema + nupkg/snupkg
@@ -116,6 +120,7 @@ if ($configuration -eq "Release")
            /p:SymbolPackageFormat=snupkg                           `
            /verbosity:minimal                                      `
            /p:ContinuousIntegrationBuild=true
+if (! $?) { throw "msbuild failed" }
 
 # CodegenCS.Models.NSwagAdapter + nupkg/snupkg
 & $msbuild ".\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj"        `
@@ -127,6 +132,7 @@ if ($configuration -eq "Release")
            /p:SymbolPackageFormat=snupkg                           `
            /verbosity:minimal                                      `
            /p:ContinuousIntegrationBuild=true
+if (! $?) { throw "msbuild failed" }
 
 
 if ($configuration -eq "Release")
@@ -160,6 +166,7 @@ if ($configuration -eq "Release")
            /p:SymbolPackageFormat=snupkg                                        `
            /verbosity:minimal                                                   `
            /p:ContinuousIntegrationBuild=true
+if (! $?) { throw "msbuild failed" }
 
 
           
@@ -172,6 +179,7 @@ dotnet restore CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj
            /p:SymbolPackageFormat=snupkg                                        `
            /verbosity:minimal                                                   `
            /p:ContinuousIntegrationBuild=true
+if (! $?) { throw "msbuild failed" }
 
 dotnet restore CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj
 & $msbuild ".\dotnet-codegencs\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" `
@@ -182,6 +190,7 @@ dotnet restore CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj
            /p:SymbolPackageFormat=snupkg                                        `
            /verbosity:minimal                                                   `
            /p:ContinuousIntegrationBuild=true
+if (! $?) { throw "msbuild failed" }
 
 
 
@@ -195,6 +204,7 @@ dotnet restore CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj
            /p:SymbolPackageFormat=snupkg                  `
            /verbosity:minimal                             `
            /p:ContinuousIntegrationBuild=true
+if (! $?) { throw "msbuild failed" }
 
 # Now all nuget packages (including the global tool) are in .\packages-local\
 
@@ -214,6 +224,7 @@ dotnet build -c $configuration .\Core\CodegenCS.Tests\CodegenCS.Tests.csproj
            '/p:targetFrameworks="net472"'                 `
            /p:Configuration='Debug'                `
            /verbosity:minimal                             
+if (! $?) { throw "msbuild failed" }
 
 # How to Reset the Visual Studio 2022 Experimental Instance:
 # & cmd /C "C:\Program Files\Microsoft Visual Studio\2022\Professional\VSSDK\VisualStudioIntegration\Tools\Bin\CreateExpInstance.exe" /Reset /VSInstance=17.0_defe2a84 /RootSuffix=Exp 

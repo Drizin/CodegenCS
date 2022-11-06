@@ -63,42 +63,5 @@ namespace CodegenCS.Models.DbSchema.Extractor
             public string ConnectionString { get; set; }
             public string Output { get; set; }
         }
-
-        #region Self-contained exe
-        private static Command ConfigureCommandLine(Command command)
-        {
-            return command;
-        }
-
-        public static System.CommandLine.Parsing.Parser Instance { get; } = new CommandLineBuilder(ConfigureCommandLine(GetCommand(commandName: System.AppDomain.CurrentDomain.FriendlyName)))
-            .UseExceptionHandler(ExceptionHandler, 1)
-            .UseVersionOption()
-
-            //.UseHelpBuilder(context => new MyHelpBuilder(context.Console)) 
-            .UseHelp()
-
-            .UseSuggestDirective()
-            .EnablePosixBundling(false)
-
-            .UseVersionOption()
-            .UseParseDirective()
-            //.UseDebugDirective()
-            .UseSuggestDirective()
-            .UseParseErrorReporting()
-
-            .Build();
-
-        private static void ExceptionHandler(Exception exception, InvocationContext context)
-        {
-            if (exception is TargetInvocationException)
-            {
-                exception = exception.InnerException;
-            }
-            Console.WriteLineError(ConsoleColor.Red, "Unhandled exception: " + exception.ToString());
-            //context.ParseResult.ShowHelp();
-            context.ExitCode = 999;
-        }
-
-        #endregion
     }
 }

@@ -29,23 +29,26 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.0.0.0")]
-[assembly: AssemblyFileVersion("3.0.0.0")]
+[assembly: AssemblyVersion("3.0.1.0")]
+[assembly: AssemblyFileVersion("3.0.1.0")]
 #if DEBUG
-[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Core", NewVersion = "3.0.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.0.0", PublicKeyToken = "f75721f2e3128173")]
-[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Runtime", NewVersion = "3.0.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.0.0", PublicKeyToken = "f75721f2e3128173")]
-[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Models", NewVersion = "3.0.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.0.0", PublicKeyToken = "f75721f2e3128173")]
+[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Core", NewVersion = "3.0.1.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.1.0", PublicKeyToken = "f75721f2e3128173")]
+[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Runtime", NewVersion = "3.0.1.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.1.0", PublicKeyToken = "f75721f2e3128173")]
+[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Models", NewVersion = "3.0.1.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.1.0", PublicKeyToken = "f75721f2e3128173")]
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Models.DbSchema", NewVersion = "3.0.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.0.0", PublicKeyToken = "f75721f2e3128173")]
 #else
-[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Core", NewVersion = "3.0.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.0.0", PublicKeyToken = "602c64961bdc076c")]
-[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Runtime", NewVersion = "3.0.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.0.0", PublicKeyToken = "602c64961bdc076c")]
-[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Models", NewVersion = "3.0.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.0.0", PublicKeyToken = "602c64961bdc076c")]
+[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Core", NewVersion = "3.0.1.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.1.0", PublicKeyToken = "602c64961bdc076c")]
+[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Runtime", NewVersion = "3.0.1.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.1.0", PublicKeyToken = "602c64961bdc076c")]
+[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Models", NewVersion = "3.0.1.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.1.0", PublicKeyToken = "602c64961bdc076c")]
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "CodegenCS.Models.DbSchema", NewVersion = "3.0.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "3.0.0.0", PublicKeyToken = "602c64961bdc076c")]
 #endif
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "InterpolatedColorConsole", NewVersion = "1.0.3.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "1.0.3.0", PublicKeyToken = "5d09c7de01a5e5b7")]
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "NSwag.Core", NewVersion = "13.17.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "13.17.0.0", PublicKeyToken = "c2d88086e098d109")]
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "NSwag.Core.Yaml", NewVersion = "13.17.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "13.17.0.0", PublicKeyToken = "c2d88086e098d109")]
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "NJsonSchema", NewVersion = "10.8.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "10.8.0.0", PublicKeyToken = "c2f9c3bdfae56102")]
+[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "System.CommandLine", NewVersion = "42.42.42.42", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "42.42.42.42")]
+[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "System.CommandLine.NamingConventionBinder", NewVersion = "42.42.42.42", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "42.42.42.42")]
+
 
 // <InternalsVisibleTo> or <AssemblyAttribute> don't seem to work in legacy project format (non-SDK)
 #if (DEBUG || TEST)

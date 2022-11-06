@@ -16,6 +16,7 @@ using CodegenCS.Models.NSwagAdapter;
 using static CodegenCS.Utils.TypeUtils;
 using CodegenCS.Runtime;
 using CodegenCS.Models;
+using System.CommandLine.Parsing;
 
 namespace CodegenCS.TemplateLauncher
 {

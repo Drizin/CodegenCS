@@ -4,6 +4,7 @@ using System.CommandLine;
 using System.IO;
 using System.Linq;
 using System.CommandLine.IO;
+using System.CommandLine.Parsing;
 
 namespace CodegenCS.DotNetTool
 {

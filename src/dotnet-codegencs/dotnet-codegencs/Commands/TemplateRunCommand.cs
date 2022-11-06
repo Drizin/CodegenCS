@@ -8,11 +8,8 @@ using System.Threading.Tasks;
 using Console = InterpolatedColorConsole.ColoredConsole;
 using static InterpolatedColorConsole.Symbols;
 using System.CommandLine.Invocation;
-using System.CommandLine.Binding;
 using CodegenCS.Utils;
 using System.Reflection;
-using System.Collections.Generic;
-using System.Threading;
 using CodegenCS.Runtime;
 using ExecutionContext = CodegenCS.Runtime.ExecutionContext;
 

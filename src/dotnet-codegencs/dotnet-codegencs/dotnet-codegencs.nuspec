@@ -21,11 +21,11 @@
 		<dependency id="Npgsql" version="[5.0.0" include="All" />
 		<dependency id="System.Data.SqlClient" version="[4.8.2" include="All" />
 		<dependency id="Dapper" version="[2.0.78" include="All" />
-		<dependency id="System.CommandLine" version="[2.0.0-beta1.21308.1" include="All" />
 	</dependencies>
   </metadata>
   <files>
       <file src="bin\$configuration$\CodegenCS.*" target="tools\net472" />
+	  <file src="bin\$configuration$\System.CommandLine.*" target="tools\net472" />
 	  <file src="bin\$configuration$\DbSchemaExtractor.*" target="tools\net472" />
 	  <file src="bin\$configuration$\dotnet-codegencs.*" target="tools\net472" />
     <!--
