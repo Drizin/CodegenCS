@@ -141,6 +141,7 @@ namespace CodegenCS
 
         bool _nextWriteRequiresLineBreak = false;
         bool _dontIndentCurrentLine = false; // when we're in the middle of a line and start an inline block (which could be multiline string), the first line don't need to be indented - only the next ones
+        bool _trimWhileWhitespace = false;
         public DependencyContainer DependencyContainer { get { return _dependencyContainer; } internal set { _dependencyContainer = value; } }
         protected DependencyContainer _dependencyContainer = new DependencyContainer();
 
@@ -589,11 +590,18 @@ namespace CodegenCS
         /// </summary>
         protected void InnerWriteRaw(string value)
         {
-            if (IsControlBlockActive && !string.IsNullOrEmpty(value))
+            if (!IsControlBlockActive || string.IsNullOrEmpty(value))
+                return;
+            if (_trimWhileWhitespace)
             {
-                _innerWriter.Write(value);
-                OnWritten(value);
+                value = value.TrimStart();
+                if (value.Length == 0)
+                    return;
+                else
+                    _trimWhileWhitespace = false;
             }
+            _innerWriter.Write(value);
+            OnWritten(value);
         }
         
         /// <summary>
@@ -777,6 +785,32 @@ namespace CodegenCS
                     if (!(previousSymbol is IfSymbol) && !(previousSymbol is ElseSymbol))
                         throw new UnbalancedIfsException();
                     RefreshControlBlockActiveStatus();
+                }
+                else if (arg is TrimLeadingWhitespaceSymbol)
+                {
+                    var contents = _innerWriter.GetStringBuilder().ToString().TrimEnd();
+                    if (contents.Length != _innerWriter.GetStringBuilder().Length)
+                    {
+                        _innerWriter.GetStringBuilder().Remove(contents.Length, _innerWriter.GetStringBuilder().Length - contents.Length);
+                        var matches = _lineBreaksRegex.Matches(contents);
+                        if (matches.Count == 0) // it's a single line
+                        {
+                            _currentLine.Clear().Append(_innerWriter.GetStringBuilder().ToString());
+                        }
+                        else
+                        {
+                            int lastLineBreakPos = matches[matches.Count - 1].Index;
+                            int lastLineBreakEnd = matches[matches.Count - 1].Index + matches[matches.Count - 1].Length;
+                            int previousLineBreakEnd = matches.Count == 1 ? 0 : matches[matches.Count - 2].Index + matches[matches.Count - 2].Length;
+                            _currentLine.Clear().Append(_innerWriter.GetStringBuilder().ToString().Substring(previousLineBreakEnd));
+                        }
+
+                    }
+                    //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
+                }
+                else if (arg is TrimTrailingWhitespaceSymbol)
+                {
+                    _trimWhileWhitespace = true;
                 }
                 else
                     throw new NotImplementedException();

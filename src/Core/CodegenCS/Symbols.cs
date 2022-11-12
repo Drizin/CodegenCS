@@ -47,6 +47,33 @@ namespace CodegenCS
             return falsePart;
         }
 
+        /// <summary>
+        /// Comments will be ignored
+        /// </summary>
+        /// <param name="comment"></param>
+        /// <returns></returns>
+        public static string COMMENT(string comment) => "";
+
+        /// <summary>
+        /// Trims Leading Whitespace:
+        /// All previous whitespace (including linebreaks) will be removed.
+        /// This means that this command will "backspace until it finds a non-whitespace character" (which is usually in previous lines)
+        /// 
+        /// Usually this is used before an IF block when (for code clarity) there are linebreak(s) before the IF
+        /// but you don't want those linebreak(s) to appear (usually because you'll have a linebreak INSIDE the IF)
+        /// </summary>
+        public static TrimLeadingWhitespaceSymbol TLW => new TrimLeadingWhitespaceSymbol();
+
+        /// <summary>
+        /// Trims Trailing Whitespace:
+        /// All subsequent whitespace (including linebreaks) will be removed (ignored).
+        /// This means that this command will "backspace until the end of the previous line".
+        /// </summary>
+        /// <returns></returns>
+        public static TrimTrailingWhitespaceSymbol TTW => new TrimTrailingWhitespaceSymbol();
+
+
+
         //TODO: Add something like $"{TWS}" (trim whitespace) that would behave like Jinja templates:
         //https://stackoverflow.com/questions/45719062/jinja-docx-template-avoiding-new-line-in-nested-for
         //https://ttl255.com/jinja2-tutorial-part-3-whitespace-control/
