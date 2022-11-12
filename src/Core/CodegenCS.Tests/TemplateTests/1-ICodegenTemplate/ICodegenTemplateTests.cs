@@ -11,12 +11,12 @@ class MyPocoTemplate : ICodegenTemplate<Table>
 {
     public void Render(ICodegenTextWriter writer, Table model)
     {
-        writer.Write($@"
+        writer.Write($$"""
                 /// <summary>
-                /// POCO for {model.TableName}
+                /// POCO for {{model.TableName}}
                 /// </summary>
-            ");
-        writer.WithCurlyBraces($"public class {model.TableName}", (w) =>
+                """);
+        writer.WithCurlyBraces($$"""public class {{model.TableName}}""", (w) =>
         {
             foreach (var column in model.Columns)
             {

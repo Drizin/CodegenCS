@@ -31,6 +31,6 @@
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="CodegenCS.TemplateBuilder" Path="|CodegenCS.TemplateBuilder|" AssemblyName="|CodegenCS.TemplateBuilder;AssemblyName|" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="..\..\Core\CodegenCS\bin\Debug\net472\Newtonsoft.Json.dll" AssemblyName="Newtonsoft.Json, Version=13.0.1.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="..\..\Core\CodegenCS\bin\Debug\net472\NJsonSchema.dll" AssemblyName="NJsonSchema, Version=10.8.0.0, Culture=neutral, PublicKeyToken=c2f9c3bdfae56102" />
-        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="..\..\Core\CodegenCS\bin\Debug\net472\Namotion.Reflection.dll" AssemblyName="Namotion.Reflection, Version=2.0.3.0, Culture=neutral, PublicKeyToken=c2f9c3bdfae56102" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="..\..\Core\CodegenCS\bin\Debug\net472\Namotion.Reflection.dll" AssemblyName="Namotion.Reflection, Version=2.1.0.0, Culture=neutral, PublicKeyToken=c2f9c3bdfae56102" />
   </Assets>
 </PackageManifest>

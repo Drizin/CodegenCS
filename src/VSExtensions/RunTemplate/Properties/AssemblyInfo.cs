@@ -46,6 +46,7 @@ using System.Runtime.InteropServices;
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "NSwag.Core", NewVersion = "13.17.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "13.17.0.0", PublicKeyToken = "c2d88086e098d109")]
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "NSwag.Core.Yaml", NewVersion = "13.17.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "13.17.0.0", PublicKeyToken = "c2d88086e098d109")]
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "NJsonSchema", NewVersion = "10.8.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "10.8.0.0", PublicKeyToken = "c2f9c3bdfae56102")]
+[assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "Namotion.Reflection", NewVersion = "2.1.0.0", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "2.1.0.0", PublicKeyToken = "c2f9c3bdfae56102")]
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "System.CommandLine", NewVersion = "42.42.42.42", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "42.42.42.42")]
 [assembly: Microsoft.VisualStudio.Shell.ProvideBindingRedirection(AssemblyName = "System.CommandLine.NamingConventionBinder", NewVersion = "42.42.42.42", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "42.42.42.42")]
 

@@ -569,23 +569,23 @@ namespace CodegenCS.TemplateLauncher
                 return -1;
             }
 
-            int savedFiles = _ctx.SaveFiles(_outputFolder);
+            var savedFiles = _ctx.SaveFiles(_outputFolder).SavedFiles;
 
-            if (savedFiles == 0)
+            if (savedFiles.Count == 0)
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Yellow, $"No files were generated");
             }
-            else if (savedFiles == 1)
+            else if (savedFiles.Count == 1)
             {
-                await _logger.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles}{PREVIOUS_COLOR} file: {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\{_ctx.OutputFilesPaths.Single()}'{PREVIOUS_COLOR}");
+                await _logger.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles.Count}{PREVIOUS_COLOR} file: {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\{_ctx.OutputFilesPaths.Single()}'{PREVIOUS_COLOR}");
             }
             else
             {
-                await _logger.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles}{PREVIOUS_COLOR} files at folder {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\'{PREVIOUS_COLOR}{(VerboseMode ? ":" : "")}");
+                await _logger.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles.Count}{PREVIOUS_COLOR} files at folder {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\'{PREVIOUS_COLOR}{(VerboseMode ? ":" : "")}");
                 if (VerboseMode)
                 {
-                    foreach (var f in _ctx.OutputFiles)
-                        await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"    {Path.Combine(_outputFolder, f.RelativePath)}");
+                    foreach (var f in savedFiles)
+                        await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"    {f}");
                     await _logger.WriteLineAsync();
                 }
             }

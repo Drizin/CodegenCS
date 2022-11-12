@@ -1,4 +1,5 @@
 ﻿using CodegenCS.Models.DbSchema;
+using CodegenCS.Runtime;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
@@ -73,6 +74,7 @@ internal class BaseTest
             },
             new TodoItem("Mow the lawn")
         };
+    protected TodoItem[] emptyTodoList = new TodoItem[0];
     #endregion
 
     #endregion

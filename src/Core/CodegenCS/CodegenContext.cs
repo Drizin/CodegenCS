@@ -131,62 +131,6 @@ namespace CodegenCS
         }
         #endregion
 
-        //TODO: protected IPersistenceProvider PersistenceProvider { get; protected set; } = new DiskPersistenceProvider()
-        #region I/O
-        /// <inheritdoc/>
-        public virtual int SaveFiles(string outputFolder)
-        {
-            if (this.Errors.Any())
-                throw new Exception(this.Errors.First());
-
-            outputFolder = new DirectoryInfo(outputFolder).FullName;
-            foreach (var f in this._outputFiles)
-            {
-                if (string.IsNullOrEmpty(f.Value.RelativePath) && f.Value.Equals(_defaultOutputFile))
-                    throw new Exception($"{nameof(DefaultOutputFile.RelativePath)} was not defined for {nameof(DefaultOutputFile)}");
-                else if (string.IsNullOrEmpty(f.Value.RelativePath))
-                    throw new Exception($"{nameof(DefaultOutputFile.RelativePath)} was not defined for {nameof(ICodegenOutputFile)}");
-                string absolutePath = Path.Combine(outputFolder, f.Value.RelativePath);
-                f.Value.SaveToFile(absolutePath);
-            }
-            return this._outputFiles.Count;
-        }
-        /// <summary>
-        /// Saves all files in the current directory. <br />
-        /// According to the RelativePath of each file they may be saved in different folders
-        /// </summary>
-        public virtual void SaveFiles()
-        {
-            SaveFiles(Environment.CurrentDirectory);
-        }
-
-        /// <summary>
-        /// After calling SaveFiles() you may decide to clean-up the Outputfolder (assuming it only has code-generation output). <br />
-        /// This returns all files which are in the Outputfolder (and subfolders) and which were NOT generated as part of this Context. <br />
-        /// Beware that files which are deleted using File.Delete do NOT get moved to Recycle bin.
-        /// </summary>
-        /// <returns></returns>
-        public List<string> GetUnknownFiles(string outputFolder)
-        {
-            var files = new DirectoryInfo(outputFolder).GetFiles("*.*", SearchOption.AllDirectories);
-            outputFolder = new DirectoryInfo(outputFolder).FullName;
-            var outputFilesAbsolutePaths = _outputFiles.Values.ToDictionary(v => Path.Combine(outputFolder, v.RelativePath), v => v);
-            var generatedFiles = outputFilesAbsolutePaths.Keys.Select(p => p.ToLower()).ToList();
-            List<string> unknownFiles = new List<string>();
-
-            if (!generatedFiles.Any())
-                return unknownFiles;
-
-            foreach (var file in files)
-            {
-                if (!generatedFiles.Contains(file.FullName.ToLower()))
-                    unknownFiles.Add(file.FullName);
-            }
-            return unknownFiles;
-        }
-
-        #endregion
-
         #region Dependency Injection Container
         /// <summary>
         /// Creates an instance of a dependency <typeparamref name="T"/> (usually a Template) and (if constructor needs) it injects ICodegenContext or ICodegenTextWriter

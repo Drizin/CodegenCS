@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using static CodegenCS.Utils.TypeUtils;
+using System.Globalization;
 
 namespace CodegenCS
 {
@@ -59,7 +60,7 @@ namespace CodegenCS
         /// Can be StreamWriter writing to a file; <br />
         /// Or can be an in-memory StringWriter.
         /// </summary>
-        protected readonly TextWriter _innerWriter;
+        protected readonly StringWriter _innerWriter;
 
         /// <summary>
         /// Identify all types of line-breaks
@@ -74,7 +75,10 @@ namespace CodegenCS
         /// <summary>
         /// How multi-line text blocks are adjusted
         /// </summary>
-        public MultilineBehaviorType MultilineBehavior { get; set; } = MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine;
+        [Obsolete("Please prefer Raw String Literals using $$\"\"\" text \"\"\" . Currently this property default to NONE (text is NOT adjusted)")]
+        public MultilineBehaviorType MultilineBehavior { get; set; } = MultilineBehaviorType.None; // TODO: deprecate
+
+        public CultureInfo CultureInfo { get; set; } = CultureInfo.InvariantCulture;
 
         /// <summary>
         /// How multi-line text blocks are adjusted
@@ -145,45 +149,23 @@ namespace CodegenCS
 
         #region ctors
         /// <summary>
-        /// New CodegenTextWriter writing to another (inner) textWriter
+        /// New CodegenTextWriter (using UTF-8 encoding). <br />
         /// </summary>
         /// <param name="textWriter">Inner TextWriter to write to</param>
-        public CodegenTextWriter(TextWriter textWriter)
+        public CodegenTextWriter(StringWriter textWriter)
         {
             _innerWriter = textWriter;
-            _encoding = textWriter.Encoding;
+            _encoding = _innerWriter.Encoding;
             _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
             _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
             _dependencyContainer.RegisterSingleton<TextWriter>(() => this);
         }
 
         /// <summary>
-        /// New CodegenTextWriter writing to an in-memory StringWriter (using UTF-8 encoding). <br />
-        /// You may choose when to save this file.
+        /// New CodegenTextWriter writing to an in-memory StringWriter
         /// </summary>
         public CodegenTextWriter() : this(new StringWriter())
         {
-            _encoding = Encoding.UTF8;
-        }
-
-        /// <summary>
-        /// New CodegenTextWriter writing directly to a file. <br />
-        /// Default encoding is UTF-8.
-        /// </summary>
-        /// <param name="filePath">Target file</param>
-        public CodegenTextWriter(string filePath) : this(new StreamWriter(filePath))
-        {
-            _encoding = Encoding.UTF8;
-        }
-
-        /// <summary>
-        /// New CodegenTextWriter writing directly to a file. 
-        /// </summary>
-        /// <param name="filePath">Target file</param>
-        /// <param name="encoding">Encoding</param>
-        public CodegenTextWriter(string filePath, Encoding encoding) : this(new StreamWriter(filePath, append: false, encoding: encoding))
-        {
-            _encoding = encoding;
         }
         #endregion
 
@@ -383,19 +365,17 @@ namespace CodegenCS
         /// e.g. one block may have "    " (4 spaces), while other may have "-- " (SQL line-comment), etc.
         /// </summary>
         protected Stack<IControlFlowSymbol> _controlFlowSymbols = new Stack<IControlFlowSymbol>();
-        
+
         /// <summary>
         /// Returns true if there's no IF/ELSE block open, or if the current block is "active" (should NOT be discarded according to the IF clauses in the stack)
         /// </summary>
-        protected bool IsControlBlockActive //TODO: is this hurting performance? we can update a variable when pushing/popping into _controlFlowSymbols
+        protected bool IsControlBlockActive { get; private set; } = true;
+        protected void RefreshControlBlockActiveStatus()
         { 
-            get 
-            {
-                return _controlFlowSymbols.All(s =>
-                    (s is IfSymbol && ((IfSymbol)s).IfConditionValue == true) ||
-                    (s is ElseSymbol && ((ElseSymbol)s).IfConditionValue == false)
-                );
-            }
+            IsControlBlockActive = _controlFlowSymbols.All(s =>
+                (s is IfSymbol && ((IfSymbol)s).IfConditionValue == true) ||
+                (s is ElseSymbol && ((ElseSymbol)s).IfConditionValue == false)
+            );
         }
         #endregion
 
@@ -619,7 +599,7 @@ namespace CodegenCS
         /// <summary>
         /// Writes a new line
         /// </summary>
-        /// <param name="newLine">Allows any newLine character (\r, \r\n, \n). If not defined will use default <see cref="NewLine"/> property </param>
+        /// <param name="newLine">Any newLine character (\r, \r\n, \n). If not defined will use default <see cref="NewLine"/> property </param>
         protected void InnerWriteNewLine(string newLine = null)
         {
             InnerWriteRaw(newLine ?? this.NewLine);
@@ -694,7 +674,7 @@ namespace CodegenCS
         /// this method will "save" current cursor position and the subsequent lines (after the first) will "preserve" the cursor position by prepending this manual indentation. <br />
         /// In other words, this will capture manually-written whitespace indentation (those whice are not yet tracked by the automatic indentation), and will consider this manual indentation and preserve it in subsequent lines.
         /// </summary>
-        protected void InnerInlineAction(Action inlineAction)
+        protected void InnerInlineAction(Action action)
         {
             string indent = _currentLine.ToString();
             if (indent != null && indent.Length > 0 && string.IsNullOrWhiteSpace(indent))
@@ -705,24 +685,13 @@ namespace CodegenCS
                 _levelIndent.Push(indent);
                 _dontIndentCurrentLine = true;
                 _currentLine.Clear();
-                inlineAction();
+                action();
                 _levelIndent.Pop(); // TODO: if there were no linebreaks written we should restore currentLine - levelIndent should be a class to keep track of more context
             }
             else
             {
-                inlineAction();
+                action();
             }
-        }
-
-        /// <summary>
-        /// Invokes an inline action (which may reference current ICodegenTextWriter and write to it) <br />
-        /// If the action writes multiple lines and current line has some manually-written whitespace, <br />
-        /// this method will "save" current cursor position and the subsequent lines (after the first) will "preserve" the cursor position by prepending this manual indentation. <br />
-        /// In other words, this will capture manually-written whitespace indentation (those whice are not yet tracked by the automatic indentation), and will consider this manual indentation and preserve it in subsequent lines.
-        /// </summary>
-        protected void ExecuteInlineAction(Action<ICodegenTextWriter> inlineAction)
-        {
-            InnerInlineAction(() => inlineAction(this));
         }
         #endregion
 
@@ -737,11 +706,13 @@ namespace CodegenCS
             );
         /// <summary>
         /// All public Write methods pass through this method <br />.
-        /// This method splits an interpolated string and writes block by block, doing lazy-evaluation of arguments <br />
+        /// This method splits an interpolated string and writes block by block, doing smart-evaluation of arguments <br />
         /// In the interpolated strings we can mix literals and variables (like any interpolated string), but also Func/Action delegates, which are evaluated only during the rendering. <br />
         /// One advantage of passing delegates (Func&lt;FormattableString&gt;, Func&lt;string&gt;, Action, Action&lt;ICodegenTextWriter&gt; ) as {arguments} <br />
         /// is that we do NOT evaluate those arguments BEFORE the outer string is being written - they are only evaluated when needed <br />
-        /// so we can capture the cursor position in current line, and preserve it if the arguments render multi-line strings
+        /// so we can capture the cursor position in current line, and preserve it if the arguments render multi-line strings.
+        /// Any interpolated object should work fine (should keep cursor position), except for interpolated strings which are returned as string type - this is the only
+        /// case where CodegenTextWriter loses the structured information (placeholder positions).
         /// </summary>
         protected void InnerWriteFormattable(string format, params object[] arguments)
         {
@@ -779,6 +750,44 @@ namespace CodegenCS
                 return; 
 
             Type[] interfaceTypes = arg.GetType().GetInterfaces();
+
+            #region if arg is IControlFlowSymbol
+            if (arg is IControlFlowSymbol)
+            {
+                if (arg is IfSymbol)
+                {
+                    _controlFlowSymbols.Push((IControlFlowSymbol)arg); // just push IF with the condition-value
+                    RefreshControlBlockActiveStatus();
+                }
+                else if (arg is ElseSymbol) // pop the previous IF and push the new ELSE with the previous IF condition-value
+                {
+                    if (!_controlFlowSymbols.Any())
+                        throw new UnbalancedIfsException();
+                    IControlFlowSymbol previousSymbol = _controlFlowSymbols.Pop();
+                    if (!(previousSymbol is IfSymbol))
+                        throw new UnbalancedIfsException();
+                    _controlFlowSymbols.Push(new ElseSymbol(((IfSymbol)previousSymbol).IfConditionValue));
+                    RefreshControlBlockActiveStatus();
+                }
+                else if (arg is EndIfSymbol)
+                {
+                    if (!_controlFlowSymbols.Any())
+                        throw new UnbalancedIfsException();
+                    IControlFlowSymbol previousSymbol = _controlFlowSymbols.Pop();
+                    if (!(previousSymbol is IfSymbol) && !(previousSymbol is ElseSymbol))
+                        throw new UnbalancedIfsException();
+                    RefreshControlBlockActiveStatus();
+                }
+                else
+                    throw new NotImplementedException();
+                return;
+            }
+            #endregion
+
+            // If we're inside an INACTIVE block of IF/ELSE (contents will be discarded according to the IF clauses in the stack) we can just skip until we find another IControlFlowSymbol
+            if (!IsControlBlockActive)
+                return;
+
 
             #region If Action delegate was wrapped using DelegateExtensions.WithArguments (that allow to specify specific args), resolve missing args (inject) and evaluate delegate.
             {
@@ -852,15 +861,21 @@ namespace CodegenCS
                         funcInvokeMethodArgs[i] = funcInvokeMethodArgs[i] ?? this.ResolveDependency(genericTypes[i]);
                     }
 
-                    arg = funcInvokeMethod.Invoke(wrappedFunc, funcInvokeMethodArgs); // let the resulting type be processed later
-                    interfaceTypes = arg.GetType().GetInterfaces();
+                    InnerInlineAction(() =>
+                    {
+                        // Func may write directly to the current writer (despite the results it returns), that's why we run inside InnerInlineAction block
+                        // Then we recurse (evaluate the results, whatever type it is) - recursion allows usage of Func<Func>
+                        var evaluatedArg = funcInvokeMethod.Invoke(wrappedFunc, funcInvokeMethodArgs);
+                        InnerWriteFormattableArgument(evaluatedArg, format);
+                    });
+                    return;
                 }
             }
             #endregion
 
             #region If arg is Func<> invoke it (unwrap it). If it requires arguments (Func<T, TResult> or Func<T1, T2, TResult>, etc) try to resolve and inject them
-            if (IsAssignableToGenericType(arg.GetType(), typeof(Func<>)) || 
-                IsAssignableToGenericType(arg.GetType(), typeof(Func<,>)) || 
+            if (IsAssignableToGenericType(arg.GetType(), typeof(Func<>)) ||
+                IsAssignableToGenericType(arg.GetType(), typeof(Func<,>)) ||
                 IsAssignableToGenericType(arg.GetType(), typeof(Func<,,>)) ||
                 IsAssignableToGenericType(arg.GetType(), typeof(Func<,,,>)) ||
                 IsAssignableToGenericType(arg.GetType(), typeof(Func<,,,,>)))
@@ -888,14 +903,20 @@ namespace CodegenCS
                     case 16: genericFunc = typeof(Func<,,,,,,,,,,,,,,,,>).MakeGenericType(genericTypes); break;
                     default: throw new NotImplementedException("Func<> can't receive more than 16 arguments"); // 16 inputs and 1 TResult
                 }
-                
+
                 var func = genericFunc.GetMethod("Invoke");
                 var funcAction = arg;
                 var funcArgs = new object[genericTypes.Length - 1]; // -1 because the return type is not passed to the Func
                 for (int i = 0; i < genericTypes.Length - 1; i++)
                     funcArgs[i] = this.ResolveDependency(genericTypes[i]);
-                arg = func.Invoke(arg, funcArgs); // let the resulting type be processed later
-                interfaceTypes = arg.GetType().GetInterfaces();
+                InnerInlineAction(() =>
+                {
+                    // Func may write directly to the current writer (despite the results it returns), that's why we run inside InnerInlineAction block
+                    // Then we recurse (evaluate the results, whatever type it is) - recursion allows usage of Func<Func>
+                    var evaluatedArg = func.Invoke(arg, funcArgs);
+                    InnerWriteFormattableArgument(evaluatedArg, format); // process the resulting type
+                });
+                return;
             }
             #endregion
 
@@ -953,7 +974,7 @@ namespace CodegenCS
             #endregion
 
 
-            #region if arg is string (most common case)
+            #region if arg is regular string (regular string variable interpolated within another string)
             if (arg as string != null)
             {
                 InnerInlineAction(() =>
@@ -965,7 +986,7 @@ namespace CodegenCS
             }
             #endregion
 
-            #region if arg is FormattableString
+            #region if arg is FormattableString - we have to preserve the structure (placeholders positions and objects)
             if (arg as FormattableString != null)
             {
                 InnerInlineAction(() =>
@@ -977,14 +998,13 @@ namespace CodegenCS
             }
             #endregion
 
-            #region if arg is IFormattable
+            #region if arg is IFormattable (Dates, integers, etc. All will be rendered according to current writer's culture).
             if (arg is IFormattable)
             {
-                InnerWrite(((IFormattable)arg).ToString(format, System.Globalization.CultureInfo.InvariantCulture));
+                InnerWrite(((IFormattable)arg).ToString(format, this.CultureInfo));
                 return;
             }
             #endregion
-
             #region If IEnumerable<T> was wrapped using IEnumerableExtensions.Render (that allow to specify custom EnumerableRenderOptions), unwrap.
             RenderEnumerableOptions enumerableRenderOptions = this.DefaultIEnumerableRenderOptions; // by default uses the CodegenTextWriter setting, but it may be overriden in the wrapper
 
@@ -1065,10 +1085,11 @@ namespace CodegenCS
                     System.Collections.IEnumerable list = (System.Collections.IEnumerable)arg;
                     bool addMiddleSeparator = false;
                     bool previousItemWroteMultilines = false;
+                    int items = 0;
                     foreach (var item in list)
                     {
                         if (addMiddleSeparator)
-                            WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: false, previousItemWroteMultilines: previousItemWroteMultilines);
+                            WriteIEnumerableItemSeparator(enumerableRenderOptions, enumerableRenderOptions.BetweenItemsBehavior, previousItemWroteMultilines: previousItemWroteMultilines);
 
                         if (ienumerableCallbackActionMethod != null) // if there's a specific action to be executed for each item
                         {
@@ -1085,17 +1106,20 @@ namespace CodegenCS
                         {
                             InnerWriteFormattableArgument(item, "");
                         }
+                        items++;
                         addMiddleSeparator = true;
                         string previousItem = this._innerWriter.ToString().Substring(previousPos); 
                         previousItemWroteMultilines = _lineBreaksRegex.Split(previousItem.Trim()).Length > 1; // at least 1 line break inside the rendered item
                         previousPos = this._innerWriter.ToString().Length;
                     }
-                    WriteIEnumerableItemSeparator(enumerableRenderOptions, isLastItem: true, previousItemWroteMultilines);
+                    if (items > 0) // write according to AfterLastItemBehavior
+                        WriteIEnumerableItemSeparator(enumerableRenderOptions, enumerableRenderOptions.AfterLastItemBehavior, previousItemWroteMultilines);
+                    else
+                        WriteIEnumerableItemSeparator(enumerableRenderOptions, enumerableRenderOptions.EmptyListBehavior, previousItemWroteMultilines);
                 });
                 return;
             }
             #endregion
-
 
             #region if arg is some Embedded Template (embedded using Template.Load<TemplateType>.Render<TModel>(model) - which creates a lazy-renderable IEmbeddedTemplateWithModel)
             if (typeof(__Hidden_IContextedTemplateWithModelWrapper).IsAssignableFrom(arg.GetType()))
@@ -1149,35 +1173,6 @@ namespace CodegenCS
             }
             #endregion
 
-            #region if arg is IControlFlowSymbol
-            if (arg is IControlFlowSymbol)
-            {
-                if (arg is IfSymbol)
-                    _controlFlowSymbols.Push((IControlFlowSymbol)arg); // just push IF with the condition-value
-                else if (arg is ElseSymbol) // pop the previous IF and push the new ELSE with the previous IF condition-value
-                {
-                    if (!_controlFlowSymbols.Any())
-                        throw new UnbalancedIfsException();
-                    IControlFlowSymbol previousSymbol = _controlFlowSymbols.Pop();
-                    if (!(previousSymbol is IfSymbol))
-                        throw new UnbalancedIfsException();
-                    _controlFlowSymbols.Push(new ElseSymbol(((IfSymbol)previousSymbol).IfConditionValue));
-                }
-                else if (arg is EndIfSymbol)
-                {
-                    if (!_controlFlowSymbols.Any())
-                        throw new UnbalancedIfsException();
-                    IControlFlowSymbol previousSymbol = _controlFlowSymbols.Pop();
-                    if (!(previousSymbol is IfSymbol) && !(previousSymbol is ElseSymbol))
-                        throw new UnbalancedIfsException();
-                }
-                else
-                    throw new NotImplementedException();
-                return;
-            }
-            #endregion
-
-
             #region else, just try ToString()
             InnerInlineAction(() =>
             {
@@ -1186,9 +1181,8 @@ namespace CodegenCS
             #endregion
 
         }
-        private void WriteIEnumerableItemSeparator(RenderEnumerableOptions options, bool isLastItem, bool previousItemWroteMultilines)
+        private void WriteIEnumerableItemSeparator(RenderEnumerableOptions options, ItemsSeparatorBehavior behavior, bool previousItemWroteMultilines)
         {
-            var behavior = (isLastItem) ? options.AfterLastItemBehavior : options.BetweenItemsBehavior;
             switch(behavior)
             {
                 case ItemsSeparatorBehavior.WriteLineBreak:
@@ -1211,6 +1205,18 @@ namespace CodegenCS
                     break;
                 case ItemsSeparatorBehavior.WriteCustomSeparator:
                     InnerWrite(options.CustomSeparator);
+                    break;
+                case ItemsSeparatorBehavior.RemoveLastLine:
+                    this.RemoveLastLine();
+                    break;
+                case ItemsSeparatorBehavior.RemoveLastLineIfWhitespaceOnly:
+                    this.RemoveLastLine(onlyIfAllWhitespace: true);
+                    break;
+                case ItemsSeparatorBehavior.ClearLastLine:
+                    this.ClearLastLine();
+                    break;
+                case ItemsSeparatorBehavior.ClearLastLineIfWhitespaceOnly:
+                    this.ClearLastLine(onlyIfAllWhitespace: true);
                     break;
                 case ItemsSeparatorBehavior.None:
                     break;
@@ -1397,27 +1403,50 @@ namespace CodegenCS
         }
         #endregion
 
-        #region I/O (SaveToFile, GetContents, DebuggerDisplay)
-        /// <summary>
-        /// Writes current content (assuming it was in-memory writer) to a new file. If the target file already exists, it is overwritten. <br />
-        /// </summary>
-        /// <param name="path">Absolute path</param>
-        /// <param name="createFolder">If this is true (default is true) and target folder does not exist, it will be created</param>
-        public void SaveToFile(string path, bool createFolder = true)
+        #region Text Manipulation
+        public void RemoveLastLine(bool onlyIfAllWhitespace = false)
         {
-            FileInfo fi = new FileInfo(path);
-            if (createFolder)
+            var contents = _innerWriter.GetStringBuilder().ToString();
+            var matches = _lineBreaksRegex.Matches(contents);
+            if (matches.Count == 0) // it's still a single line
             {
-                string folder = fi.Directory.FullName;
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
+                if (onlyIfAllWhitespace && _innerWriter.ToString().Trim() != "")
+                    return;
+                _innerWriter.GetStringBuilder().Clear();
+                _currentLine.Clear();
+                return;
             }
-            // If file exists with different case, delete to overwrite
-            if (fi.Exists && new DirectoryInfo(fi.Directory.FullName).GetFiles(fi.Name).Single().Name != fi.Name)
-                fi.Delete();
-            File.WriteAllText(fi.FullName, GetContents(), Encoding);
+            int lastLineBreakPos = matches[matches.Count - 1].Index;
+            int lastLineBreakEnd = matches[matches.Count - 1].Index + matches[matches.Count - 1].Length;
+            if (onlyIfAllWhitespace && _innerWriter.ToString().Substring(lastLineBreakEnd).Trim() != "")
+                return;
+            _innerWriter.GetStringBuilder().Remove(lastLineBreakPos, contents.Length - lastLineBreakPos);
+            int previousLineBreakEnd = matches.Count == 1 ? 0 : matches[matches.Count - 2].Index + matches[matches.Count - 2].Length;
+            _currentLine.Clear().Append(_innerWriter.GetStringBuilder().ToString().Substring(previousLineBreakEnd));
+            //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
         }
+        public void ClearLastLine(bool onlyIfAllWhitespace = false)
+        {
+            var contents = _innerWriter.GetStringBuilder().ToString();
+            var matches = _lineBreaksRegex.Matches(contents);
+            if (matches.Count == 0) // it's still a single line
+            {
+                if (onlyIfAllWhitespace && _innerWriter.ToString().Trim() != "")
+                    return;
+                _innerWriter.GetStringBuilder().Clear();
+                _currentLine.Clear();
+                return;
+            }
+            int lastLineBreakEnd = matches[matches.Count - 1].Index + matches[matches.Count - 1].Length;
+            if (onlyIfAllWhitespace && _innerWriter.ToString().Substring(lastLineBreakEnd).Trim() != "")
+                return;
+            _innerWriter.GetStringBuilder().Remove(lastLineBreakEnd, contents.Length - lastLineBreakEnd);
+            _currentLine.Clear();
+            //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
+        }
+        #endregion
 
+        #region Contents
         /// <summary>
         /// Get full contents of current Writer
         /// </summary>

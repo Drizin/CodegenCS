@@ -128,9 +128,10 @@ public namespace MyNamespace
         [Test]
         public void TestIEnumerable()
         {
-            _w.Write($@"
+            _w.Write($$"""
                 I have a LOT of things to do today:
-                    {todoList.Select(item => $"- {item.Description}").Render()}");
+                    {{todoList.Select(item => $"- {item.Description}").Render()}}
+                """);
             string expected = @"
 I have a LOT of things to do today:
     - Get milk
@@ -141,10 +142,31 @@ I have a LOT of things to do today:
         }
 
         [Test]
+        public void TestEmptyIEnumerable()
+        {
+            _w.Write($$"""
+                I have a LOT of things to do today:
+                    {{emptyTodoList.Select(item => $"- {item.Description}").Render()}}
+                """);
+            string expected = @"I have a LOT of things to do today:";
+
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        [Test]
         public void TestIEnumerable2()
         {
             _w.Write($@"I have a LOT of things to do today: {todoList.Select(item => $"{item.Description}").RenderAsSingleLineCSV()}");
             string expected = "I have a LOT of things to do today: Get milk, Clean the house, Mow the lawn";
+
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        [Test]
+        public void TestEmptyIEnumerable2()
+        {
+            _w.Write($@"I have a LOT of things to do today: {emptyTodoList.Select(item => $"{item.Description}").RenderAsSingleLineCSV()}");
+            string expected = "I have a LOT of things to do today: ";
 
             Assert.AreEqual(expected, _w.GetContents());
         }
@@ -212,6 +234,35 @@ namespace MyPocos
             Assert.AreEqual("{}", _w.GetContents());
         }
 
+
+        #region Text-Manipulation
+        [Test]
+        public void TestClearLastLine()
+        {
+            _w.Write($$"""
+                Line1
+                Line2
+                Line3
+                """);
+
+            Assert.AreEqual("Line1\r\nLine2\r\nLine3", _w.GetContents());
+            _w.ClearLastLine();
+            Assert.AreEqual("Line1\r\nLine2\r\n", _w.GetContents());
+        }
+        [Test]
+        public void TestRemoveLastLine()
+        {
+            _w.Write($$"""
+                Line1
+                Line2
+                Line3
+                """);
+
+            Assert.AreEqual("Line1\r\nLine2\r\nLine3", _w.GetContents());
+            _w.RemoveLastLine();
+            Assert.AreEqual("Line1\r\nLine2", _w.GetContents());
+        }
+        #endregion
     }
 
 }

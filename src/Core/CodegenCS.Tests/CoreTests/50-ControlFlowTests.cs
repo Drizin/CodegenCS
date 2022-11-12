@@ -124,14 +124,15 @@ namespace CodegenCS.Tests.CoreTests
         [TestCase(false)]
         public void IfWithLineBreaks(bool injectHttpClient)
         {
-            _w.Write($@"
+            _w.Write($$"""
                 public class MyApiClient
-                {{
-                    public MyApiClient({IF(injectHttpClient)}HttpClient httpClient{ENDIF})
-                    {{{IF(injectHttpClient)}
-                        _httpClient = httpClient;{ENDIF}
-                    }}
-                }}");
+                {
+                    public MyApiClient({{IF(injectHttpClient)}}HttpClient httpClient{{ENDIF}})
+                    {{{IF(injectHttpClient)}}
+                        _httpClient = httpClient;{{ENDIF}}
+                    }
+                }
+                """);
 
             string expected = null;
 
@@ -163,14 +164,15 @@ public class MyApiClient
         [TestCase(false, true)]
         public void NestedIfWithLineBreaks(bool generateConstructor, bool injectHttpClient)
         {
-            _w.Write($@"
-                {IF(generateConstructor)}public class MyApiClient
-                {{
-                    public MyApiClient({IF(injectHttpClient)}HttpClient httpClient{ENDIF})
-                    {{{IF(injectHttpClient)}
-                        _httpClient = httpClient;{ENDIF}
-                    }}
-                }}{ENDIF}");
+            _w.Write($$"""
+                {{IF(generateConstructor)}}public class MyApiClient
+                {
+                    public MyApiClient({{IF(injectHttpClient)}}HttpClient httpClient{{ENDIF}})
+                    {{{IF(injectHttpClient)}}
+                        _httpClient = httpClient;{{ENDIF}}
+                    }
+                }{{ENDIF}}
+                """);
 
             string expected = null;
 

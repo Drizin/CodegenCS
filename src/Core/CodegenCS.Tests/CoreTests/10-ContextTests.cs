@@ -1,4 +1,5 @@
 using CodegenCS;
+using CodegenCS.Runtime;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -118,7 +119,7 @@ namespace CodegenCS.Tests.CoreTests
 
             // Renaming DefaultOutputFile
             _ctx.DefaultOutputFile.RelativePath = "Renamed.cs";
-            Assert.AreEqual(1, _ctx.SaveFiles(tmpFolder));
+            Assert.AreEqual(1, _ctx.SaveFiles(tmpFolder).SavedFiles.Count());
         }
 
 

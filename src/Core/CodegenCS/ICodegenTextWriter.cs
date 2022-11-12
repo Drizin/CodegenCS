@@ -48,7 +48,6 @@ namespace CodegenCS
         ICodegenTextWriter Write(char[] buffer, int index, int count);
         ICodegenTextWriter WriteLine(char[] buffer);
         ICodegenTextWriter WriteLine(char[] buffer, int index, int count);
-        void SaveToFile(string path, bool createFolder = true);
         string GetContents();
         DependencyContainer DependencyContainer { get; }
         IDisposable WithCBlock(string beforeBlock = null); // obsolete

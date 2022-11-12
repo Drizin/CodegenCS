@@ -13,16 +13,8 @@ namespace CodegenCS
     {
         /// <summary>
         /// If your template finds any error you can just append the errors here in this list <br />
-        /// SaveFiles() does not work if there is any error.
         /// </summary>
         List<string> Errors { get; }
-
-        /// <summary>
-        /// Saves all files in the outputFolder. <br />
-        /// According to the RelativePath of each file they may be saved in different folders
-        /// </summary>
-        /// <param name="outputFolder">Can be absolute or relative</param>
-        int SaveFiles(string outputFolder);
 
         /// <summary>
         /// Paths of the Output files (as defined during creation using <see cref="this[string]"/> indexer)

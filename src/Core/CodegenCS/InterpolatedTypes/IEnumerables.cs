@@ -271,6 +271,12 @@ namespace CodegenCS
         /// </summary>
         public ItemsSeparatorBehavior AfterLastItemBehavior { get; set; } = ItemsSeparatorBehavior.EnsureLineBreakBeforeNextWrite;
 
+        /// <summary>
+        /// What is written (or deleted) if the list (IEnumerable) is empty.
+        /// Default value is <see cref="ItemsSeparatorBehavior.RemoveLastLineIfWhitespaceOnly"/>.
+        /// </summary>
+        public ItemsSeparatorBehavior EmptyListBehavior { get; set; } = ItemsSeparatorBehavior.RemoveLastLineIfWhitespaceOnly;
+
         public RenderEnumerableOptions()
         {
         }
@@ -280,6 +286,7 @@ namespace CodegenCS
             CustomSeparator = customSeparator,
             BetweenItemsBehavior = ItemsSeparatorBehavior.WriteCustomSeparator,
             AfterLastItemBehavior = enforceLineBreakAfterLastItem ? ItemsSeparatorBehavior.EnsureLineBreakBeforeNextWrite : ItemsSeparatorBehavior.None,
+            EmptyListBehavior = ItemsSeparatorBehavior.None,
         };
 
         #region Some predefined settings
@@ -372,6 +379,27 @@ namespace CodegenCS
         /// Don't write any separator after the item.
         /// </summary>
         None,
+
+        /// <summary>
+        /// Remove the last line (current line) completely (including the last linebreak)
+        /// </summary>
+        RemoveLastLine,
+
+        /// <summary>
+        /// Remove the last line (current line) completely (including the last linebreak) IF it's only whitespace
+        /// </summary>
+        RemoveLastLineIfWhitespaceOnly,
+
+
+        /// <summary>
+        /// Clears the last line (current line) but leaving the last linebreak (line remains empty)
+        /// </summary>
+        ClearLastLine,
+
+        /// <summary>
+        /// Clears the last line (current line) but leaving the last linebreak (line remains empty) IF it's only whitespace
+        /// </summary>
+        ClearLastLineIfWhitespaceOnly,
 
     }
     #endregion

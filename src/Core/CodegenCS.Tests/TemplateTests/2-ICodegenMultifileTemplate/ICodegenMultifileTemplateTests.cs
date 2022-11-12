@@ -49,16 +49,18 @@ class MyDbTemplate2 : ICodegenMultifileTemplate<DatabaseSchema>
             // Fluent API
             writer
                 .WriteLine("/// Copyright Rick Drizin (just kidding - this is MIT license - use however you like it!)")
-                .WriteLine($@"
+                .WriteLine($$"""
                     using System;
                     using System.IO;
-                    using System.Collections.Generic;")
+                    using System.Collections.Generic;
+                    """)
                 .WriteLine()
-                .Write($@"
+                .Write($$"""
                     namespace MyNamespace
-                    {{
-                        {Template.Load<MyPocoTemplate>().Render(table)}
-                    }}");
+                    {
+                        {{Template.Load<MyPocoTemplate>().Render(table)}}
+                    }
+                    """);
         }
     }
 }

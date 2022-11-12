@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace CodegenCS.Runtime
 {
-    internal class DebugOutputLogger : ILogger
+    public class DebugOutputLogger : ILogger
     {
         public Task WriteLineAsync()
         {

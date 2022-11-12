@@ -16,6 +16,8 @@ namespace CodegenCS.Tests.CoreTests
         {
             _w = new CodegenTextWriter();
             _w2 = new CodegenTextWriter();
+            _w.MultilineBehavior = CodegenTextWriter.MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine;
+            _w2.MultilineBehavior = CodegenTextWriter.MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine;
         }
 
 
@@ -68,6 +70,7 @@ namespace CodegenCS.Tests.CoreTests
         [Test]
         public void TestMultiline1()
         {
+            _w.MultilineBehavior = CodegenTextWriter.MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine;
             _w.WriteLine(@"
                 public void MyMethod1()
                 {
@@ -108,6 +111,7 @@ namespace CodegenCS.Tests.CoreTests
 
 
             // Using the legacy MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine
+            _w2.MultilineBehavior = CodegenTextWriter.MultilineBehaviorType.TrimLeftPaddingAndRemoveFirstEmptyLine;
             _w2.WriteLine(@"
                 public void MyMethod1()
                 {

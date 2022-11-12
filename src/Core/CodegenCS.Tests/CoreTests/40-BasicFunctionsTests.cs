@@ -154,6 +154,11 @@ Hello3
         #region Recursive FormattableString with IIF
         private FormattableString WriteToDoList(TodoItem item)
             => $$"""
+                - {{item.Description}}
+                    {{item.SubTasks.Select(item => WriteToDoList(item)).Render()}}
+                """;
+        private FormattableString WriteToDoListWithIIF(TodoItem item)
+            => $$"""
                 - {{item.Description}}{{IF(item.SubTasks.Any())}}
                     {{item.SubTasks.Select(item => WriteToDoList(item)).Render()}}{{ENDIF}}
                 """;
@@ -162,7 +167,26 @@ Hello3
         public void TestRecursiveFunction2()
         {
             _w.DefaultIEnumerableRenderOptions = RenderEnumerableOptions.LineBreaksWithoutSpacer; // since this is recursive there's no point in adding spacers .. just use regular linebreaks
+            //_w.DefaultIEnumerableRenderOptions.EmptyListBehavior = ItemsSeparatorBehavior.None; // since there's IIF we don't have to manually clear the empty line for an empty sublist
             _w.WriteLine(todoList.Select(item => WriteToDoList(item)));
+            string expected = @"- Get milk
+- Clean the house
+    - Living room
+    - Bathrooms
+        - Guest bathroom
+        - Family bathroom
+    - Bedroom
+- Mow the lawn
+";
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        [Test]
+        public void TestRecursiveFunction3()
+        {
+            _w.DefaultIEnumerableRenderOptions = RenderEnumerableOptions.LineBreaksWithoutSpacer; // since this is recursive there's no point in adding spacers .. just use regular linebreaks
+            //_w.DefaultIEnumerableRenderOptions.EmptyListBehavior = ItemsSeparatorBehavior.None; // since there's IIF we don't have to manually clear the empty line for an empty sublist
+            _w.WriteLine(todoList.Select(item => WriteToDoListWithIIF(item)));
             string expected = @"- Get milk
 - Clean the house
     - Living room
@@ -180,9 +204,10 @@ Hello3
         [Test]
         public void TestIEnumerable()
         {
-            _w.Write($@"
+            _w.Write($$"""
                 I have a LOT of things to do today:
-                    {todoList.Select(item => $"- {item.Description}").Render(new RenderEnumerableOptions() { BetweenItemsBehavior = ItemsSeparatorBehavior.WriteLineBreak })}");
+                    {{todoList.Select(item => $"- {item.Description}").Render(new RenderEnumerableOptions() { BetweenItemsBehavior = ItemsSeparatorBehavior.WriteLineBreak })}}
+                """);
             string expected = @"
 I have a LOT of things to do today:
     - Get milk
