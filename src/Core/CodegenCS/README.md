@@ -1001,21 +1001,10 @@ The [`dotnet-codegencs template build`](https://github.com/CodegenCS/CodegenCS/t
 But for a better development/debugging experience (IDE with intellisense) you should:
 -->
 - Create a C# Console project
-- Install the [NuGet package CodegenCS](https://www.nuget.org/packages/CodegenCS)
+- Install the [NuGet package CodegenCS.Core](https://www.nuget.org/packages/CodegenCS.Core)
 - Import namespace: `using CodegenCS`
 - Start using like examples below (or check out more examples in [unit tests](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS.Tests)).
 
-
-
-## Why write templates in C# instead of T4, Mustache, Razor Engine, etc?
-
-Templating Engines are usually good for end-users to write their templates (like Email templates), due to their sandboxed model, but what's better for a developer than a full-featured language?
-
-By using a full-featured language (C#) and a full featured IDE (Visual Studio or Visual Studio Code) we can write complex and reusable scripts, with strong-typing, intellisense, debugging support, etc.  
-We can use Dapper, Newtonsoft, and other amazing libraries.  
-Generating code with C# is much easier (and less ugly) than using T4 templates - easier to read, easier to write, easier to debug, easier to reuse.  
-
-In this [blog post](https://rdrizin.com/yet-another-code-generator/) I've explained why I've created this library, why T4 templates are difficult to use, and how I tried many other tools before deciding to write my own.
 
 ## Why should I use Raw String Literals? How does it compare to other approaches?
 
