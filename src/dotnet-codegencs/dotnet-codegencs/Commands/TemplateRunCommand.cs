@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Console = InterpolatedColorConsole.ColoredConsole;
 using static InterpolatedColorConsole.Symbols;
 using System.CommandLine.Invocation;
-using CodegenCS.Utils;
+using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using System.Reflection;
 using CodegenCS.Runtime;
 using ExecutionContext = CodegenCS.Runtime.ExecutionContext;
@@ -33,6 +33,8 @@ namespace CodegenCS.DotNetTool.Commands
         internal Command _command;
         internal int? buildResult = null;
         internal int? loadResult = null;
+        DependencyContainer _dependencyContainer;
+
 
         public TemplateRunCommand(Command fakeTemplateCommand = null)
         {
@@ -62,6 +64,7 @@ namespace CodegenCS.DotNetTool.Commands
                 _command = GetFakeRunCommand();
                 _command.AddCommand(fakeTemplateCommand);
             }
+            _dependencyContainer = new DependencyContainer().AddModelFactory();
         }
 
         public Command GetCommand(string commandName = "run")
@@ -206,7 +209,7 @@ namespace CodegenCS.DotNetTool.Commands
 
         public async Task<int> LoadTemplateAsync()
         {
-            _launcher ??= new TemplateLauncher.TemplateLauncher(_logger, _ctx, _verboseMode) { _originallyInvokedTemplateFile = _originallyInvokedTemplateFile };
+            _launcher ??= new TemplateLauncher.TemplateLauncher(_logger, _ctx, _dependencyContainer, _verboseMode) { _originallyInvokedTemplateFile = _originallyInvokedTemplateFile };
             var loadResult = await _launcher.LoadAsync(_templateFile.FullName);
             _expectedModels = (loadResult.Model1Type != null ? 1 : 0) + (loadResult.Model2Type != null ? 1 : 0);
             return loadResult.ReturnCode;
@@ -231,7 +234,7 @@ namespace CodegenCS.DotNetTool.Commands
 
                 if (_launcher == null) // is this possible? arriving here without LoadTemplateAsync
                 {
-                    _launcher ??= new TemplateLauncher.TemplateLauncher(_logger, _ctx, _verboseMode) { _originallyInvokedTemplateFile = _originallyInvokedTemplateFile};
+                    _launcher ??= new TemplateLauncher.TemplateLauncher(_logger, _ctx, _dependencyContainer, _verboseMode) { _originallyInvokedTemplateFile = _originallyInvokedTemplateFile};
                     var loadResult = await _launcher.LoadAsync(_templateFile.FullName);
                     return loadResult.ReturnCode;
                 }
@@ -248,12 +251,9 @@ namespace CodegenCS.DotNetTool.Commands
                     TemplateSpecificArguments = cliArgs.TemplateArgs,
                 };
 
-                var executionContext = new ExecutionContext(_templateFile.FullName);
-                var dependencyContainer = new DependencyContainer();
-                dependencyContainer.RegisterSingleton<ExecutionContext>(() => executionContext);
-                dependencyContainer.RegisterCustomTypeResolver(new CodegenCS.Runtime.AutoBindCommandLineArgsTypeResolver());
-                _ctx.DependencyContainer.ParentContainer = dependencyContainer;
 
+                var executionContext = new ExecutionContext(_templateFile.FullName);
+                _dependencyContainer.RegisterSingleton<ExecutionContext>(() => executionContext);
 
                 statusCode = await _launcher.ExecuteAsync(launcherArgs, parseResult);
 

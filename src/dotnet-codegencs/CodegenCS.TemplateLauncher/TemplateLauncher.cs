@@ -12,11 +12,9 @@ using System.CommandLine.Binding;
 using System.CommandLine.Invocation;
 using System.CommandLine.Help;
 using System.CommandLine.IO;
-using CodegenCS.Models.NSwagAdapter;
 using static CodegenCS.Utils.TypeUtils;
 using CodegenCS.Runtime;
 using CodegenCS.Models;
-using System.CommandLine.Parsing;
 
 namespace CodegenCS.TemplateLauncher
 {
@@ -41,13 +39,17 @@ namespace CodegenCS.TemplateLauncher
         public Func<BindingContext, HelpBuilder> HelpBuilderFactory = null;
         public delegate ParseResult ParseCliUsingCustomCommandDelegate(string filePath, Type model1Type, Type model2Type, DependencyContainer dependencyContainer, MethodInfo configureCommand, ParseResult parseResult);
         public ParseCliUsingCustomCommandDelegate ParseCliUsingCustomCommand = null;
-        protected IModelFactory _modelFactory = new ModelFactory(new List<IInputModelAdapter>() { new OpenApiDocumentAdapter() });
+        protected IModelFactory _modelFactory;
+        protected DependencyContainer _dependencyContainer;
 
-        public TemplateLauncher(ILogger logger, ICodegenContext ctx, bool verboseMode)
+        public TemplateLauncher(ILogger logger, ICodegenContext ctx, DependencyContainer parentDependencyContainer, bool verboseMode)
         {
             _logger = logger;
             _ctx = ctx;
             VerboseMode = verboseMode;
+            _dependencyContainer = new DependencyContainer().AddModelFactory();
+            _dependencyContainer.ParentContainer = parentDependencyContainer;
+            _modelFactory = _dependencyContainer.Resolve<IModelFactory>();
         }
 
         /// <summary>
@@ -333,13 +335,13 @@ namespace CodegenCS.TemplateLauncher
 
             _ctx.DefaultOutputFile.RelativePath = _defaultOutputFile;
 
-            var dependencyContainer = _ctx.DependencyContainer; // TODO: is this correct? maybe _ctx.DependencyContainer should inherit scope (services) from this one?
-            dependencyContainer.RegisterSingleton<ILogger>(_logger);
-            dependencyContainer.RegisterSingleton<IModelFactory>(_modelFactory);
+            _ctx.DependencyContainer.ParentContainer = _dependencyContainer;
+            
+            _dependencyContainer.RegisterSingleton<ILogger>(_logger);
 
             // CommandLineArgs can be injected in the template constructor (or in any dependency like "TemplateArgs" nested class), and will bring all command-line arguments that were not captured by dotnet-codegencs tool
             CommandLineArgs cliArgs = new CommandLineArgs(_args.TemplateSpecificArguments);
-            dependencyContainer.RegisterSingleton<CommandLineArgs>(cliArgs);
+            _dependencyContainer.RegisterSingleton<CommandLineArgs>(cliArgs);
 
 
 
@@ -367,7 +369,7 @@ namespace CodegenCS.TemplateLauncher
                 {
                     if (VerboseMode)
                         await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"Parsing command-line arguments to check if they match the options/args defined in ConfigureCommand()...");
-                    parseResult = ParseCliUsingCustomCommand(providedTemplateName, _model1Type, _model2Type, dependencyContainer, configureCommand, parseResult);
+                    parseResult = ParseCliUsingCustomCommand(providedTemplateName, _model1Type, _model2Type, _ctx.DependencyContainer, configureCommand, parseResult);
                 }
             }
             else
@@ -386,9 +388,9 @@ namespace CodegenCS.TemplateLauncher
             {
                 var invocationContext = new InvocationContext(parseResult);
                 bindingContext = invocationContext.BindingContext;
-                dependencyContainer.RegisterSingleton<ParseResult>(parseResult);
-                dependencyContainer.RegisterSingleton<InvocationContext>(invocationContext);
-                dependencyContainer.RegisterSingleton<BindingContext>(bindingContext);
+                _dependencyContainer.RegisterSingleton<ParseResult>(parseResult);
+                _dependencyContainer.RegisterSingleton<InvocationContext>(invocationContext);
+                _dependencyContainer.RegisterSingleton<BindingContext>(bindingContext);
             }
 
 
@@ -466,7 +468,7 @@ namespace CodegenCS.TemplateLauncher
                     }
                     await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} successfuly loaded from {ConsoleColor.White}'{_modelFiles[i].Name}'{PREVIOUS_COLOR}...");
                     modelArgs.Add(model);
-                    dependencyContainer.RegisterSingleton(modelType, model); // might be injected both in _entryPointClass ctor or _entryPointMethod args
+                    _dependencyContainer.RegisterSingleton(modelType, model); // might be injected both in _entryPointClass ctor or _entryPointMethod args
                 }
                 catch (Exception ex)
                 {
@@ -481,7 +483,7 @@ namespace CodegenCS.TemplateLauncher
             object instance = null;
             try
             {
-                instance = dependencyContainer.Resolve(_entryPointClass);
+                instance = _ctx.DependencyContainer.Resolve(_entryPointClass);
 
                 //TODO: if _args.TemplateSpecificArguments?.Any() == true && typeof(CommandLineArgs) wasn't injected into the previous Resolve() call:
                 // $"ERROR: There are unknown args but they couldn't be forwarded to the template because it doesn't define {ConsoleColor.Yellow}'ConfigureCommand(Command)'{PREVIOUS_COLOR} and doesn't take {ConsoleColor.White}CommandLineArgs{PREVIOUS_COLOR} in the constructor."
@@ -532,7 +534,7 @@ namespace CodegenCS.TemplateLauncher
                     var argTypes = _entryPointMethod.GetParameters().Select(p => p.ParameterType).ToArray();
                     object[] entryPointMethodArgs = new object[argTypes.Length];
                     for (int i = 0; i < argTypes.Length; i++)
-                        entryPointMethodArgs[i] = dependencyContainer.Resolve(argTypes[i]);
+                        entryPointMethodArgs[i] = _ctx.DependencyContainer.Resolve(argTypes[i]);
                     if (_entryPointMethod.ReturnType == typeof(FormattableString))
                     {
                         var fs = (FormattableString)_entryPointMethod.Invoke(instance, entryPointMethodArgs);

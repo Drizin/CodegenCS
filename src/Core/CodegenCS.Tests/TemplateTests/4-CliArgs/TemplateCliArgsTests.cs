@@ -1,4 +1,4 @@
-﻿using CodegenCS.Utils;
+﻿using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using NUnit.Framework;
 using System;
 using System.IO;
@@ -79,10 +79,8 @@ namespace CodegenCS.Tests.TemplateTests
 
             // Faking TemplateRunCommand, which also provides this context info
             var executionContext = new ExecutionContext(@"C:\FakeTemplate.csx");
-            var dependencyContainer = new DependencyContainer();
+            var dependencyContainer = new DependencyContainer().AddTestsConsole();
             dependencyContainer.RegisterSingleton<ExecutionContext>(() => executionContext);
-            dependencyContainer.RegisterCustomTypeResolver(new CodegenCS.Runtime.AutoBindCommandLineArgsTypeResolver());
-            _context.DependencyContainer.ParentContainer = dependencyContainer;
 
             _launcherArgs = new TemplateLauncherArgs()
             {
@@ -92,7 +90,7 @@ namespace CodegenCS.Tests.TemplateTests
                 DefaultOutputFile = Path.GetFileName(_tmpTemplateFile) + ".generated.cs",
                 TemplateSpecificArguments = templateArgs
             };
-            var launcher = new CodegenCS.TemplateLauncher.TemplateLauncher(_logger, _context, true);
+            var launcher = new TemplateLauncher.TemplateLauncher(_logger, _context, dependencyContainer, true);
 
             var loadResult = await launcher.LoadAsync(_builderArgs.Output);
 

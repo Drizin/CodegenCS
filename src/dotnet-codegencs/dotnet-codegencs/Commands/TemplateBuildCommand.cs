@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Console = InterpolatedColorConsole.ColoredConsole;
 using static InterpolatedColorConsole.Symbols;
+using CodegenCS.Runtime;
 
 namespace CodegenCS.DotNetTool.Commands
 {

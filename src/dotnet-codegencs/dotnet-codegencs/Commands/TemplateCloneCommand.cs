@@ -2,10 +2,11 @@
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 using System.CommandLine.Parsing;
-using System.Linq;
 using System.Threading.Tasks;
 using Console = InterpolatedColorConsole.ColoredConsole;
 using static InterpolatedColorConsole.Symbols;
+using CodegenCS.Runtime;
+using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 
 namespace CodegenCS.DotNetTool.Commands
 {
@@ -83,8 +84,11 @@ namespace CodegenCS.DotNetTool.Commands
                 if (builderResult.ReturnCode != 0)
                     return builderResult.ReturnCode;
 
+                var executionContext = new ExecutionContext(builderResult.TargetFile);
+                var dependencyContainer = new DependencyContainer().AddConsole();
+                dependencyContainer.RegisterSingleton<ExecutionContext>(() => executionContext);
 
-                var launcher = new TemplateLauncher.TemplateLauncher(logger, new CodegenContext(), verboseMode: false); //TODO: silent mode
+                var launcher = new TemplateLauncher.TemplateLauncher(logger, new CodegenContext(), dependencyContainer, verboseMode: false); //TODO: silent mode
                 var loadResult = await launcher.LoadAsync(builderResult.TargetFile);
 
                 if (loadResult.ReturnCode != 0)

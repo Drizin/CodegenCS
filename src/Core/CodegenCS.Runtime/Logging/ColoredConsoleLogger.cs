@@ -1,12 +1,10 @@
-﻿using CodegenCS.Runtime;
-using CodegenCS.Utils;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Console = InterpolatedColorConsole.ColoredConsole;
 
-namespace CodegenCS.DotNetTool
+namespace CodegenCS.Runtime
 {
-    internal class ColoredConsoleLogger : ILogger
+    public class ColoredConsoleLogger : ILogger
     {
         public Task WriteLineAsync()
         {
@@ -91,5 +89,6 @@ namespace CodegenCS.DotNetTool
             Console.WriteLineError(foregroundColor, backgroundColor, $"{value.ToString()}");
             return Task.CompletedTask;
         }
+
     }
 }

@@ -1,7 +1,8 @@
 ﻿using CodegenCS;
 using CodegenCS.DotNet;
 using CodegenCS.Runtime;
-using CodegenCS.Utils;
+using TemplateLauncher = CodegenCS.TemplateLauncher.TemplateLauncher;
+using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -164,12 +165,12 @@ namespace RunTemplate
                 DefaultOutputFile = defaultOutputFile,
             };
 
-            var dependencyContainer = new DependencyContainer();
+            var dependencyContainer = new DependencyContainer().AddModelFactory();
+
             dependencyContainer.RegisterSingleton<ExecutionContext>(() => _executionContext);
             dependencyContainer.RegisterSingleton<VSExecutionContext>(() => _executionContext as VSExecutionContext);
-            _codegenContext.DependencyContainer.ParentContainer = dependencyContainer;
 
-            var launcher = new CodegenCS.TemplateLauncher.TemplateLauncher(_logger, _codegenContext, verboseMode: false);
+            var launcher = new TemplateLauncher(_logger, _codegenContext, dependencyContainer, verboseMode: false);
 
             int statusCode;
             try

@@ -1,4 +1,4 @@
-﻿using CodegenCS.Utils;
+﻿using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using System;
 using System.CommandLine.Binding;
 using System.CommandLine.NamingConventionBinder;

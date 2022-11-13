@@ -1,6 +1,5 @@
 ﻿using CodegenCS;
 using CodegenCS.Runtime;
-using CodegenCS.Utils;
 using InterpolatedColorConsole.SpecialSymbols;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
