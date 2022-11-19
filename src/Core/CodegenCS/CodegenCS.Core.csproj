@@ -8,7 +8,7 @@
     <Description>Class Library and Toolkit for Code Generation using plain C#</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>3.0.1</Version>
+    <Version>3.1.0</Version>
     <DocumentationFile>CodegenCS.xml</DocumentationFile>
     <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

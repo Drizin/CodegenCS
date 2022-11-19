@@ -25,14 +25,16 @@ $msbuild = (
 
 Remove-Item -Recurse -Force -ErrorAction Ignore ".\packages-local"
 Remove-Item -Recurse -Force -ErrorAction Ignore "$env:HOMEDRIVE$env:HOMEPATH\.nuget\packages\codegencs"
-Remove-Item -Recurse -Force -ErrorAction Ignore "$env:HOMEDRIVE$env:HOMEPATH\.nuget\packages\codegencs.dbschema"
-Remove-Item -Recurse -Force -ErrorAction Ignore "$env:HOMEDRIVE$env:HOMEPATH\.nuget\packages\codegencs.models.dbschema"
+Remove-Item -Recurse -Force -ErrorAction Ignore "$env:HOMEDRIVE$env:HOMEPATH\.nuget\packages\codegencs.*"
 
 New-Item -ItemType Directory -Force -Path ".\packages-local"
 
 # when target frameworks are added/modified dotnet clean might fail and we may need to cleanup the old dependency tree
 Get-ChildItem $Path -Recurse | Where{$_.FullName -Match ".*\\obj\\.*project.assets.json$"} | Remove-Item
-dotnet clean 
+Get-ChildItem $Path -Recurse | Where{$_.FullName -CMatch ".*\\bin$" -and $_.PSIsContainer} | Remove-Item -Recurse -Force -ErrorAction Ignore
+Get-ChildItem $Path -Recurse | Where{$_.FullName -CMatch ".*\\obj$" -and $_.PSIsContainer} | Remove-Item -Recurse -Force -ErrorAction Ignore
+Get-ChildItem $Path -Recurse | Where{$_.FullName -Match ".*\.csproj$" -and $_.FullName -NotMatch ".*\\VSExtensions\\" } | ForEach { dotnet clean $_.FullName }
+#dotnet clean .\CodegenCS.sln
 
 git submodule init
 git pull --recurse-submodules
@@ -46,19 +48,6 @@ dotnet pack  /p:PackageVersion=2.0.0-codegencs
 copy artifacts\packages\Debug\Shipping\System.CommandLine.2.0.0-codegencs.nupkg ..\..\packages-local
 copy artifacts\packages\Debug\Shipping\System.CommandLine.NamingConventionBinder.2.0.0-codegencs.nupkg ..\..\packages-local
 cd ..\..\
-
-
-if ($configuration -eq "Release")
-{
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS\bin\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS\obj\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.Runtime\bin\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.Runtime\obj\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.Models\bin\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.Models\obj\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.DotNet\bin\
-    Remove-Item -Recurse -Force -ErrorAction Ignore  .\Core\CodegenCS.DotNet\obj\
-}
 
 
 # CodegenCS.Core + nupkg/snupkg
