@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using IOExtensions = global::CodegenCS.IO.Extensions;
 
 namespace CodegenCS
 {
@@ -129,6 +130,26 @@ namespace CodegenCS
                 return this._outputFiles[relativePath];
             }
         }
+        #endregion
+
+        #region I/O
+        /// <inheritdoc/>
+        [Obsolete("Please use CodegenCS.IO extension SaveToFolder()")]
+        public virtual IOExtensions.SaveFilesResult SaveFiles(string outputFolder)
+        {
+            return IOExtensions.SaveToFolder(this, outputFolder);
+        }
+
+        /// <summary>
+        /// Saves all files in the current directory. <br />
+        /// According to the RelativePath of each file they may be saved in different folders
+        /// </summary>
+        [Obsolete("Please use CodegenCS.IO extension SaveToFolder()")]
+        public virtual void SaveFiles()
+        {
+            SaveFiles(Environment.CurrentDirectory);
+        }
+
         #endregion
 
         #region Dependency Injection Container

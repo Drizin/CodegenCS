@@ -3,6 +3,7 @@ using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using IOExtensions = global::CodegenCS.IO.Extensions;
 
 namespace CodegenCS
 {
@@ -15,6 +16,14 @@ namespace CodegenCS
         /// If your template finds any error you can just append the errors here in this list <br />
         /// </summary>
         List<string> Errors { get; }
+
+        /// <summary>
+        /// Saves all files in the outputFolder. <br />
+        /// According to the RelativePath of each file they may be saved in different folders
+        /// </summary>
+        /// <param name="outputFolder">Can be absolute or relative</param>
+        [Obsolete("Please use CodegenCS.IO extension SaveToFolder()")]
+        IOExtensions.SaveFilesResult SaveFiles(string outputFolder);
 
         /// <summary>
         /// Paths of the Output files (as defined during creation using <see cref="this[string]"/> indexer)

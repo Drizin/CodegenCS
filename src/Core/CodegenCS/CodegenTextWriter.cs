@@ -11,6 +11,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using static CodegenCS.Utils.TypeUtils;
 using System.Globalization;
+using IOExtensions = global::CodegenCS.IO.Extensions;
+
 
 namespace CodegenCS
 {
@@ -1477,6 +1479,29 @@ namespace CodegenCS
             _innerWriter.GetStringBuilder().Remove(lastLineBreakEnd, contents.Length - lastLineBreakEnd);
             _currentLine.Clear();
             //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
+        }
+        #endregion
+
+        #region I/O (SaveToFile)
+        /// <summary>
+        /// Writes current content (assuming it was in-memory writer) to a new file. If the target file already exists, it is overwritten. <br />
+        /// </summary>
+        /// <param name="path">Absolute path</param>
+        /// <param name="createFolder">If this is true (default is true) and target folder does not exist, it will be created</param>
+        /// <param name="encoding">If not specified will save as UTF-8</param>
+        [Obsolete("Please use CodegenCS.IO extensions: ICodegenTextWriter.SaveToFile() or ICodegenOutputFile.SaveToFolder()")]
+        public void SaveToFile(string path, bool createFolder = true, Encoding encoding = null)
+        {
+            if (encoding == null)
+                encoding = Encoding.UTF8;
+            FileInfo fi = new FileInfo(path);
+            if (createFolder)
+            {
+                string folder = fi.Directory.FullName;
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+            }
+            IOExtensions.SaveToFile(GetContents(), fi.FullName, Encoding.UTF8);
         }
         #endregion
 

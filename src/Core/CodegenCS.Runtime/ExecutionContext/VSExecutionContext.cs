@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using IOUtils = CodegenCS.Utils.IOUtils;
 
 namespace CodegenCS.Runtime
 {
@@ -26,7 +27,7 @@ namespace CodegenCS.Runtime
         {
             ProjectPath = projectPath;
             SolutionPath = solutionPath;
-            TemplateRelativePath = Utils.IOUtils.MakeRelativePath(new FileInfo(this.ProjectPath).Directory.FullName + Path.DirectorySeparatorChar, this.TemplatePath);
+            TemplateRelativePath = IOUtils.MakeRelativePath(new FileInfo(this.ProjectPath).Directory.FullName + Path.DirectorySeparatorChar, this.TemplatePath);
         }
     }
 }

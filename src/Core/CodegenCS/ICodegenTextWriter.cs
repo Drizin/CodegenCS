@@ -53,6 +53,9 @@ namespace CodegenCS
         IDisposable WithCBlock(string beforeBlock = null); // obsolete
         IDisposable WithIndent(string beforeBlock = null, string afterBlock = null);
 
+        [Obsolete("Please use CodegenCS.IO extensions: ICodegenTextWriter.SaveToFile() or ICodegenOutputFile.SaveToFolder()")]
+        void SaveToFile(string path, bool createFolder = true, Encoding encoding = null);
+
         /// <summary>
         /// Loads any template by the Type.
         /// After loading don't forget to call Render() extensions (<see cref="IContextedTemplateWrapperExtensions.Render(IContextedTemplateWrapper{IBase0ModelTemplate, ICodegenContext})"/>)

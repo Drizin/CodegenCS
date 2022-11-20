@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CodegenCS.Runtime
+namespace CodegenCS.IO
 {
-    public static class CodegenContextExtensions
+    public static class Extensions
     {
         public class SaveFilesResult
         {
@@ -18,9 +18,19 @@ namespace CodegenCS.Runtime
             /// </summary>
             public List<string> UnknownFiles { get; internal set; }
         }
+        internal static void SaveToFile(string contents, string path, Encoding encoding)
+        {
+            FileInfo fi = new FileInfo(path);
+            // If file exists with different case, delete to overwrite with the right name //TODO: case sensitive filesystem?
+            if (fi.Exists && new DirectoryInfo(fi.Directory.FullName).GetFiles(fi.Name).Single().Name != fi.Name)
+                fi.Delete();
+            File.WriteAllText(fi.FullName, contents, encoding);
+        }
+
         /// <summary>
         /// Writes in-memory contents to physical files. If the files already exist they will be overwritten. <br />
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="outputFolder">Base output folder (can be absolute or relative path, and will be combined with relative path of files)</param>
         /// <param name="encoding">If not specified will save as UTF-8</param>
         /// <param name="autoCreateFolders">Automatically create folders if they don't exist (default is true)</param>
@@ -30,7 +40,7 @@ namespace CodegenCS.Runtime
         /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
         /// <exception cref="Exception">If context has any error</exception>
         /// <returns>Number of saved files</returns>
-        public static SaveFilesResult SaveFiles(this ICodegenContext context, string outputFolder, Encoding encoding = null, bool autoCreateFolders = true, bool getUnknownFiles = false)
+        public static SaveFilesResult SaveToFolder(this ICodegenContext context, string outputFolder, Encoding encoding = null, bool autoCreateFolders = true, bool getUnknownFiles = false)
         {
             if (context.Errors.Any())
                 throw new Exception(context.Errors.First());
@@ -99,11 +109,12 @@ namespace CodegenCS.Runtime
         /// <summary>
         /// Writes in-memory contents to a physical file. If the target file already exists, it is overwritten. <br />
         /// </summary>
+        /// <param name="file"></param>
         /// <param name="outputFolder">Base output folder (can be absolute or relative path, and will be combined with relative path of file)</param>
         /// <param name="autoCreateFolder">Automatically create folder if it doesn't exist (default is true)</param>
         /// <param name="encoding">If not specified will save as UTF-8</param>
         /// <exception cref="System.IO.DirectoryNotFoundException"></exception>
-        public static void SaveToFile(this ICodegenOutputFile file, string outputFolder, Encoding encoding = null, bool autoCreateFolder = true)
+        public static void SaveToFolder(this ICodegenOutputFile file, string outputFolder, Encoding encoding = null, bool autoCreateFolder = true)
         {
             if (encoding == null)
                 encoding = Encoding.UTF8;
@@ -124,13 +135,5 @@ namespace CodegenCS.Runtime
             SaveToFile(file.GetContents(), absolutePath, encoding);
         }
 
-        private static void SaveToFile(string contents, string absolutePath, Encoding encoding)
-        {
-            FileInfo fi = new FileInfo(absolutePath);
-            // If file exists with different case, delete to overwrite with the right name //TODO: case sensitive filesystem?
-            if (fi.Exists && new DirectoryInfo(fi.Directory.FullName).GetFiles(fi.Name).Single().Name != fi.Name)
-                fi.Delete();
-            File.WriteAllText(fi.FullName, contents, encoding);
-        }
     }
 }
