@@ -14,7 +14,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <!-- Include symbol files (*.pdb) in the main .nupkg -->
-    <PackageReadmeFile>NuGetReadMe.md</PackageReadmeFile>
+    <!--<PackageReadmeFile>NuGetReadMe.md</PackageReadmeFile>-->
   </PropertyGroup>
 
   <Choose>
@@ -39,7 +39,7 @@
   </Choose>
 
   <ItemGroup>
-    <None Include="NuGetReadMe.md" Pack="true" PackagePath="\" />
+    <!--<None Include="NuGetReadMe.md" Pack="true" PackagePath="\" />-->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NJsonSchema" Version="10.8.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
@@ -48,10 +48,6 @@
     </PackageReference>
     <PackageReference Include="NSwag.Core" Version="13.17.0" />
     <PackageReference Include="NSwag.Core.Yaml" Version="13.17.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="dbschema.json" />
   </ItemGroup>
 
   <Choose>

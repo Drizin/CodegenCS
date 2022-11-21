@@ -13,6 +13,7 @@ namespace CodegenCS
     /// Based on https://www.damirscorner.com/blog/posts/20180921-FormattableStringAsMethodParameter.html
     /// </summary>
     [DebuggerDisplay("{Value,nq}")]
+    [Serializable]
     public class RawString
     {
         private string Value { get; }
@@ -28,7 +29,14 @@ namespace CodegenCS
         public static implicit operator RawString(string str) => new RawString(str);
 
         /// <summary>
-        /// Implicit conversion
+        /// If caller passes an interpolated string to some method that has overloads 
+        // accepting FormattableString and RawString, the compiler wouldn't know which method to invoke (ambiguous call).
+        /// By having an implicit conversion from T1 to T2 and NOT the opposite (from T2 to T1)
+        /// the compiler will choose T1 as conversion target.
+        /// In other words with this implicit conversion from FormattableString to RawString we ensure
+        /// that FormattableString overloads are always preferred, and RawString (as a plain string wrapper)
+        /// will only be used when the object cannot be converted to FormattableString.
+        /// https://stackoverflow.com/a/60807577/3606250
         /// </summary>
         public static implicit operator RawString(FormattableString formattable) => new RawString(formattable.ToString());
 
