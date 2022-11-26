@@ -29,8 +29,8 @@ namespace CodegenCS
         public static implicit operator RawString(string str) => new RawString(str);
 
         /// <summary>
-        /// If caller passes an interpolated string to some method that has overloads 
-        // accepting FormattableString and RawString, the compiler wouldn't know which method to invoke (ambiguous call).
+        /// If caller passes an interpolated string to a method with overloads for FormattableString and RawString
+        /// the compiler wouldn't know which overload to invoke (ambiguous call).
         /// By having an implicit conversion from T1 to T2 and NOT the opposite (from T2 to T1)
         /// the compiler will choose T1 as conversion target.
         /// In other words with this implicit conversion from FormattableString to RawString we ensure

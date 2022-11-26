@@ -3,6 +3,9 @@ using IOUtils = CodegenCS.Utils.IOUtils;
 
 namespace CodegenCS.Runtime
 {
+    /// <summary>
+    /// Provides information about the template being executed in Visual Studio
+    /// </summary>
     public class VSExecutionContext : ExecutionContext
     {
         /// <summary>

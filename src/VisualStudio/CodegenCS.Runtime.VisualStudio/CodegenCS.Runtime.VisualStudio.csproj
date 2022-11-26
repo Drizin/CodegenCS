@@ -2,10 +2,10 @@
 
   <PropertyGroup>
 	<OutputType>Library</OutputType>
-    <TargetFrameworks>netstandard2.0;net472;net5.0</TargetFrameworks>
+    <TargetFramework>net472</TargetFramework>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/blob/master/src/Core/CodegenCS.Runtime/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/blob/master/src/VisualStudio/CodegenCS.Runtime.VisualStudio/</PackageProjectUrl>
     <Description>Class Library and Toolkit for Code Generation using plain C#</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
@@ -41,21 +41,24 @@
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <ItemGroup>
-        <ProjectReference Include="..\CodegenCS\CodegenCS.Core.csproj" />
+        <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj" />
+      </ItemGroup>
+      <ItemGroup>
+        <ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
         <PackageReference Include="CodegenCS.Core" Version="3.1.2" />
+        <PackageReference Include="CodegenCS.Runtime" Version="3.1.2" />
       </ItemGroup>
     </Otherwise>
   </Choose>
 
-
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="InterpolatedColorConsole" Version="1.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="16.0.28729" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="16.10.31320.204" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="16.0.102" />
   </ItemGroup>
 
 </Project>
