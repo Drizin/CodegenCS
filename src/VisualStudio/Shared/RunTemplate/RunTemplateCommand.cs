@@ -10,7 +10,11 @@ using System.Linq;
 using Task = System.Threading.Tasks.Task;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using VSUtils = CodegenCS.VisualStudio.Shared.Utils.Utils;
+#if VS2019
+using VisualStudioPackage = CodegenCS.VisualStudio.VS2019Extension.VisualStudioPackage;
+#else
 using VisualStudioPackage = CodegenCS.VisualStudio.VS2022Extension.VisualStudioPackage;
+#endif
 
 namespace CodegenCS.VisualStudio.Shared.RunTemplate
 {

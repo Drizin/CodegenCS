@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!--  This is the file that defines the actual layout and type of the commands.
+        It is divided in different sections (e.g. command definition, command
+        placement, ...), with each defining a specific set of properties.
+        See the comment before each section for more details about how to
+        use it. -->
+
+  <!--  The VSCT compiler (the tool that translates this file into the binary
+        format that VisualStudio will consume) has the ability to run a preprocessor
+        on the vsct file; this preprocessor is (usually) the C++ preprocessor, so
+        it is possible to define includes and macros with the same syntax used
+        in C++ files. Using this ability of the compiler here, we include some files
+        defining some of the constants that we will use inside the file. -->
+
+  <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
+  <Extern href="stdidcmd.h"/>
+
+  <!--This header contains the command ids for the menus provided by the shell. -->
+  <Extern href="vsshlids.h"/>
+
+  <!--The Commands section is where commands, menus, and menu groups are defined.
+      This section uses a Guid to identify the package that provides the command defined inside it. -->
+  <Commands package="guidVisualStudioPackage">
+    <!-- Inside this section we have different sub-sections: one for the menus, another
+    for the menu groups, one for the buttons (the actual commands), one for the combos
+    and the last one for the bitmaps used. Each element is identified by a command id that
+    is a unique pair of guid and numeric identifier; the guid part of the identifier is usually
+    called "command set" and is used to group different command inside a logically related
+    group; your package should define its own command set in order to avoid collisions
+    with command ids defined by other packages. -->
+
+    <!-- In this section you can define new menu groups. A menu group is a container for
+         other menus or buttons (commands); from a visual point of view you can see the
+         group as the part of a menu contained between two lines. The parent of a group
+         must be a menu. -->
+	  <!-- Group guid has no relationship to button guid - they are using the same guid (which actually is the name of the template, not a guid) but it didn't have to.
+	       Group guid is referenced by the new CommandId() -->
+	  <!-- Parent guid/id define WHERE the Group should be located. -->
+	  <!-- Use Command Explorer extension to find all locations to place your group in: https://marketplace.visualstudio.com/items?itemName=MadsKristensen.commandexplorer -->
+	  <!-- or https://docs.microsoft.com/en-us/visualstudio/extensibility/internals/guids-and-ids-of-visual-studio-menus?view=vs-2022 -->
+	  <!-- Currently we don't need a group (dividers etc) since we have just a single command. -->
+	  <!--
+    <Groups>
+      <Group guid="guidVisualStudioPackageCmdSet" id="MyMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+    </Groups>
+	-->
+
+    <!--Buttons section. -->
+    <!--This section defines the elements the user can interact with, like a menu command or a button
+        or combo box in a toolbar. -->
+    <Buttons>
+      <!--To define a menu group you have to specify its ID, the parent menu and its display priority.
+          The command is visible and enabled by default. If you need to change the visibility, status, etc, you can use
+          the CommandFlag node.
+          You can add more than one CommandFlag node e.g.:
+              <CommandFlag>DefaultInvisible</CommandFlag>
+              <CommandFlag>DynamicVisibility</CommandFlag>
+          If you do not want an image next to your command, remove the Icon node /> -->
+      <Button guid="guidVisualStudioPackageCmdSet" id="RunTemplateCommandId" priority="0x0100" type="Button">
+        <!--<Parent guid="guidVisualStudioPackageCmdSet" id="MyMenuGroup" />-->
+		<!-- Previous line was placing this button/command under the custom <Group> defined earlier (currently commented out) which was under Tools menu.
+		Now it's located right BEFORE the "Include/Exclude from project" option in the context menu (Solution Explorer).
+		To see other possible places like guidSHLMainMenu/IDG_VS_CTXT_ITEM_INCLUDEEXCLUDE check https://searchcode.com/total-file/2486546/
+		By using a button/command (instead of a Custom Tool) we can make the command appear in the Solution Explorer context menu for all files (or for some specific extensions),
+		while a Custom Tool would only appear if CustomTool property (of the active item) is defined.
+		-->
+
+		<!-- Parent below defines this Command position in menu -->
+		<!-- More options like IDG_VS_CTXT_ITEM_INCLUDEEXCLUDE here - https://searchcode.com/total-file/2486546/ -->
+		<Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_ITEM_INCLUDEEXCLUDE"/>
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Run CodegenCS Template (VS2019)</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+
+    <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
+    <Bitmaps>
+      <!--  The bitmap id is defined in a way that is a little bit different from the others:
+            the declaration starts with a guid for the bitmap strip, then there is the resource id of the
+            bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
+            inside a button definition. An important aspect of this declaration is that the element id
+            must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
+      <Bitmap guid="guidImages" href="Resources\RunTemplateCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
+    </Bitmaps>
+  </Commands>
+
+  <Symbols>
+    <!-- This is the package guid. -->
+    <GuidSymbol name="guidVisualStudioPackage" value="{57ef21f4-dcf2-4dec-a201-18dc778f129e}" />
+
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="guidVisualStudioPackageCmdSet" value="{0ae87d6c-cf2d-4352-85a0-b74fbd759a8d}">
+      <IDSymbol name="MyMenuGroup" value="0x1020" />
+      <IDSymbol name="RunTemplateCommandId" value="0x0100" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidImages" value="{8c82022f-4856-4cb7-80f6-ab7770ddf10c}" >
+      <IDSymbol name="bmpPic1" value="1" />
+      <IDSymbol name="bmpPic2" value="2" />
+      <IDSymbol name="bmpPicSearch" value="3" />
+      <IDSymbol name="bmpPicX" value="4" />
+      <IDSymbol name="bmpPicArrows" value="5" />
+      <IDSymbol name="bmpPicStrikethrough" value="6" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

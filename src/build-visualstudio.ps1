@@ -50,6 +50,12 @@ try {
 			   /p:Configuration=$configuration
 	if (! $?) { throw "msbuild failed" }
 	
+	& $msbuild ".\VisualStudio\VS2019Extension\VS2019Extension.csproj"   `
+			   /t:Restore /t:Build                                     `
+			   '/p:targetFrameworks="net472"'                 `
+			   /p:Configuration=$configuration                        		   
+	if (! $?) { throw "msbuild failed" }
+
 	# The secret to VSIX painless-troubleshooting is inspecting the VSIX package:
 	# & "C:\Program Files\7-Zip\7zFM.exe" .\VisualStudio\VS2022Extension\bin\Debug\CodegenCS.VSExtensions.VisualStudio2022.vsix
 

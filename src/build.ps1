@@ -36,6 +36,6 @@ dotnet build -c $configuration .\Core\CodegenCS.Tests\CodegenCS.Tests.csproj
 #dotnet test  Core\CodegenCS.Tests\CodegenCS.Tests.csproj
 
 # VSExtension (not working with Release yet - error NU1106: Unable to satisfy conflicting requests)
-#. .\build-vsextensions.ps1 Debug
+#. .\build-visualstudio.ps1 $configuration
 
 
