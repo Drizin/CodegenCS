@@ -119,11 +119,10 @@ namespace CodegenCS.TemplateDownloader
                 {
                     await _logger.WriteLineAsync(ConsoleColor.Yellow, $"Warning: third-party template origin '{ConsoleColor.Cyan}https://github.com/{githubUser}{PREVIOUS_COLOR}' is unknown / untrusted.");
                     await _logger.WriteLineAsync(ConsoleColor.Yellow, $"You can skip this question using the option \"--allow-untrusted-origin\"");
-                    await _logger.WriteLineAsync(ConsoleColor.Yellow, $"Are you sure you want to download this template? Press \"y\" for Yes or \"n\" for No.");
                     ConsoleKey response;
                     do
                     {
-                        await _logger.WriteLineAsync(ConsoleColor.Yellow, "Are you sure you want to choose this as your login key? [y/n] ");
+                        await _logger.WriteLineAsync(ConsoleColor.Yellow, $"Are you sure you want to download this template? Press \"y\" for Yes or \"n\" for No.");
                         response = Console.ReadKey(false).Key;   // true is intercept key (dont show), false is show
                         if (response != ConsoleKey.Enter)
                             Console.WriteLine();

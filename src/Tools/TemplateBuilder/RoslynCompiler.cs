@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static CodegenCS.TemplateBuilder.TemplateBuilder;
+using CompilationError = CodegenCS.TemplateBuilder.TemplateBuilder.CompilationError;
 
 namespace CodegenCS.TemplateBuilder
 {
@@ -196,8 +196,14 @@ namespace CodegenCS.TemplateBuilder
         }
         #endregion
 
+        public class CompileResult
+        {
+            public bool Success { get; set; }
+            public IEnumerable<CompilationError> Errors { get; set; }
+        }
+
         #region Compile
-        public async Task<(bool success, IEnumerable<CompilationError> errors)> Compile(string[] sources, string targetFile)
+        public async Task<CompileResult> CompileAsync(string[] sources, string targetFile)
         {
             var syntaxTrees = sources.Select(source => CSharpSyntaxTree.ParseText(File.ReadAllText(source), _parseOptions)).ToList();
             // ParseText really better? https://stackoverflow.com/questions/16338131/using-roslyn-to-parse-transform-generate-code-am-i-aiming-too-high-or-too-low
@@ -251,7 +257,7 @@ namespace CodegenCS.TemplateBuilder
 
                 if (!emitResult.Success)
                 {
-                    return (false, compilationErrors);
+                    return new CompileResult() { Success = false, Errors = compilationErrors };
                 }
 
                 dllStream.Seek(0, SeekOrigin.Begin);
@@ -262,16 +268,16 @@ namespace CodegenCS.TemplateBuilder
 
                 using (FileStream fs = new FileStream(targetFile, FileMode.OpenOrCreate))
                 {
-                    dllStream.CopyTo(fs);
-                    fs.Flush();
+                    await dllStream.CopyToAsync(fs);
+                    await fs.FlushAsync();
                 }
                 var targetPdb = targetFile.Substring(0, targetFile.Length - 4) + ".pdb";
                 using (FileStream fs = new FileStream(targetPdb, FileMode.OpenOrCreate))
                 {
-                    pdbStream.CopyTo(fs);
-                    fs.Flush();
+                    await pdbStream.CopyToAsync(fs);
+                    await fs.FlushAsync();
                 }
-                return (true, null);
+                return new CompileResult() { Success = true, Errors = null };
             }
 
         }

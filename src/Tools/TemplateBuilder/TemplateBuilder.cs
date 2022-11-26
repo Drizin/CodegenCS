@@ -7,10 +7,11 @@ using static InterpolatedColorConsole.Symbols;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using CodegenCS.Runtime;
+using System.Reflection;
 
 namespace CodegenCS.TemplateBuilder
 {
-    public class TemplateBuilder
+    public class TemplateBuilder : MarshalByRefObject
     {
         protected ILogger _logger;
         protected TemplateBuilderArgs _args;
@@ -25,6 +26,7 @@ namespace CodegenCS.TemplateBuilder
         /// <summary>
         /// Template Builder options.
         /// </summary>
+        [Serializable]
         public class TemplateBuilderArgs
         {
             /// <summary>
@@ -43,6 +45,7 @@ namespace CodegenCS.TemplateBuilder
             public bool VerboseMode { get; set; }
         }
 
+        [Serializable]
         public class TemplateBuilderResponse
         {
             public int ReturnCode { get; set; }
@@ -50,12 +53,15 @@ namespace CodegenCS.TemplateBuilder
             public IEnumerable<CompilationError> CompilationErrors { get; set; }
         }
 
+        [Serializable]
         public class CompilationError
         {
             public string Message { get; set; }
             public int? Line { get; set; }
             public int? Column { get; set; }
         }
+
+        public TemplateBuilderResponse Execute() => ExecuteAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
         public async Task<TemplateBuilderResponse> ExecuteAsync()
         {
@@ -93,12 +99,12 @@ namespace CodegenCS.TemplateBuilder
 
             var targetFile = Utils.IOUtils.MakeRelativePath(Path.Combine(outputFolder, outputFileName));
 
-            var compilationResult = await compiler.Compile(sources, targetFile);
+            var compilationResult = await compiler.CompileAsync(sources, targetFile);
 
-            if (!compilationResult.success)
+            if (!compilationResult.Success)
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Error while building '{string.Join(", ", inputFiles.Select(inp => inp.Name))}'.");
-                return new TemplateBuilderResponse() { ReturnCode = -1, CompilationErrors = compilationResult.errors };
+                return new TemplateBuilderResponse() { ReturnCode = -1, CompilationErrors = compilationResult.Errors };
             }
 
             await _logger.WriteLineAsync(ConsoleColor.Green, $"\nSuccessfully built template into {ConsoleColor.White}'{targetFile}'{PREVIOUS_COLOR}.");

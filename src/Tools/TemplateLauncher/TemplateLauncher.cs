@@ -15,6 +15,7 @@ using System.CommandLine.IO;
 using static CodegenCS.Utils.TypeUtils;
 using CodegenCS.Runtime;
 using CodegenCS.Models;
+using Newtonsoft.Json;
 
 namespace CodegenCS.TemplateLauncher
 {
@@ -509,6 +510,13 @@ namespace CodegenCS.TemplateLauncher
             {
                 if (_executionFolder != null)
                     Directory.SetCurrentDirectory(_executionFolder);
+
+                JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+                {
+                    Formatting = Newtonsoft.Json.Formatting.Indented,
+                    ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                };
+
                 #region Invoking template
                 if (_iTypeTemplate == typeof(IBaseMultifileTemplate)) // pass ICodegenContext
                 {
