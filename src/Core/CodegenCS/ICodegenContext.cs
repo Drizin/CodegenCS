@@ -3,7 +3,7 @@ using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using IOExtensions = global::CodegenCS.IO.Extensions;
+using SaveFilesResult = global::CodegenCS.IO.SaveFilesResult;
 
 namespace CodegenCS
 {
@@ -23,7 +23,7 @@ namespace CodegenCS
         /// </summary>
         /// <param name="outputFolder">Can be absolute or relative</param>
         [Obsolete("Please use CodegenCS.IO extension SaveToFolder()")]
-        IOExtensions.SaveFilesResult SaveFiles(string outputFolder);
+        SaveFilesResult SaveFiles(string outputFolder);
 
         /// <summary>
         /// Paths of the Output files (as defined during creation using <see cref="this[string]"/> indexer)

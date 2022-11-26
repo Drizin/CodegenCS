@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using IOExtensions = global::CodegenCS.IO.Extensions;
+using SaveFilesResult = global::CodegenCS.IO.SaveFilesResult;
 
 namespace CodegenCS
 {
@@ -135,7 +136,7 @@ namespace CodegenCS
         #region I/O
         /// <inheritdoc/>
         [Obsolete("Please use CodegenCS.IO extension SaveToFolder()")]
-        public virtual IOExtensions.SaveFilesResult SaveFiles(string outputFolder)
+        public virtual SaveFilesResult SaveFiles(string outputFolder)
         {
             return IOExtensions.SaveToFolder(this, outputFolder);
         }

@@ -8,16 +8,6 @@ namespace CodegenCS.IO
 {
     public static class Extensions
     {
-        public class SaveFilesResult
-        {
-            public List<string> SavedFiles { get; internal set; }
-
-            /// <summary>
-            /// List of files that exist under outputFolder and that were NOT saved as part of this ICodegenContext.
-            /// Only returned if getUnknownFiles is true
-            /// </summary>
-            public List<string> UnknownFiles { get; internal set; }
-        }
         internal static void SaveToFile(string contents, string path, Encoding encoding)
         {
             FileInfo fi = new FileInfo(path);

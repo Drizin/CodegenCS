@@ -1484,7 +1484,7 @@ namespace CodegenCS
 
         #region I/O (SaveToFile)
         /// <summary>
-        /// Writes current content (assuming it was in-memory writer) to a new file. If the target file already exists, it is overwritten. <br />
+        /// Writes current content to a new file. If the target file already exists, it is overwritten. <br />
         /// </summary>
         /// <param name="path">Absolute path</param>
         /// <param name="createFolder">If this is true (default is true) and target folder does not exist, it will be created</param>
