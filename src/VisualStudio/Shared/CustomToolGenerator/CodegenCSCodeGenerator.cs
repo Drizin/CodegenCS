@@ -1,6 +1,5 @@
-﻿using CodegenCS;
-using CodegenCS.DotNet;
-using CodegenCS.Runtime;
+﻿using CodegenCS.Runtime;
+using CodegenCS.VisualStudio.Shared.RunTemplate;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -11,7 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace RunTemplate.CustomToolGenerator
+namespace CodegenCS.VisualStudio.Shared.CustomToolGenerator
 {
     /// <summary>
     /// This CustomTool is invoked not only by the custom tool (auto executed or manually executed) but also by the custom Menu/Command
@@ -48,7 +47,7 @@ namespace RunTemplate.CustomToolGenerator
             string projectPath = project.FullName;
             var executionContext = new VSExecutionContext(templateItemPath, projectPath, solutionPath);
             var runTemplateWrapper = new RunTemplateWrapper(dte, ThreadHelper.JoinableTaskFactory, base.SiteServiceProvider, templateItem, templateItemPath, templateDir, templateDir, hierarchyItem, executionContext);
-            ThreadHelper.JoinableTaskFactory.Run(runTemplateWrapper.RunAsync);
+            ThreadHelper.JoinableTaskFactory.Run(() => runTemplateWrapper.RunAsync());
 
             // if GenerateCode returns null then int IVsSingleFileGenerator.Generate returns VSConstants.E_FAIL and this isn't even called.
             // However, Error List would show a failure. So let's just generate something

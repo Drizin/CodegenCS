@@ -22,7 +22,7 @@
 
   <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
-  <Commands package="guidRunTemplatePackage">
+  <Commands package="guidVisualStudioPackage">
     <!-- Inside this section we have different sub-sections: one for the menus, another
     for the menu groups, one for the buttons (the actual commands), one for the combos
     and the last one for the bitmaps used. Each element is identified by a command id that
@@ -43,7 +43,7 @@
 	  <!-- Currently we don't need a group (dividers etc) since we have just a single command. -->
 	  <!--
 	<Groups>
-      <Group guid="guidRunTemplatePackageCmdSet" id="MyMenuGroup" priority="0x0600">
+      <Group guid="guidVisualStudioPackageCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
       </Group>
     </Groups>
@@ -60,9 +60,8 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidRunTemplatePackageCmdSet" id="RunTemplateCommandId" priority="0x0100" type="Button">
-		  
-        <!--<Parent guid="guidRunTemplatePackageCmdSet" id="MyMenuGroup" />-->
+      <Button guid="guidVisualStudioPackageCmdSet" id="RunTemplateCommandId" priority="0x0100" type="Button">
+        <!--<Parent guid="guidVisualStudioPackageCmdSet" id="MyMenuGroup" />-->
 		<!-- Previous line was placing this button/command under the custom <Group> defined earlier (currently commented out) which was under Tools menu.
 		Now it's located right BEFORE the "Include/Exclude from project" option in the context menu (Solution Explorer).
 		To see other possible places like guidSHLMainMenu/IDG_VS_CTXT_ITEM_INCLUDEEXCLUDE check https://searchcode.com/total-file/2486546/
@@ -70,7 +69,7 @@
 		while a Custom Tool would only appear if CustomTool property (of the active item) is defined.
 		-->
 
-		<!-- Parent below defines that this Command is right  -->
+		<!-- Parent below defines this Command position in menu -->
 		<!-- More options like IDG_VS_CTXT_ITEM_INCLUDEEXCLUDE here - https://searchcode.com/total-file/2486546/ -->
 		<Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_ITEM_INCLUDEEXCLUDE"/>
 
@@ -95,15 +94,15 @@
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidRunTemplatePackage" value="{ceeb4c60-193a-4506-b4e6-773ef8940f1a}" />
+    <GuidSymbol name="guidVisualStudioPackage" value="{2321c6f5-3e71-43de-9032-570b5458fd36}" />
 
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidRunTemplatePackageCmdSet" value="{a4ef19db-b911-48fd-a04e-b6de7215ccfd}">
+    <GuidSymbol name="guidVisualStudioPackageCmdSet" value="{1cf6aee0-b2f5-4601-be4e-deabc8a6b6d2}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="RunTemplateCommandId" value="0x0100" />
     </GuidSymbol>
 
-    <GuidSymbol name="guidImages" value="{2104c22a-ac0b-4737-86d0-de9ff9f61163}" >
+    <GuidSymbol name="guidImages" value="{e23c204e-35fa-4c3c-b565-0411ccaa744e}" >
       <IDSymbol name="bmpPic1" value="1" />
       <IDSymbol name="bmpPic2" value="2" />
       <IDSymbol name="bmpPicSearch" value="3" />

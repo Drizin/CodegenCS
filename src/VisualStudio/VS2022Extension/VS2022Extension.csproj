@@ -7,11 +7,6 @@
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
-  <!--
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-  -->
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <PropertyGroup>
@@ -37,8 +32,8 @@
     <ProjectGuid>{2901BAEA-168E-45FB-8714-4299D605F789}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RunTemplate</RootNamespace>
-    <AssemblyName>RunTemplate</AssemblyName>
+    <RootNamespace>CodegenCS.VisualStudio.VS2022Extension</RootNamespace>
+    <AssemblyName>CodegenCS.VisualStudio.VS2022Extension</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <LangVersion>preview</LangVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -68,16 +63,26 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Shared\CustomToolGenerator\BaseCodeGenerator.cs">
+      <Link>CustomToolGenerator\BaseCodeGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\CustomToolGenerator\BaseCodeGeneratorWithSite.cs">
+      <Link>CustomToolGenerator\BaseCodeGeneratorWithSite.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\CustomToolGenerator\CodegenCSCodeGenerator.cs">
+      <Link>CustomToolGenerator\CodegenCSCodeGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\RunTemplate\RunTemplateCommand.cs">
+      <Link>RunTemplate\RunTemplateCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\RunTemplate\RunTemplateWrapper.cs">
+      <Link>RunTemplate\RunTemplateWrapper.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\Utils\Utils.cs">
+      <Link>Utils\Utils.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RunTemplateCommand.cs" />
-    <Compile Include="RunTemplatePackage.cs" />
-    <Compile Include="CustomToolGenerator\BaseCodeGenerator.cs" />
-    <Compile Include="CustomToolGenerator\BaseCodeGeneratorWithSite.cs" />
-    <Compile Include="CustomToolGenerator\CodegenCSCodeGenerator.cs" />
-    <Compile Include="RunTemplateWrapper.cs" />
-    <Compile Include="TemplateLauncherVsOutputWindowPaneOutput.cs" />
-    <Compile Include="Utils.cs" />
-    <Compile Include="VsOutputWindowPaneOutputLogger.cs" />
+    <Compile Include="VisualStudioPackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -103,8 +108,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\RunTemplateCommand.png" />
-    <Content Include="Resources\RunTemplatePackage.ico" />
-    <VSCTCompile Include="RunTemplatePackage.vsct">
+    <Content Include="Resources\VisualStudioPackage.ico" />
+    <VSCTCompile Include="VisualStudioPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
   </ItemGroup>
@@ -114,53 +119,48 @@
       <ManifestResourceName>VSPackage</ManifestResourceName>
     </EmbeddedResource>
   </ItemGroup>
-  <Choose>
-    <When Condition="'$(Configuration)' == 'Debug'">
-      <ItemGroup>
-        <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj">
-          <Project>{51de0970-e84d-4f96-ae80-bc17e28b2736}</Project>
-          <Name>CodegenCS.Core</Name>
-        </ProjectReference>
-		<ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj">
-		  <Project>{3a765f42-3c03-4c1c-9a03-b490ea94911b}</Project>
-		  <Name>CodegenCS.Runtime</Name>
-		</ProjectReference>
-		<ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj">
-		  <Project>{7e79d7a5-b919-48b0-b5e9-620be086b399}</Project>
-		  <Name>CodegenCS.DotNet</Name>
-		</ProjectReference>
-		<ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj">
-		  <Project>{21f897ca-25a6-49f8-95a0-a191aacc2b2c}</Project>
-		  <Name>CodegenCS.Models</Name>
-		</ProjectReference>
-        <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj">
-          <Project>{8b3282f8-0080-4526-8ece-45346beb1d20}</Project>
-          <Name>CodegenCS.Models.DbSchema</Name>
-        </ProjectReference>
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="CodegenCS.Core" Version="3.*" />
-        <PackageReference Include="CodegenCS.Runtime" Version="3.*" />
-		<PackageReference Include="CodegenCS.DotNet" Version="3.*" />
-        <PackageReference Include="CodegenCS.Models" Version="3.*" />
-        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.*" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
   <ItemGroup>
-    <ProjectReference Include="..\..\dotnet-codegencs\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj">
-      <Project>{20234722-dc8f-4b0d-b12a-3df606d181da}</Project>
-      <Name>CodegenCS.TemplateBuilder</Name>
+    <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj">
+      <Project>{51de0970-e84d-4f96-ae80-bc17e28b2736}</Project>
+      <Name>CodegenCS.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\dotnet-codegencs\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj">
+    <ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj">
+      <Project>{3a765f42-3c03-4c1c-9a03-b490ea94911b}</Project>
+      <Name>CodegenCS.Runtime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj">
+      <Project>{7e79d7a5-b919-48b0-b5e9-620be086b399}</Project>
+      <Name>CodegenCS.DotNet</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj">
+      <Project>{21f897ca-25a6-49f8-95a0-a191aacc2b2c}</Project>
+      <Name>CodegenCS.Models</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj">
+      <Project>{8b3282f8-0080-4526-8ece-45346beb1d20}</Project>
+      <Name>CodegenCS.Models.DbSchema</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj">
+      <Project>{684ab71f-4d08-4d72-8161-67ecdaf440ec}</Project>
+      <Name>CodegenCS.Models.NSwagAdapter</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj">
+      <Project>{20234722-dc8f-4b0d-b12a-3df606d181da}</Project>
+      <Name>CodegenCS.Tools.TemplateBuilder</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj">
       <Project>{82df9b4a-88ab-4a98-af7c-de21fdcda13b}</Project>
-      <Name>CodegenCS.TemplateLauncher</Name>
+      <Name>CodegenCS.Tools.TemplateLauncher</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema.Extractor\CodegenCS.Models.DbSchema.Extractor.csproj">
       <Project>{280c1697-59e5-4a63-9d82-ab01ead3297c}</Project>
       <Name>CodegenCS.Models.DbSchema.Extractor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CodegenCS.Runtime.VisualStudio\CodegenCS.Runtime.VisualStudio.csproj">
+      <Project>{beaa5cb5-231a-4592-9d56-2018510600e4}</Project>
+      <Name>CodegenCS.Runtime.VisualStudio</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

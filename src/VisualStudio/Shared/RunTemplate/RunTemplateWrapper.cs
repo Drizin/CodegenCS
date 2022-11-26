@@ -1,7 +1,5 @@
-﻿using CodegenCS;
-using CodegenCS.DotNet;
+﻿using CodegenCS.DotNet;
 using CodegenCS.Runtime;
-using TemplateLauncher = CodegenCS.TemplateLauncher.TemplateLauncher;
 using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using EnvDTE;
 using EnvDTE80;
@@ -9,21 +7,22 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using static CodegenCS.TemplateBuilder.TemplateBuilder;
+using static CodegenCS.TemplateLauncher.TemplateLauncher;
+using TemplateLauncherArgs = CodegenCS.TemplateLauncher.TemplateLauncher.TemplateLauncherArgs;
+using Task = System.Threading.Tasks.Task;
 
-namespace RunTemplate
+namespace CodegenCS.VisualStudio.Shared.RunTemplate
 {
     internal class RunTemplateWrapper
     {
         private DTE2 _dte { get; set; }
         static internal IVsOutputWindowPane _customPane = null;
-        static private VsOutputWindowPaneOutputLogger _logger = null;
+        static private ILogger _logger = null;
         private static ErrorListProvider _errorListProvider;
         private IServiceProvider _serviceProvider;
         private JoinableTaskFactory _joinableTaskFactory;
@@ -73,6 +72,8 @@ namespace RunTemplate
             return customPane;
         }
 
+        public void Run() => RunAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
         public async Task RunAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -110,6 +111,7 @@ namespace RunTemplate
                     string defaultOutputFile = Path.GetFileNameWithoutExtension(_templateItemPath) + ".generated.cs";
                     string templateDll = builderResult.TargetFile;
                     var runResult = await RunTemplateAsync(templateDll, defaultOutputFile);
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     if (runResult != 0)
                     {
                         _customPane.OutputStringThreadSafe($"CodegenCS - error running template\r\n");
@@ -129,6 +131,7 @@ namespace RunTemplate
                 catch (Exception ex)
                 {
                     _customPane.OutputStringThreadSafe($"CodegenCS - error running template: {ex.GetBaseException().Message}\r\n");
+                    _customPane.Activate();
                     return -1;
                 }
             });
@@ -154,9 +157,10 @@ namespace RunTemplate
             await Task.Delay(1); // let UI refresh
             return builderResult;
         }
+
         async Task<int> RunTemplateAsync(string templateDll, string defaultOutputFile)
         {
-            var launcherArgs = new CodegenCS.TemplateLauncher.TemplateLauncher.TemplateLauncherArgs()
+            var launcherArgs = new TemplateLauncherArgs()
             {
                 Template = templateDll,
                 Models = new string[0],
@@ -170,7 +174,7 @@ namespace RunTemplate
             dependencyContainer.RegisterSingleton<ExecutionContext>(() => _executionContext);
             dependencyContainer.RegisterSingleton<VSExecutionContext>(() => _executionContext as VSExecutionContext);
 
-            var launcher = new TemplateLauncher(_logger, _codegenContext, dependencyContainer, verboseMode: false);
+            var launcher = new TemplateLauncher.TemplateLauncher(_logger, _codegenContext, dependencyContainer, verboseMode: false);
 
             int statusCode;
             try
@@ -216,9 +220,9 @@ namespace RunTemplate
 
             var currentNestedItems = parentItem.ProjectItems.Cast<ProjectItem>().Select(x => new {
                 Item = x,
-                #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                 Path = x.Properties.Item("FullPath")?.Value?.ToString()
-                #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
             }).ToList();
 
             var existingPaths = currentNestedItems.Select(i => i.Path).ToHashSet();
@@ -290,7 +294,7 @@ namespace RunTemplate
             _errorListProvider.Tasks.Add(newError);
         }
 
-        #region VSIX runs .NET Framework - we have to hack the loading .NET Standard Transitive Dependencies
+        #region Assembly Redirects
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var name = new AssemblyName(args.Name);
@@ -302,6 +306,8 @@ namespace RunTemplate
                 return typeof(CodegenCS.ICodegenContext).Assembly;
             if (name.Name == "InterpolatedColorConsole")
                 return typeof(InterpolatedColorConsole.ColoredConsole).Assembly;
+            if (name.Name == "NJsonSchema")
+                return typeof(NJsonSchema.ConversionUtilities).Assembly;
             if (name.Name.Contains("CoreLib"))
             {
                 var asm = Assembly.LoadFrom(@"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.17\System.Private.CoreLib.dll");
@@ -316,6 +322,29 @@ namespace RunTemplate
             {
                 return typeof(System.CommandLine.Argument).Assembly;
             }
+
+            if (_assemblies == null)
+            {
+                _assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            }
+
+            Assembly assembly;
+            if (_assemblies != null)
+            {
+                if ((assembly = _assemblies.FirstOrDefault(asm => asm.FullName == name.FullName)) != null)
+                    return assembly;
+                if ((assembly = _assemblies.FirstOrDefault(asm => asm.FullName.StartsWith(name.Name + ", Version=" + name.Version.Major))) != null)
+                    return assembly;
+                var matches = _assemblies.Where(asm => asm.FullName.StartsWith(name.Name + ", Version="));
+                if (matches.Any())
+                    return matches.OrderByDescending(a => a.FullName).First(); // yeah, I know.
+            }
+
+            string[] Parts = args.Name.Split(',');
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + Parts[0].Trim() + ".dll";
+            if (File.Exists(path))
+                return System.Reflection.Assembly.LoadFrom(path);
+
             return null;
         }
         #endregion

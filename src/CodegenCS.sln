@@ -17,9 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Tools.TemplateBui
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Tools.TemplateLauncher", "Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj", "{82DF9B4A-88AB-4A98-AF7C-DE21FDCDA13B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VSExtensions", "VSExtensions", "{05433D5A-DACD-4DB2-8498-B325DAF4972D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VisualStudio", "VisualStudio", "{05433D5A-DACD-4DB2-8498-B325DAF4972D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunTemplate", "VSExtensions\RunTemplate\RunTemplate.csproj", "{2901BAEA-168E-45FB-8714-4299D605F789}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VS2022Extension", "VisualStudio\VS2022Extension\VS2022Extension.csproj", "{2901BAEA-168E-45FB-8714-4299D605F789}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F23C0124-9B89-4AD5-98BB-64E4732D665E}"
 	ProjectSection(SolutionItems) = preProject
@@ -41,6 +41,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.DotNet", "Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj", "{7E79D7A5-B919-48B0-B5E9-620BE086B399}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Models.NSwagAdapter", "Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj", "{684AB71F-4D08-4D72-8161-67ECDAF440EC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Runtime.VisualStudio", "VisualStudio\CodegenCS.Runtime.VisualStudio\CodegenCS.Runtime.VisualStudio.csproj", "{B215C658-BB4A-4D79-A105-2D7DB415FCF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -100,6 +102,10 @@ Global
 		{684AB71F-4D08-4D72-8161-67ECDAF440EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{684AB71F-4D08-4D72-8161-67ECDAF440EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{684AB71F-4D08-4D72-8161-67ECDAF440EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B215C658-BB4A-4D79-A105-2D7DB415FCF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B215C658-BB4A-4D79-A105-2D7DB415FCF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B215C658-BB4A-4D79-A105-2D7DB415FCF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B215C658-BB4A-4D79-A105-2D7DB415FCF8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -118,6 +124,7 @@ Global
 		{3A765F42-3C03-4C1C-9A03-B490EA94911B} = {91BD35EC-39D1-4D9E-BFAA-FB062F46E84F}
 		{7E79D7A5-B919-48B0-B5E9-620BE086B399} = {91BD35EC-39D1-4D9E-BFAA-FB062F46E84F}
 		{684AB71F-4D08-4D72-8161-67ECDAF440EC} = {FC913A61-41B5-49AE-AC94-6D3354265E0B}
+		{B215C658-BB4A-4D79-A105-2D7DB415FCF8} = {05433D5A-DACD-4DB2-8498-B325DAF4972D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AB589EF0-8B1A-4791-A8B5-F3ED178AF34F}

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using EnvDTE;
 using EnvDTE80;
 
-namespace RunTemplate
+namespace CodegenCS.VisualStudio.Shared.Utils
 {
     internal class Utils
     {

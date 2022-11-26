@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Designer.Interfaces;
 
-namespace RunTemplate.CustomToolGenerator // copied from Microsoft.Samples.VisualStudio.GeneratorSample
+namespace CodegenCS.VisualStudio.Shared.CustomToolGenerator // copied from Microsoft.Samples.VisualStudio.GeneratorSample
 {
     /// <summary>
     /// Base code generator with site implementation

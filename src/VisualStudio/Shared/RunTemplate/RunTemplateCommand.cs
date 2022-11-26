@@ -1,7 +1,4 @@
-﻿using CodegenCS;
-using CodegenCS.DotNet;
-using CodegenCS.Runtime;
-using CodegenCS.TemplateBuilder;
+﻿using CodegenCS.Runtime;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -11,8 +8,11 @@ using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using Task = System.Threading.Tasks.Task;
+using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
+using VSUtils = CodegenCS.VisualStudio.Shared.Utils.Utils;
+using VisualStudioPackage = CodegenCS.VisualStudio.VS2022Extension.VisualStudioPackage;
 
-namespace RunTemplate
+namespace CodegenCS.VisualStudio.Shared.RunTemplate
 {
     /// <summary>
     /// Command handler
@@ -25,16 +25,11 @@ namespace RunTemplate
         public const int CommandId = 0x0100;
 
         /// <summary>
-        /// Command menu group (command set GUID).
-        /// </summary>
-        public static readonly Guid CommandSet = new Guid("a4ef19db-b911-48fd-a04e-b6de7215ccfd");
-
-        /// <summary>
         /// VS Package that provides this command, not null.
         /// </summary>
         private readonly AsyncPackage package;
 
-        private DTE2 _dte { get { return ((RunTemplatePackage)package)._dte;  }  }
+        private DTE2 _dte { get { return ((VisualStudioPackage)package)._dte;  }  }
 
 
         /// <summary>
@@ -48,7 +43,7 @@ namespace RunTemplate
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
-            var menuCommandID = new CommandID(CommandSet, CommandId);
+            var menuCommandID = new CommandID(VisualStudioPackage.CommandSet, CommandId);
             var menuItem = new OleMenuCommand(this.Execute, menuCommandID);
             commandService.AddCommand(menuItem);
         }
@@ -105,20 +100,20 @@ namespace RunTemplate
                 var solution = (IVsSolution)Package.GetGlobalService(typeof(IVsSolution));
 
 
-                var selectedItems = Utils.GetSelectedItems(_dte).ToList();
+                var selectedItems = VSUtils.GetSelectedItems(_dte).ToList();
                 if (selectedItems.Count() == 0)
                 {
-                    Utils.ShowError(package, "Should select at least one template");
+                    VSUtils.ShowError(package, "Should select at least one template");
                     return;
                 }
-                var selectedItemsPaths = selectedItems.Select(f => Utils.GetItemPath(f)).ToList();
+                var selectedItemsPaths = selectedItems.Select(f => VSUtils.GetItemPath(f)).ToList();
                 var extensions = selectedItemsPaths.Select(p => Path.GetExtension(p)).ToList();
 
                 string[] validExtensions = new string[] { ".csx", ".cs", ".cgcs" };
                 var invalidFiles = selectedItemsPaths.Where(p => string.IsNullOrEmpty(Path.GetExtension(p)) || !validExtensions.Contains(Path.GetExtension(p).ToLower()));
                 if (invalidFiles.Any())
                 {
-                    Utils.ShowError(package, $"Invalid file extension ({Path.GetFileName(invalidFiles.First())}). Valid extensions are {string.Join(", ", validExtensions)}");
+                    VSUtils.ShowError(package, $"Invalid file extension ({Path.GetFileName(invalidFiles.First())}). Valid extensions are {string.Join(", ", validExtensions)}");
                     return;
                 }
 
@@ -145,13 +140,13 @@ namespace RunTemplate
                     var executionContext = new VSExecutionContext(templateItemPath, projectPath, solutionPath);
                     var runTemplateWrapper = new RunTemplateWrapper(_dte, package.JoinableTaskFactory, package, templateItem, templateItemPath, templateDir, templateDir, hierarchyItem, executionContext);
 
-                    _ = package.JoinableTaskFactory.RunAsync(runTemplateWrapper.RunAsync);
+                    _ = package.JoinableTaskFactory.RunAsync(() => runTemplateWrapper.RunAsync());
                 }
 
             }
             catch (Exception ex)
             {
-                Utils.ShowError(package, (System.Diagnostics.Debugger.IsAttached ? ex.ToString() : ex.Message));
+                VSUtils.ShowError(package, (System.Diagnostics.Debugger.IsAttached ? ex.ToString() : ex.Message));
             }
 
         }

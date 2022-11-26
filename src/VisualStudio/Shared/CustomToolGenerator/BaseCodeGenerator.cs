@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio;
 
-namespace RunTemplate.CustomToolGenerator // copied from Microsoft.Samples.VisualStudio.GeneratorSample
+namespace CodegenCS.VisualStudio.Shared.CustomToolGenerator // copied from Microsoft.Samples.VisualStudio.GeneratorSample
 {
     /// <summary>
     /// A managed wrapper for VS's concept of an IVsSingleFileGenerator which is

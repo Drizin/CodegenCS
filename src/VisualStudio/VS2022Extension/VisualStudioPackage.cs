@@ -1,17 +1,15 @@
-﻿using EnvDTE;
+﻿using CodegenCS.VisualStudio.Shared.CustomToolGenerator;
+using CodegenCS.VisualStudio.Shared.RunTemplate;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextTemplating.VSHost;
-using RunTemplate.CustomToolGenerator;
 using System;
-using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
-namespace RunTemplate
+namespace CodegenCS.VisualStudio.VS2022Extension
 {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
@@ -31,26 +29,32 @@ namespace RunTemplate
     /// </para>
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [Guid(RunTemplatePackage.PackageGuidString)]
+    [Guid(VisualStudioPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [InstalledProductRegistration("CodegenCS Code Generator - Custom Tool", "Executes a CodegenCS Template from Visual Studio", "1.0")] // this is just for package
     [ProvideCodeGenerator(typeof(CodegenCSCodeGenerator), CodegenCSCodeGenerator.CustomToolName, "Executes a CodegenCS Template from Visual Studio", true)]
-    //[ProvideAutoLoad(cmdUiContextGuid: Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionHasSingleProject_string, PackageAutoLoadFlags.BackgroundLoad)]    // This makes the package auto load (always, not depending on any action). Ideally we should NOT force auto load of package (better to only initialize when required - after command is clicked). This also does not guarantee that package is loaded before context menu (and button) are loaded (but if button is clicked it's because command was attached and therefore certainly the package was loaded before)
-    //[ProvideAutoLoad(cmdUiContextGuid: Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionHasMultipleProjects_string, PackageAutoLoadFlags.BackgroundLoad)] // This makes the package auto load (always, not depending on any action). Ideally we should NOT force auto load of package (better to only initialize when required - after command is clicked). This also does not guarantee that package is loaded before context menu (and button) are loaded (but if button is clicked it's because command was attached and therefore certainly the package was loaded before)
-    public sealed class RunTemplatePackage : AsyncPackage
+    // Make the package auto load with any solution (even before user clicks command or invokes custom tool).
+    [ProvideAutoLoad(cmdUiContextGuid: Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionHasSingleProject_string, PackageAutoLoadFlags.BackgroundLoad)]
+    [ProvideAutoLoad(cmdUiContextGuid: Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionHasMultipleProjects_string, PackageAutoLoadFlags.BackgroundLoad)]
+    public sealed class VisualStudioPackage : AsyncPackage
     {
         /// <summary>
-        /// RunTemplatePackage GUID string.
+        /// VisualStudioPackage GUID string. Should match VSCT file (GuidSymbol name="guidVisualStudioPackage")
         /// </summary>
-        public const string PackageGuidString = "ceeb4c60-193a-4506-b4e6-773ef8940f1a";
+        public const string PackageGuidString = "2321c6f5-3e71-43de-9032-570b5458fd36";
+
+        /// <summary>
+        /// Command menu group (command set GUID) - originally in *Command.cs. Should match VSCT file (guidVisualStudioPackageCmdSet)
+        /// </summary>
+        public static readonly Guid CommandSet = new Guid("1cf6aee0-b2f5-4601-be4e-deabc8a6b6d2");
 
         internal EnvDTE80.DTE2 _dte;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RunTemplatePackage"/> class.
+        /// Initializes a new instance of the <see cref="VisualStudioPackage"/> class.
         /// </summary>
-        public RunTemplatePackage()
+        public VisualStudioPackage()
         {
             // Inside this method you can place any initialization code that does not require
             // any Visual Studio service because at this point the package object is created but
