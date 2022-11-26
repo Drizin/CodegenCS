@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory=$False)]
     [ValidateSet('Release','Debug')]
-    [string]$configuration="Release"
+    [string]$configuration
 )
 
 # How to run:
@@ -16,6 +16,13 @@ param(
 $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
 Push-Location $dir
+
+if (-not $PSBoundParameters.ContainsKey('configuration'))
+{
+	$configuration = (Test-Path Release.snk) ? "Release" : "Debug"
+}
+Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
+
 
 try {
 

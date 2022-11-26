@@ -41,9 +41,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\dotnet-codegencs\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj" />
-    <ProjectReference Include="..\..\dotnet-codegencs\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" />
-    <ProjectReference Include="..\..\dotnet-codegencs\dotnet-codegencs\dotnet-codegencs.csproj" />
+    <ProjectReference Include="..\..\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj" />
+    <ProjectReference Include="..\..\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" />
+    <ProjectReference Include="..\..\Tools\dotnet-codegencs\dotnet-codegencs.csproj" />
   </ItemGroup>
 
   <ItemGroup>

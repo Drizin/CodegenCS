@@ -6,7 +6,7 @@ This page is only about the **CodegenCS Core Library**:
 - If you are **writing a template** (code generator) and want to learn more about CodegenCS features (and internals) this is the right place.
 - If you want to **compile and run templates** or **reverse-engineer a database schema** check out the [`Command-line Tool dotnet-codegencs`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs) documentation
 - If you want to **browse the sample templates** (POCO Generators, DAL generators, etc) check out [https://github.com/CodegenCS/Templates/](https://github.com/CodegenCS/Templates/)
-- If you just want to **download the Visual Studio Extension** check out the [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VSExtensions/)
+- If you just want to **download the Visual Studio Extension** check out the [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VisualStudio/)
 
 
 # CodegenCS Core Library
@@ -15,7 +15,7 @@ This page is only about the **CodegenCS Core Library**:
 [![Downloads](https://img.shields.io/nuget/dt/CodegenCS.Core.svg)](https://www.nuget.org/packages/CodegenCS.Core)
 
 CodegenCS Core Library is a .NET class library for doing code generation using plain C#.  
-It's the backbone of the command-line tool [dotnet-codegencs](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs), but you can also use the library without the command-line tool.
+It's the backbone of the command-line tool [dotnet-codegencs](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/dotnet-codegencs/), but you can also use the library without the command-line tool.
 
 
 
@@ -665,7 +665,7 @@ Those special instructions can be created using method-extensions in a very frie
 # <a name="TemplateInterfaces"></a>Template Interfaces
 
 We have some simple **template interfaces** that you can implement in your classes for 2 purposes:
-- [`Command-line Tool dotnet-codegencs`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs) requires that your entrypoint implements one of these interfaces.  
+- [`Command-line Tool dotnet-codegencs`](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/dotnet-codegencs/) requires that your entrypoint implements one of these interfaces.  
 - If you need to pass parameters then Template interfaces can be easier to invoke than delegates
 
 The 3 most common template interfaces are:
@@ -993,11 +993,11 @@ For some old features (or alternative syntaxes) which still work but are not rec
 
 ## How to use CodegenCS Core Library in my project?
 
-If you want to write and run your own templates you probably just need [`dotnet-codegencs`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs).  
+If you want to write and run your own templates you probably just need [`dotnet-codegencs`](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/dotnet-codegencs/).  
 Advanced users might prefer to use CodegenCS Core Library in their own project:
 
 <!-- 
-The [`dotnet-codegencs template build`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs) and [`dotnet-codegencs template run`](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs) tools automatically add CodegenCS nuget package and reference, so in order to write templates / compile templates / run templates you normally don't need this.  
+The [`dotnet-codegencs template build`](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/dotnet-codegencs/) and [`dotnet-codegencs template run`](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/dotnet-codegencs/) tools automatically add CodegenCS nuget package and reference, so in order to write templates / compile templates / run templates you normally don't need this.  
 But for a better development/debugging experience (IDE with intellisense) you should:
 -->
 - Create a C# Console project

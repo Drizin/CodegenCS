@@ -207,8 +207,8 @@ Other relevant libraries:
 - [CodegenCS.Models](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS.Models): interfaces for models, factories for loading models
 - [CodegenCS.Runtime](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS.Runtime): utilities for runtime, like logging, command-line arguments, and template execution context
 - [CodegenCS.DotNet](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS.DotNet): special classes for generating .NET code and for manipulating CSPROJ/VBPROJ files.
-- [CodegenCS.TemplateBuilder](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs/CodegenCS.TemplateBuilder): builds templates using Roslyn and C# 11
-- [CodegenCS.TemplateLauncher](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs/CodegenCS.TemplateLauncher): launches templates (finds entrypoint, injects dependencies, etc) and saves output.
+- [CodegenCS.Tools.TemplateBuilder](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/TemplateBuilder/): builds templates using Roslyn and C# 11
+- [CodegenCS.Tools.TemplateLauncher](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/TemplateLauncher/): launches templates (finds entrypoint, injects dependencies, etc) and saves output.
  
 Most users won't ever need to download or interact directly with CodegenCS library (or any of the libraries above) - most likely all you need is the **Visual Studio Extension or Command-line Tool**.
 
@@ -217,7 +217,7 @@ Most users won't ever need to download or interact directly with CodegenCS libra
 
 ## Command-line Tool (dotnet-codegencs)
 
-[dotnet-codegencs](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs) is a cross-platform .NET tool (command-line tool) that can be used to download, build, and run templates.  
+[dotnet-codegencs](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/dotnet-codegencs/) is a cross-platform .NET tool (command-line tool) that can be used to download, build, and run templates.  
 It can also be used to extract models (reverse engineer) from existing sources.  
 In other words this is our **"batteries included"** tool.  
 
@@ -225,7 +225,7 @@ In other words this is our **"batteries included"** tool.
 
 ## Visual Studio Extension
 
-Our [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VSExtensions/) allows running templates directly from Visual Studio.  
+Our [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VisualStudio/) allows running templates directly from Visual Studio.  
 The output files are automatically added to the project (nested under the template item).
 
 <hr/>
@@ -255,8 +255,8 @@ Our [Templates repository (https://github.com/CodegenCS/Templates)](https://gith
 
 # Quickstart
 
-- To start using the command-line tool, check out [dotnet-codegencs Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs#quickstart)
-- To start using the Visual Studio Extension, check out [Visual Studio Extension Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/VSExtensions#quickstart)
+- To start using the command-line tool, check out [dotnet-codegencs Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/dotnet-codegencs#quickstart)
+- To start using the Visual Studio Extension, check out [Visual Studio Extension Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/VisualStudio#quickstart)
 - To generate code based on a database, check out [DbSchema Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema#quickstart)
 - To generate code based on a REST API, check out [NSwagAdapter Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter#quickstart)
 

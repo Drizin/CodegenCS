@@ -6,7 +6,7 @@ This page is only about **CodegenCS Command-line Tool (dotnet-codegencs)**:
 - If you are **writing a template** (code generator) and want to learn more about CodegenCS features (and internals) then check out the [CodegenCS Core Library](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) documentation.
 - If you want to **compile and run templates** or **reverse-engineer a database schema** this is the right place.
 - If you want to **browse the sample templates** (POCO Generators, DAL generators, etc) check out [https://github.com/CodegenCS/Templates/](https://github.com/CodegenCS/Templates/)
-- If you just want to **download the Visual Studio Extension** check out the [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VSExtensions/)
+- If you just want to **download the Visual Studio Extension** check out the [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VisualStudio/)
 
 
 # <a name="dotnet-codegencs"></a>CodegenCS Command-Line Tool (dotnet-codegencs)
@@ -49,7 +49,7 @@ When you run `dotnet-codegencs template run`:
   Different file can be specified using option `--File [DefaultOutputFile]`
 - Using statements are automatically added to the script (if not there) to let templates be as simple as possible
  
-In the templates repository you'll find templates using the [legacy syntax](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L34) which requires templates to implements one of the [templating interfaces](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS#template-interfaces) (`ICodegenTemplate<TModel>`, `ICodegenMultifileTemplate<TModel>`, `ICodegenStringTemplate<TModel>`). That's legacy, now that it's possible (and easier) to just use a `Main()` method and inject whatever object you need.
+In the templates repository you'll find templates using the [legacy syntax](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L35) which requires templates to implements one of the [templating interfaces](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS#template-interfaces) (`ICodegenTemplate<TModel>`, `ICodegenMultifileTemplate<TModel>`, `ICodegenStringTemplate<TModel>`). That's legacy, now that it's possible (and easier) to just use a `Main()` method and inject whatever object you need.
 
 
 
@@ -106,7 +106,7 @@ When you run `dotnet-codegencs template run` it expects that your template imple
 - `ICodegenMultifileTemplate<TModel>`: This is similar to the previous but instead of getting a ICodegenTextWriter (and writing into a single file) it gets a ICodegenContext (and therefore can write to multiple files)
 - `ICodegenStringTemplate<TModel>`: for templates that just return an interpolated string
 
-So basically `template run` load your template and detect which interface you have implemented ([example](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L34)), and then it will automatically load the model (deserialize it into the appropriate type) and pass it to your template.  
+So basically `template run` load your template and detect which interface you have implemented ([example](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L35)), and then it will automatically load the model (deserialize it into the appropriate type) and pass it to your template.  
 
 There are other interfaces (e.g. you don't need to get a model, or you may expect two different models) but the 3 above are the most common. As an example, if your template uses 2 models (`SomeInterface<TModel1, TModel2>`) then `template run` would expect (and load) two input files. -->
 
@@ -121,23 +121,23 @@ Templates may define their own options and arguments using [.NET System.CommandL
 `dotnet-codegencs template run <template> <model> [template-args]`
 
 SimplePocos template is a good example of how to use custom arguments and options:
-- It defines [1 mandatory argument](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L49) which is the namespace for the generated POCOs
-- It defines a [-p:SingleFile option](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L50) which when used will generate all POCOs under a single filename (default output file)
+- It defines [1 mandatory argument](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L52) which is the namespace for the generated POCOs
+- It defines a [-p:SingleFile option](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L53) which when used will generate all POCOs under a single filename (default output file)
 
 `dotnet-codegencs template run SimplePocos.cs --File MyPOCOS.cs AdventureWorks.json MyProject.POCOs -p:SingleFile`
 
 In the command above, `--File` is an option of `template run` and defines the default output file, while `-p:SingleFile` is a template-specific option (SimplePocos option) and defines that all POCOs should be generated into that single file.  
-If we don't specify `-p:SingleFile` then SimplePocos will generate each file on it's own [`<TableName>.generated.poco`](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L313).  
+If we don't specify `-p:SingleFile` then SimplePocos will generate each file on it's own [`<TableName>.generated.poco`](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L314).  
 If we specify `-p:SingleFile` but don't specify a `--File` then the default output file would be `SimplePocos.generated.cs` (since we're running `dotnet-codegencs template run SimplePocos ...`).  
 (P.S. we suggest this `-p:` as an [alternative prefix](https://github.com/CodegenCS/command-line-api/commit/b78690b47a68e9a9aca419c0c053df1acb9317b5) to avoid conflicting options with the main tool, but it's also possible to use  standard formats like `--youroption` or `/youroption`)
 
-For any template that [define their own arguments/options](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L49) using [`ConfigureCommand()`](https://github.com/CodegenCS/Templates/blob/main/SimplePocos/SimplePocos.cs#L47) and [.NET System.CommandLine syntax](https://docs.microsoft.com/en-us/dotnet/standard/commandline/define-commands#define-options) we can also get help (see template usage and options):
+For any template that [define their own arguments/options](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L52) using [`ConfigureCommand()`](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L47) and [.NET System.CommandLine syntax](https://docs.microsoft.com/en-us/dotnet/standard/commandline/define-commands#define-options) we can also get help (see template usage and options):
 
 `dotnet-codegencs template run SimplePocos.cs --help`
 
 ## Using third-party libraries
 
-Currently dotnet-codegencs will automatically [add some libraries](https://github.com/CodegenCS/CodegenCS/blob/master/src/dotnet-codegencs/CodegenCS.TemplateBuilder/RoslynCompiler.cs) including Generics, System.Net.Http, System.IO, and Newtonsoft JSON. In the future dotnet-codegencs should allow dynamic nuget references, for for now if you want to use other libraries please use [CodegenCS Core Library](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) directly.
+Currently dotnet-codegencs will automatically [add some libraries](https://github.com/CodegenCS/CodegenCS/blob/master/src/Tools/TemplateBuilder/RoslynCompiler.cs) including Generics, System.Net.Http, System.IO, and Newtonsoft JSON. In the future dotnet-codegencs should allow dynamic nuget references, for for now if you want to use other libraries please use [CodegenCS Core Library](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) directly.
 
 
 <br/>

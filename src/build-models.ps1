@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory=$False)]
     [ValidateSet('Release','Debug')]
-    [string]$configuration="Release"
+    [string]$configuration
 )
 
 # How to run: .\build.ps1   or   .\build.ps1 -configuration Debug
@@ -13,6 +13,13 @@ param(
 $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
 Push-Location $dir
+
+if (-not $PSBoundParameters.ContainsKey('configuration'))
+{
+	$configuration = (Test-Path Release.snk) ? "Release" : "Debug"
+}
+Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
+
 
 # CodegenCS.Models.DbSchema + nupkg/snupkg
 & $msbuild ".\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj"        `

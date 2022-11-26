@@ -28,7 +28,7 @@ if ($configuration -eq "Release")
     Get-ChildItem .\Models\ -Recurse | Where{$_.FullName -CMatch ".*\\obj$" -and $_.PSIsContainer} | Remove-Item -Recurse -Force -ErrorAction Ignore
 }
 
-. .\build-clitool.ps1 $configuration
+. .\build-tools.ps1 $configuration
 
 
 # Unit tests # TODO: break this into CORE tests, MODEL tests, CLITESTS 

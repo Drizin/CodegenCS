@@ -11,11 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Models.DbSchema",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Models.DbSchema.Extractor", "Models\CodegenCS.Models.DbSchema.Extractor\CodegenCS.Models.DbSchema.Extractor.csproj", "{280C1697-59E5-4A63-9D82-AB01EAD3297C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-codegencs", "dotnet-codegencs\dotnet-codegencs\dotnet-codegencs.csproj", "{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-codegencs", "Tools\dotnet-codegencs\dotnet-codegencs.csproj", "{A6A1521F-B4D8-4A93-B5F1-B23FC844F019}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.TemplateBuilder", "dotnet-codegencs\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj", "{20234722-DC8F-4B0D-B12A-3DF606D181DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Tools.TemplateBuilder", "Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj", "{20234722-DC8F-4B0D-B12A-3DF606D181DA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.TemplateLauncher", "dotnet-codegencs\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj", "{82DF9B4A-88AB-4A98-AF7C-DE21FDCDA13B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Tools.TemplateLauncher", "Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj", "{82DF9B4A-88AB-4A98-AF7C-DE21FDCDA13B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VSExtensions", "VSExtensions", "{05433D5A-DACD-4DB2-8498-B325DAF4972D}"
 EndProject
@@ -26,13 +26,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.TemplateDownloader", "dotnet-codegencs\CodegenCS.TemplateDownloader\CodegenCS.TemplateDownloader.csproj", "{C02EEB5C-BC31-4313-8FBE-37748A6A4E37}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Tools.TemplateDownloader", "Tools\TemplateDownloader\CodegenCS.Tools.TemplateDownloader.csproj", "{C02EEB5C-BC31-4313-8FBE-37748A6A4E37}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{91BD35EC-39D1-4D9E-BFAA-FB062F46E84F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{FC913A61-41B5-49AE-AC94-6D3354265E0B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet-codegencs", "dotnet-codegencs", "{E1BBD88F-8EAD-48D0-9E7B-9DD894C4D00F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{E1BBD88F-8EAD-48D0-9E7B-9DD894C4D00F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Models", "Core\CodegenCS.Models\CodegenCS.Models.csproj", "{21F897CA-25A6-49F8-95A0-A191AACC2B2C}"
 EndProject

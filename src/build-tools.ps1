@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory=$False)]
     [ValidateSet('Release','Debug')]
-    [string]$configuration="Release"
+    [string]$configuration
 )
 
 # CLI tool (dotnet-codegencs)
@@ -15,9 +15,15 @@ $scriptpath = $MyInvocation.MyCommand.Path
 $dir = Split-Path $scriptpath
 Push-Location $dir
 
+if (-not $PSBoundParameters.ContainsKey('configuration'))
+{
+	$configuration = (Test-Path Release.snk) ? "Release" : "Debug"
+}
+Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 
-dotnet restore CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj
-& $msbuild ".\dotnet-codegencs\CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj" `
+
+dotnet restore .\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj
+& $msbuild ".\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj" `
            /t:Restore /t:Build                                                  `
            '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
            /p:Configuration=$configuration                                      `
@@ -27,8 +33,19 @@ dotnet restore CodegenCS.TemplateBuilder\CodegenCS.TemplateBuilder.csproj
            /p:ContinuousIntegrationBuild=true
 if (! $?) { throw "msbuild failed" }
 
-dotnet restore CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj
-& $msbuild ".\dotnet-codegencs\CodegenCS.TemplateLauncher\CodegenCS.TemplateLauncher.csproj" `
+dotnet restore .\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj
+& $msbuild ".\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" `
+           /t:Restore /t:Build                                                  `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
+           /p:Configuration=$configuration                                      `
+           /p:IncludeSymbols=true                                               `
+           /p:SymbolPackageFormat=snupkg                                        `
+           /verbosity:minimal                                                   `
+           /p:ContinuousIntegrationBuild=true
+if (! $?) { throw "msbuild failed" }
+
+dotnet restore .\Tools\TemplateDownloader\CodegenCS.Tools.TemplateDownloader.csproj
+& $msbuild ".\Tools\TemplateDownloader\CodegenCS.Tools.TemplateDownloader.csproj" `
            /t:Restore /t:Build                                                  `
            '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
            /p:Configuration=$configuration                                      `
@@ -41,7 +58,7 @@ if (! $?) { throw "msbuild failed" }
 
 
 # dotnet-codegencs (DotnetTool nupkg/snupkg)
-& $msbuild ".\dotnet-codegencs\dotnet-codegencs\dotnet-codegencs.csproj"   `
+& $msbuild ".\Tools\dotnet-codegencs\dotnet-codegencs.csproj"   `
            /t:Restore /t:Build /t:Pack                             `
            /p:PackageOutputPath="..\..\packages-local\"      `
            '/p:targetFrameworks="net5.0"'                 `
