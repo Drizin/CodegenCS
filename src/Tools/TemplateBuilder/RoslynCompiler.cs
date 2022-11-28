@@ -21,9 +21,11 @@ namespace CodegenCS.TemplateBuilder
         protected readonly CSharpParseOptions _parseOptions;
         protected readonly string _dotNetCoreDir;
         protected ILogger _logger;
+        protected TemplateBuilder _builder;
 
-        public RoslynCompiler(ILogger logger)
+        public RoslynCompiler(TemplateBuilder builder, ILogger logger)
         {
+            _builder = builder;
             _logger = logger;
             var privateCoreLib = typeof(object).GetTypeInfo().Assembly.Location;
             _dotNetCoreDir = Path.GetDirectoryName(privateCoreLib);
@@ -128,6 +130,8 @@ namespace CodegenCS.TemplateBuilder
 
             // Add this library? //AddAssembly(typeof(RoslynCompiler));
             // maybe just add AppDomain.CurrentDomain.GetAssemblies() ?
+
+            _builder.OnConfigureReferences(_namespaces, _references);
 
 
             _compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
@@ -307,9 +311,12 @@ namespace CodegenCS.TemplateBuilder
                 if (Regex.IsMatch(templateSource, @"(?<!\.)\bOpenApiDocument\b"))
                     AddMissingUsing(ref rootNode, "NSwag");
                 if (Regex.IsMatch(templateSource, @"(?<!\.)\bCommandLineArgs\b")
-                    || Regex.IsMatch(templateSource, @"(?<!\.)\bIAutoBindCommandLineArgs\b"))
+                    || Regex.IsMatch(templateSource, @"(?<!\.)\bIAutoBindCommandLineArgs\b")
+					|| Regex.IsMatch(templateSource, @"(?<!\.)\bVSExecutionContext\b")
+					|| Regex.IsMatch(templateSource, @"(?<!\.)\bExecutionContext\b")
+                    )
                     AddMissingUsing(ref rootNode, "CodegenCS.Runtime");
-                else if (Regex.IsMatch(templateSource, @"(?<!\.)\bILogger\b") && Regex.IsMatch(templateSource, @"\bWriteLine(\w*)Async\b"))
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bILogger\b") && Regex.IsMatch(templateSource, @"\bWriteLine(\w*)Async\b"))
                     AddMissingUsing(ref rootNode, "CodegenCS.Utils");
                 if (Regex.IsMatch(templateSource, @"(?<!\.)\bIInputModel\b") 
                     || Regex.IsMatch(templateSource, @"(?<!\.)\bIJsonInputModel\b") 

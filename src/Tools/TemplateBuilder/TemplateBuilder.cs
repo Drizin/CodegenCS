@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using CodegenCS.Runtime;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace CodegenCS.TemplateBuilder
 {
@@ -16,6 +17,22 @@ namespace CodegenCS.TemplateBuilder
         protected ILogger _logger;
         protected TemplateBuilderArgs _args;
         protected FileInfo[] inputFiles;
+
+        public event EventHandler<ConfigureReferencesEventArgs> ConfigureReferences;
+        public class ConfigureReferencesEventArgs : EventArgs
+        {
+            public HashSet<string> Namespaces { get; protected set; }
+            public HashSet<PortableExecutableReference> References { get; protected set; }
+            public ConfigureReferencesEventArgs(HashSet<string> namespaces, HashSet<PortableExecutableReference> references) : base()
+            {
+                Namespaces = namespaces;
+                References = references;
+            }
+        }
+        public virtual void OnConfigureReferences(HashSet<string> namespaces, HashSet<PortableExecutableReference> references)
+        {
+            ConfigureReferences?.Invoke(this, new TemplateBuilder.ConfigureReferencesEventArgs(namespaces, references));
+        }
 
         public TemplateBuilder(ILogger logger, TemplateBuilderArgs args)
         {
@@ -93,7 +110,7 @@ namespace CodegenCS.TemplateBuilder
             if (_args.VerboseMode)
                 await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Cyan}Microsoft.CodeAnalysis.CSharp.dll{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{typeof(CSharpParseOptions).Assembly.GetName().Version}{PREVIOUS_COLOR}");
 
-            var compiler = new RoslynCompiler(_logger);
+            var compiler = new RoslynCompiler(this, _logger);
 
             var sources = inputFiles.Select(inp => inp.FullName).ToArray();
 

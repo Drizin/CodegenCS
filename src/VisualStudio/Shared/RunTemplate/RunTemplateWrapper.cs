@@ -15,6 +15,7 @@ using static CodegenCS.TemplateBuilder.TemplateBuilder;
 using static CodegenCS.TemplateLauncher.TemplateLauncher;
 using TemplateLauncherArgs = CodegenCS.TemplateLauncher.TemplateLauncher.TemplateLauncherArgs;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.CodeAnalysis;
 
 namespace CodegenCS.VisualStudio.Shared.RunTemplate
 {
@@ -146,6 +147,7 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
                 VerboseMode = false,
             };
             var builder = new CodegenCS.TemplateBuilder.TemplateBuilder(_logger, builderArgs);
+            builder.ConfigureReferences += AddVisualStudioReferences;
             var builderResult = await builder.ExecuteAsync();
 
             if (builderResult.ReturnCode != 0)
@@ -156,6 +158,11 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
             _customPane.OutputStringThreadSafe("\r\n");
             await Task.Delay(1); // let UI refresh
             return builderResult;
+        }
+
+        private void AddVisualStudioReferences(object sender, ConfigureReferencesEventArgs e)
+        {
+            e.References.Add(MetadataReference.CreateFromFile(typeof(VSExecutionContext).GetTypeInfo().Assembly.Location)); // CodegenCS.Runtime.VisualStudio
         }
 
         async Task<int> RunTemplateAsync(string templateDll, string defaultOutputFile)
