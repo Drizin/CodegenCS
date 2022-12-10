@@ -295,6 +295,7 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
         }
 
         #region Assembly Redirects
+        static Assembly[] _assemblies = null;
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var name = new AssemblyName(args.Name);

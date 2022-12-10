@@ -64,7 +64,7 @@ namespace CodegenCS.DotNetTool.Commands
                 _command = GetFakeRunCommand();
                 _command.AddCommand(fakeTemplateCommand);
             }
-            _dependencyContainer = new DependencyContainer().AddModelFactory();
+            _dependencyContainer = new DependencyContainer().AddConsole().AddModelFactory();
         }
 
         public Command GetCommand(string commandName = "run")

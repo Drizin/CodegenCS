@@ -6,7 +6,7 @@ namespace CodegenCS.Runtime
     {
         public static DependencyContainer AddConsole(this DependencyContainer dependencyContainer, string[] args = null)
         {
-            dependencyContainer.RegisterCustomTypeResolver(new AutoBindCommandLineArgsTypeResolver());
+            dependencyContainer.RegisterCustomTypeResolver(new AutoBindCommandLineArgsTypeResolver()); // break into AddAutoBindCommandLineArgs ?
             dependencyContainer.RegisterSingleton<ILogger>(new ColoredConsoleLogger());
             if (args != null)
                 dependencyContainer.RegisterSingleton<CommandLineArgs>(new CommandLineArgs(args));
