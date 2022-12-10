@@ -132,7 +132,7 @@ namespace CodegenCS.Tests.CoreTests
                 Start
                 
                 
-                My paragraphThe end.                
+                My paragraphThe end.
                 """, _w.GetContents());
         }
 

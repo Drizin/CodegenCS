@@ -227,12 +227,44 @@ namespace MyPocos
 
         #endregion
 
+        #region Literal Braces
         [Test]
         public void EmptyBraces()
         {
             _w.Write($"{{}}");
             Assert.AreEqual("{}", _w.GetContents());
         }
+
+        [Test]
+        public void LiteralBraces1()
+        {
+            string var = "variable";
+            _w.Write($$"""
+                Testing {{var}}{0} {1} {3}
+                   {5}
+                """);
+            Assert.AreEqual("Testing variable{0} {1} {3}\r\n   {5}", _w.GetContents());
+        }
+
+        [Test]
+        public void LiteralBraces2()
+        {
+            string myMethod = "Method";
+            _w.Write($$"""
+                void {{myMethod}}()
+                {
+                    return string.Format("HTTP Response: \n\n{0}\n\n{1}", Response, base.ToString());
+                }
+                """);
+            string expected = $$"""
+                void Method()
+                {
+                    return string.Format("HTTP Response: \n\n{0}\n\n{1}", Response, base.ToString());
+                }
+                """;
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+        #endregion
 
 
         #region Text-Manipulation

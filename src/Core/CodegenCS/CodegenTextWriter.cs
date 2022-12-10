@@ -714,6 +714,7 @@ namespace CodegenCS
             | RegexOptions.IgnorePatternWhitespace
             | RegexOptions.Compiled
             );
+
         /// <summary>
         /// All public Write methods pass through this method <br />.
         /// This method splits an interpolated string and writes block by block, doing smart-evaluation of arguments <br />
@@ -731,23 +732,31 @@ namespace CodegenCS
             if (string.IsNullOrEmpty(format))
                 return;
             //https://www.meziantou.net/interpolated-strings-advanced-usages.htm
-            var matches = _formattableArgumentRegex.Matches(format);
+            var stripCurlyBracesLiterals = format.Replace("{{", "  ").Replace("}}", "  "); // remove curly braces literals so the regex will capture position only for real placeholders
+            var matches = _formattableArgumentRegex.Matches(stripCurlyBracesLiterals);
             int lastPos = 0;
+            string lastPart = null;
             for (int i = 0; i < matches.Count; i++)
             {
-                // unescape escaped curly braces
-                string literal = format.Substring(lastPos, matches[i].Index - lastPos).Replace("{{", "{").Replace("}}", "}");
+                int argPos = int.Parse(matches[i].Groups["ArgPos"].Value);
+                if (argPos >= arguments.Length) // something wrong with regex, so avoid crashing and look further for a real placeholder
+                    continue;
+                string literal = UnescapeCurlyBraces(format.Substring(lastPos, matches[i].Index - lastPos));
                 lastPos = matches[i].Index + matches[i].Length;
                 InnerWrite(literal);
-                // arguments[i] may not work because same argument can be used multiple times
-                int argPos = int.Parse(matches[i].Groups["ArgPos"].Value);
-                string argFormat = matches[i].Groups["Format"].Value;
+                string argFormat = matches[i].Groups["Format"].Value; // arguments[i] may not work because same argument can be used multiple times
                 object arg = arguments[argPos]; 
 
                 InnerWriteFormattableArgument(arg, argFormat);
             }
-            string lastPart = format.Substring(lastPos).Replace("{{", "{").Replace("}}", "}");
+            lastPart = UnescapeCurlyBraces(format.Substring(lastPos));
             InnerWrite(lastPart);
+        }
+
+        // Literal curly braces (manually escaped like "{{0}}" or automatically escaped like $$"""{0}""") are in the format {{
+        private string UnescapeCurlyBraces(string value)
+        {
+            return value.Replace("{{", "{").Replace("}}", "}");
         }
 
         /// <summary>
