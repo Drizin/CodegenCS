@@ -11,7 +11,7 @@ using System.CommandLine.Parsing;
 using CodegenCS.DotNetTool;
 using CodegenCS.Runtime;
 
-namespace CodegenCS.Tests.TemplateTests
+namespace CodegenCS.Tools.Tests
 {
     internal class OpenAPITests : BaseTest
     {
@@ -23,7 +23,7 @@ namespace CodegenCS.Tests.TemplateTests
         TemplateLauncherArgs _launcherArgs;
         ILogger _logger = new DebugOutputLogger();
         CliCommandParser _cliCommandParser = new CliCommandParser();
-        string _modelPath = Path.Combine(GetCurrentFolder(), @"..\..\..\..\Models\CodegenCS.Models.NSwagAdapter\SampleModels\petstore-openapi3.json");
+        string _modelPath = Path.Combine(GetCurrentFolder(), @"..\..\Models\CodegenCS.Models.NSwagAdapter\SampleModels\petstore-openapi3.json");
 
         [SetUp]
         public void Setup()

@@ -25,19 +25,22 @@
     </Otherwise>
   </Choose>
 
-
   <ItemGroup>
     <Compile Remove="**\*-TestsOutput\**" />
     <Content Include="**\*-TestsOutput\**" />
-	  <Compile Include="..\CodegenCS.Models.DbSchema.Templates\SimplePOCOGenerator\SampleOutput\*.cs">
-		  <Link>POCOTests\GeneratedPOCOs\%(Filename)%(Extension)</Link>
-	  </Compile>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.6.0-alpha1" />
     <PackageReference Include="nunit" Version="3.10.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj" />
+    <ProjectReference Include="..\..\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" />
+    <ProjectReference Include="..\..\Tools\dotnet-codegencs\dotnet-codegencs.csproj" />
   </ItemGroup>
 
   <Choose>
