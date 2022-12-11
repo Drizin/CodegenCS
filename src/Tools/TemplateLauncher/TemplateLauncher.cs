@@ -28,6 +28,8 @@ namespace CodegenCS.TemplateLauncher
         protected Type _model1Type = null;
         protected Type _model2Type = null;
         protected Type _entryPointClass = null;
+        Type _templatingInterface = null;
+        protected ConstructorInfo _ctorInfo = null;
         protected FileInfo _templateFile;
         internal FileInfo _originallyInvokedTemplateFile;
         public bool ShowTemplateHelp { get; set; }
@@ -116,19 +118,109 @@ namespace CodegenCS.TemplateLauncher
 
             await _logger.WriteLineAsync(ConsoleColor.Green, $"Loading {ConsoleColor.Yellow}'{_templateFile.Name}'{PREVIOUS_COLOR}...");
 
+            bool success = await FindEntryPoint();
 
-            Type templatingInterface = null;
+            if (!success || _entryPointClass == null || _entryPointMethod == null)
+            {
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find template entry-point in '{(_originallyInvokedTemplateFile ?? _templateFile).Name}'.");
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Template should have a method called TemplateMain().");
+                return new TemplateLoadResponse() { ReturnCode = -1 };
+            }
+
+            await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Template entry-point: {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR}...");
+
+            if (_templatingInterface != null) // old interfaces already define _expectedModels/_model1Type/_model2Type
+            {                
+                //TODO: check that constructor doesn't get same models that are expected by Render entrypoint...
+                return new TemplateLoadResponse() { ReturnCode = 0, Model1Type = _model1Type, Model2Type = _model2Type };
+            }
+
+            // For TemplateMain() or Main() we have to ensure that models are NOT being expected by both, and also ensure set _expectedModels/_model1Type/_model2Type
+
+            // Find the best constructor
+            var bestCtor = FindConstructor();
+
+            if (bestCtor == null)
+            {
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find a possible constructor in '{_entryPointMethod.Name}'.");
+                return new TemplateLoadResponse() { ReturnCode = -1 };
+            }
+
+
+
+            // Models required by the entry point method 
+            var entrypointModels = _entryPointMethod.GetParameters().Select(p => p.ParameterType).Where(p => _modelFactory.CanCreateModel(p)).ToList();
+
+            // Models required by ctor
+            var ctorModels = bestCtor.Parameters.Where(p => p.IsModel).Select(p => p.ParameterType).Where(p => _modelFactory.CanCreateModel(p)).ToList();
+
+            if (ctorModels.Any() && entrypointModels.Any())
+            {
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with {_entryPointMethod.Name}() entry-point may receive models in the entry-point or in the constructor, but not in both.");
+                return new TemplateLoadResponse() { ReturnCode = -1 };
+            }
+
+            var expectedModels = ctorModels.Any() ? ctorModels : entrypointModels;
+
+            _expectedModels = expectedModels.Count();
+            if (_expectedModels >= 1)
+                _model1Type = expectedModels[0];
+            if (_expectedModels >= 2)
+                _model1Type = expectedModels[1];
+            if (_expectedModels >= 3)
+            {
+                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates invoked from dotnet-codegencs can expect up to 2 models - but this one expects {ConsoleColor.Yellow}'{string.Join("', '", entrypointModels.Select(t => t.Name))}'{PREVIOUS_COLOR}");
+                return new TemplateLoadResponse() { ReturnCode = -1 };
+            }
+
+            return new TemplateLoadResponse() { ReturnCode = 0, Model1Type = _model1Type, Model2Type = _model2Type };
+        }
+
+        async Task<bool> FindEntryPoint()
+        {
+
+            if (_entryPointMethod != null && _entryPointClass != null) // previously calculated
+                return true; 
 
             var asm = Assembly.LoadFile(_templateFile.FullName);
 
             if (asm.GetName().Version?.ToString() != "0.0.0.0")
                 await _logger.WriteLineAsync($"{ConsoleColor.Cyan}{_templateFile.Name}{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{asm.GetName().Version}{PREVIOUS_COLOR}");
 
+            List<MethodInfo> candidates;
+
             var asmTypes = asm.GetTypes().ToList();
             var asmMethods = asmTypes.SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)).ToList();
 
 
-            // If a class implements multiple templating interfaces (or if different classs implement different interfaces) we'll pick the most elaborated one
+            // First we search for "TemplateMain" entrypoint method.
+            if (_entryPointMethod == null && (candidates = asmMethods.Where(m => m.Name == "TemplateMain").ToList()).Any())
+            {
+
+                var evaluatedCandidates = candidates.Select(method => new MethodOverload<MethodInfo>(method, method.GetParameters().Select(p => p.ParameterType).ToList())).ToList();
+                var best = FindBestOverload(evaluatedCandidates, _modelFactory);
+                if (best != null)
+                {
+                    _entryPointMethod = best.CtorOrMethod;
+                    _entryPointClass = _entryPointMethod.DeclaringType;
+                    return true;
+                }
+            }
+            // Then we search for a single "Main" entrypoint method //TODO: deprecate?
+            if (_entryPointMethod == null && (candidates = asmMethods.Where(m => m.Name == "Main").ToList()).Any())
+            {
+                var evaluatedCandidates = candidates.Select(method => new MethodOverload<MethodInfo>(method, method.GetParameters().Select(p => p.ParameterType).ToList())).ToList();
+                var best = FindBestOverload(evaluatedCandidates, _modelFactory);
+                if (best != null)
+                {
+                    _entryPointMethod = best.CtorOrMethod;
+                    _entryPointClass = _entryPointMethod.DeclaringType;
+                    return true;
+                }
+            }
+
+            #region LEGACY Templating interfaces (prefer using TemplateMain() or Main() entrypoints)
+            //TODO: deprecate
             var interfacesPriority = new Type[]
             {
                 typeof(ICodegenMultifileTemplate<,>),
@@ -143,21 +235,6 @@ namespace CodegenCS.TemplateLauncher
                 typeof(ICodegenStringTemplate<>),
                 typeof(ICodegenStringTemplate),
             };
-
-            // First we search for a single "TemplateMain" method.
-            if (_entryPointMethod == null && asmMethods.Where(m => m.Name == "TemplateMain").Count() == 1)
-            {
-                _entryPointMethod = asmMethods.Where(m => m.Name == "Main").Single();
-                _entryPointClass = _entryPointMethod.DeclaringType;
-            }
-            // Then we search for a single "Main" method //TODO: deprecate
-            if (_entryPointMethod == null && asmMethods.Where(m => m.Name == "Main").Count() == 1)
-            {
-                _entryPointMethod = asmMethods.Where(m => m.Name == "Main").Single();
-                _entryPointClass = _entryPointMethod.DeclaringType;
-            }
-
-            // LEGACY ? Maybe we should use the Main() standard
             // Then we search for templating interfaces (they all inherit from IBaseTemplate)
             if (_entryPointClass == null)
             {
@@ -167,11 +244,11 @@ namespace CodegenCS.TemplateLauncher
                 if (_entryPointClass == null && templateInterfaceTypes.Count() == 1)
                 {
                     _entryPointClass = templateInterfaceTypes.Single();
-                    // Pick the best interface if it implements multiple
-                    for (int i = 0; i < interfacesPriority.Length && templatingInterface == null; i++)
+                    // If a class implements multiple templating interfaces (or if different classes implement different interfaces) we'll pick the most elaborated interface
+                    for (int i = 0; i < interfacesPriority.Length && _templatingInterface == null; i++)
                     {
                         if (IsAssignableToType(_entryPointClass, interfacesPriority[i]))
-                            templatingInterface = interfacesPriority[i];
+                            _templatingInterface = interfacesPriority[i];
                     }
                 }
                 else if (templateInterfaceTypes.Any()) // if multiple classes, find the best one by the best interface
@@ -182,43 +259,29 @@ namespace CodegenCS.TemplateLauncher
                         if ((types2 = templateInterfaceTypes.Where(t => IsAssignableToType(t, interfacesPriority[i]))).Count() == 1)
                         {
                             _entryPointClass = types2.Single();
-                            templatingInterface = interfacesPriority[i];
+                            _templatingInterface = interfacesPriority[i];
                         }
                     }
                 }
             }
-
-            if (_entryPointMethod == null && templatingInterface != null)
-                _entryPointMethod = templatingInterface.GetMethod("Render", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public);
-
-
-            if (_entryPointClass == null || _entryPointMethod == null)
-            {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find template entry-point in '{(_originallyInvokedTemplateFile ?? _templateFile).Name}'.");
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Template should have a method called Main() or should implement ICodegenTemplate, ICodegenMultifileTemplate or ICodegenStringTemplate.");
-                return new TemplateLoadResponse() { ReturnCode = -1 };
-            }
-
-            await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Template entry-point: {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR}...");
-
-            if (templatingInterface != null)
+            if (_templatingInterface != null)
             {
                 Type iBaseXModelTemplate = null;
 
-                if (IsAssignableToType(templatingInterface, typeof(IBase1ModelTemplate<>)))
+                if (IsAssignableToType(_templatingInterface, typeof(IBase1ModelTemplate<>)))
                     iBaseXModelTemplate = typeof(IBase1ModelTemplate<>);
-                else if (IsAssignableToType(templatingInterface, typeof(IBase2ModelTemplate<,>)))
+                else if (IsAssignableToType(_templatingInterface, typeof(IBase2ModelTemplate<,>)))
                     iBaseXModelTemplate = typeof(IBase2ModelTemplate<,>);
-                else if (IsAssignableToType(templatingInterface, typeof(IBase0ModelTemplate)))
+                else if (IsAssignableToType(_templatingInterface, typeof(IBase0ModelTemplate)))
                     iBaseXModelTemplate = typeof(IBase0ModelTemplate);
                 else
                     throw new NotImplementedException();
 
-                if (IsAssignableToType(templatingInterface, typeof(IBaseMultifileTemplate)))
+                if (IsAssignableToType(_templatingInterface, typeof(IBaseMultifileTemplate)))
                     _iTypeTemplate = typeof(IBaseMultifileTemplate);
-                else if (IsAssignableToType(templatingInterface, typeof(IBaseSinglefileTemplate)))
+                else if (IsAssignableToType(_templatingInterface, typeof(IBaseSinglefileTemplate)))
                     _iTypeTemplate = typeof(IBaseSinglefileTemplate);
-                else if (IsAssignableToType(templatingInterface, typeof(IBaseStringTemplate)))
+                else if (IsAssignableToType(_templatingInterface, typeof(IBaseStringTemplate)))
                     _iTypeTemplate = typeof(IBaseStringTemplate);
                 else
                     throw new NotImplementedException();
@@ -237,77 +300,70 @@ namespace CodegenCS.TemplateLauncher
                 }
                 else
                     _expectedModels = 0;
+
+                if (_entryPointMethod == null)
+                    _entryPointMethod = _templatingInterface.GetMethod("Render", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public);
+                await _logger.WriteLineAsync(ConsoleColor.Yellow, $"WARNING: Templating interfaces ICodegenTemplate/ICodegenMultifileTemplate/ICodegenStringTemplate are deprecated and should be replaced by TemplateMain() entrypoint.");
+                await Task.Delay(2000);
+                return true;
             }
-            else
+
+            #endregion
+
+            return false;
+
+        }
+        private MethodOverload<ConstructorInfo> FindConstructor()
+        {
+            var ctors = _entryPointClass.GetConstructors().Select(ctor => new MethodOverload<ConstructorInfo>(ctor, ctor.GetParameters().Select(p => p.ParameterType).ToList())).ToList();
+            var bestCtor = FindBestOverload(ctors, _modelFactory);
+            _ctorInfo = bestCtor.CtorOrMethod;
+            return bestCtor;
+        }
+
+        class MethodOverload<T>
+        {
+            public T CtorOrMethod { get; set; }
+            public List<MethodParameter> Parameters { get; set; }
+            public string ErrorMessage { get; set; }
+            public MethodOverload(T ctorOrMethod, List<Type> parameters)
             {
-                // Models required by the entry point method 
-                var entrypointMethodModels = _entryPointMethod.GetParameters().Select(p => p.ParameterType).Where(p => _modelFactory.CanCreateModel(p)).ToList();
+                CtorOrMethod = ctorOrMethod;
+                Parameters = parameters.Select(p => new MethodParameter(p)).ToList();
+            }
+        }
+        class MethodParameter
+        {
+            public Type ParameterType { get; set; }
+            public bool IsModel { get; set; }
+            public MethodParameter(Type type)
+            {
+                ParameterType = type;
+            }
+        }
+        private MethodOverload<T> FindBestOverload<T>(List<MethodOverload<T>> overloads, IModelFactory modelFactory)
+        {
+            foreach (var overload in overloads)
+            {
+                foreach (var p in overload.Parameters)
+                    p.IsModel = modelFactory.CanCreateModel(p.ParameterType);
 
-                // Models required by the entrypoint class constructors
-                var ctorsWithModelParameters = _entryPointClass.GetConstructors().Select(ctor => new
+                if (overload.Parameters.Where(p => p.IsModel).GroupBy(t => t.ParameterType).Any(g => g.Count() > 1))
                 {
-                    ctor,
-                    ModelArgs = ctor.GetParameters().Select(p => p.ParameterType).Where(p => _modelFactory.CanCreateModel(p)).ToList()
-                });
-
-                // if entrypoint method requires models, class should have at least one constructor NOT expecting any models.
-                if (entrypointMethodModels.Any())
-                {
-                    if (ctorsWithModelParameters.Any(c => c.ModelArgs.Any()))
-                    {
-                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with Main() entry-point may receive models in the entry-point or in the constructor, but not in both.");
-                        return new TemplateLoadResponse() { ReturnCode = -1 };
-                    }
-
-                    if (entrypointMethodModels.GroupBy(t => t).Max(g => g.Count()>1))
-                    {
-                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with Main() entry-point cannot receive 2 models of the same type.");
-                        return new TemplateLoadResponse() { ReturnCode = -1 };
-                    }
-
-                    _expectedModels = entrypointMethodModels.Count();
-                    if (_expectedModels >= 1)
-                        _model1Type = entrypointMethodModels[0];
-                    if (_expectedModels >= 2)
-                        _model1Type = entrypointMethodModels[1];
-                    if (_expectedModels >= 3)
-                    {
-                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates can expect a max of 2 models - but it's expecting {ConsoleColor.Yellow}'{string.Join("', '", entrypointMethodModels.Select(t => t.Name))}'{PREVIOUS_COLOR}");
-                        return new TemplateLoadResponse() { ReturnCode = -1 };
-                    }
-
-                    return new TemplateLoadResponse() { ReturnCode = 0, Model1Type = _model1Type, Model2Type = _model2Type };
+                    //TODO: print error message
+                    overload.ErrorMessage = "Templates with Main() entry-point cannot receive 2 models of the same type.";
+                    continue;
                 }
-
-                if (!ctorsWithModelParameters.Any(c => c.ModelArgs.Count() == 0))
-                {
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with Main() entry-point may receive models in the entry-point or in the constructor, but not in both.");
-                    return new TemplateLoadResponse() { ReturnCode = -1 };
-                }
-
-                // Models are in constructor. Let's pick the one with most models.
-                var ctorAndParms = ctorsWithModelParameters.OrderByDescending(ctor => ctor.ModelArgs.Count()).First();
-
-                if (ctorAndParms.ModelArgs.GroupBy(t => t).Select(g => g?.Count() ?? 0).Count() > 1)
-                {
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with Main() entry-point cannot receive 2 models of the same type.");
-                    return new TemplateLoadResponse() { ReturnCode = -1 };
-                }
-
-                _expectedModels = ctorAndParms.ModelArgs.Count();
-                if (_expectedModels >= 1)
-                    _model1Type = ctorAndParms.ModelArgs[0];
-                if (_expectedModels >= 2)
-                    _model1Type = ctorAndParms.ModelArgs[1];
-                if (_expectedModels >= 3)
-                {
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates can expect a max of 2 models - but it's expecting {ConsoleColor.Yellow}'{string.Join("', '", ctorAndParms.ModelArgs.Select(t => t.Name))}'{PREVIOUS_COLOR}");
-                    return new TemplateLoadResponse() { ReturnCode = -1 };
-                }
-
+                //TODO: check if other non-Model parameters can be resolved using DependencyContainer? (probably requires receiving parent dependencyContainer)
             }
 
-            return new TemplateLoadResponse() { ReturnCode = 0, Model1Type = _model1Type, Model2Type = _model2Type };
+            var bestOverload = overloads
+                .Where(o => o.ErrorMessage == null)
+                .OrderByDescending(ctor => ctor.Parameters.Where(p => p.IsModel).Count()) // prefer the overload with the largest number of models
+                .ThenByDescending(ctor => ctor.Parameters.Count()) // then the largest number of total parameters
+                .FirstOrDefault();
+
+            return bestOverload;
         }
 
         public async Task<int> ExecuteAsync(TemplateLauncherArgs _args, ParseResult parseResult)
@@ -491,6 +547,7 @@ namespace CodegenCS.TemplateLauncher
             object instance = null;
             try
             {
+                //TODO: pass preferred _ctorInfo since we already calculated that. And use the Resolve() logic EARLIER, in FindEntryPoint / FindConstructor
                 instance = _ctx.DependencyContainer.Resolve(_entryPointClass);
 
                 //TODO: if _args.TemplateSpecificArguments?.Any() == true && typeof(CommandLineArgs) wasn't injected into the previous Resolve() call:

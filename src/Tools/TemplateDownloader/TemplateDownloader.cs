@@ -7,6 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Net;
 using CodegenCS.Runtime;
+using System.Collections.Generic;
+using CodegenCS.Tools.TemplateDownloader;
 
 namespace CodegenCS.TemplateDownloader
 {
@@ -61,78 +63,15 @@ namespace CodegenCS.TemplateDownloader
 
         public async Task<TemplateDownloaderResponse> ExecuteAsync()
         {
-            StringBuilder path = new StringBuilder();
-            if (_args.Origin.ToLower().StartsWith("http://") || _args.Origin.ToLower().StartsWith("https://"))
+            string path;
+            try
             {
-                // Rule #1: accept fully qualified urls like
-                // http(s)://domain.com/folder/file.cs or
-                // https://github.com/user/project/file.cs
-                path.Append(_args.Origin);
+                path = await GetDownloadUrl(_args.Origin);
+                path = await FixGithubUrl(path);
             }
-            else
+            catch (UntrustedTemplateOriginException)
             {
-                // Rule #2: ignore missing schema - accept like:
-                // github.com/user/project/file.cs or 
-                // domain.com/folder/file.cs
-                path.Append("https://");
-
-                // If if starts with forward-slash or if there's no dot until the first slash, then there's no domain.
-                if (_args.Origin.StartsWith("/") || !_args.Origin.Contains("/") || (_args.Origin.Contains("/") && !_args.Origin.Substring(0, _args.Origin.IndexOf("/")).Contains(".")))
-                {
-                    // Rule #3: accept "GithubProject/Template.cs" as a shortcut to github.com/CodegenCS/Templates/GithubProject/Template.cs
-
-                    path.Append("github.com/CodegenCS/Templates/");
-                    path.Append(_args.Origin.TrimStart('/'));
-                }
-				else
-					path.Append(_args.Origin);
-            }
-
-            Match match;
-            if ((match = _githubRegex.Match(path.ToString())) != null && match.Success)
-            {
-                string githubUser = match.Groups["User"].Value;
-                string githubProject = match.Groups["Project"].Value;
-                string githubPath = match.Groups["Path"].Value;
-
-
-                // Rule #4: if it's specified a folder (or project) in Github but it's not specified a file (no extension) we treat it as a shortcut to the cs file with the same name as the folder.
-                // e.g. accept github.com/GithubUser/GithubProject as a shortcut to github.com/GithubUser/GithubProject/GithubProject.cs
-                // e.g. accept                       GithubProject as a shortcut to github.com/CodegenCS/Templates/GithubProject/GithubProject.cs
-
-                string lastPart;
-                if (string.IsNullOrWhiteSpace(githubPath))
-                    lastPart = githubProject;
-                else if (githubPath.Contains("/"))
-                    lastPart = githubPath.Substring(githubPath.LastIndexOf("/") + 1);
-                else
-                    lastPart = githubPath.TrimStart('/').TrimEnd('/');
-                if (!lastPart.ToLower().EndsWith(".cs") && !lastPart.ToLower().EndsWith(".csx"))
-                {
-                    githubPath = githubPath.TrimEnd('/') + "/" + lastPart + ".cs";
-                }
-
-                path.Clear();
-                path.Append($"https://raw.githubusercontent.com/{githubUser}/{githubProject}/main/{githubPath}");
-
-                if (!_args.AllowUntrustedOrigin && !githubUser.Equals("CodegenCS", StringComparison.OrdinalIgnoreCase))
-                {
-                    await _logger.WriteLineAsync(ConsoleColor.Yellow, $"Warning: third-party template origin '{ConsoleColor.Cyan}https://github.com/{githubUser}{PREVIOUS_COLOR}' is unknown / untrusted.");
-                    await _logger.WriteLineAsync(ConsoleColor.Yellow, $"You can skip this question using the option \"--allow-untrusted-origin\"");
-                    ConsoleKey response;
-                    do
-                    {
-                        await _logger.WriteLineAsync(ConsoleColor.Yellow, $"Are you sure you want to download this template? Press \"y\" for Yes or \"n\" for No.");
-                        response = Console.ReadKey(false).Key;   // true is intercept key (dont show), false is show
-                        if (response != ConsoleKey.Enter)
-                            Console.WriteLine();
-
-                    } while (response != ConsoleKey.Y && response != ConsoleKey.N);
-                    if (response != ConsoleKey.Y)
-                    {
-                        return new TemplateDownloaderResponse() { ReturnCode = -1 };
-                    }
-                }
+                return new TemplateDownloaderResponse() { ReturnCode = -1 };
             }
 
             string outputFolder = Directory.GetCurrentDirectory();
@@ -172,6 +111,112 @@ namespace CodegenCS.TemplateDownloader
 
         }
 
+        private async Task<string> GetDownloadUrl(string origin)
+        {
+            if (origin.ToLower().StartsWith("http://") || origin.ToLower().StartsWith("https://"))
+            {
+                // Rule #1: accept fully qualified urls like
+                // http(s)://domain.com/folder/file.cs or
+                // https://github.com/user/project/file.cs
+                return origin;
+            }
+
+            if (!(origin.Contains(".") || origin.Contains(":") || origin.Contains(@"\") || origin.Contains("/")))
+            {
+                // if it's a single word without any symbols, check the templates index
+                var wc = new WebClient();
+                var catalogUrl = "https://raw.githubusercontent.com/CodegenCS/Templates/main/templates-index.json";
+                try
+                {
+                    string indexContents = wc.DownloadString(catalogUrl);
+                    var dic = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, TemplateMetadata>>(indexContents);
+                    dic = new Dictionary<string, TemplateMetadata>(dic, StringComparer.OrdinalIgnoreCase);
+                    if (!dic.ContainsKey(origin))
+                    {
+                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not find {ConsoleColor.Yellow}'{origin}'{PREVIOUS_COLOR} in Templates Catalog");
+                        throw new Exception();
+                    }
+                    return $"https://github.com/CodegenCS/Templates/{dic[origin].Uri.TrimStart('/')}";
+                }
+                catch (Exception ex)
+                {
+                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not download look up Templates Catalog {ConsoleColor.Yellow}'{catalogUrl}'{PREVIOUS_COLOR}");
+                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: {ex.Message}");
+                    throw new Exception();
+                }
+                //var dic = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, TemplateMetadata>>(File.ReadAllText(@"D:\Repositories\CodegenCS.Templates\templates-index.json"));
+                //dic = new Dictionary<string, TemplateMetadata>(index, StringComparer.OrdinalIgnoreCase);
+            }
+
+            StringBuilder urlBuilder = new StringBuilder();
+            // Rule #2: ignore missing schema - accept like:
+            // github.com/user/project/file.cs or 
+            // domain.com/folder/file.cs
+            urlBuilder.Append("https://");
+
+            // If if starts with forward-slash or if there's no dot until the first slash, then there's no domain.
+            if (origin.StartsWith("/") || !origin.Contains("/") || (origin.Contains("/") && !origin.Substring(0, origin.IndexOf("/")).Contains(".")))
+            {
+                // Rule #3: accept "GithubProject/Template.cs" as a shortcut to github.com/CodegenCS/Templates/GithubProject/Template.cs
+
+                urlBuilder.Append("github.com/CodegenCS/Templates/");
+            }
+
+            urlBuilder.Append(origin.TrimStart('/'));
+
+            return urlBuilder.ToString();
+        }
+        private async Task<string> FixGithubUrl(string path)
+        {
+            Match match;
+            if ((match = _githubRegex.Match(path)) != null && match.Success)
+            {
+                string githubUser = match.Groups["User"].Value;
+                string githubProject = match.Groups["Project"].Value;
+                string githubPath = match.Groups["Path"].Value;
+
+
+                // Rule #4: if it's specified a folder (or project) in Github but it's not specified a file (no extension) we treat it as a shortcut to the cs file with the same name as the folder.
+                // e.g. accept github.com/GithubUser/GithubProject as a shortcut to github.com/GithubUser/GithubProject/GithubProject.cs
+                // e.g. accept                       GithubProject as a shortcut to github.com/CodegenCS/Templates/GithubProject/GithubProject.cs
+
+                string lastPart;
+                if (string.IsNullOrWhiteSpace(githubPath))
+                    lastPart = githubProject;
+                else if (githubPath.Contains("/"))
+                    lastPart = githubPath.Substring(githubPath.LastIndexOf("/") + 1);
+                else
+                    lastPart = githubPath.TrimStart('/').TrimEnd('/');
+                if (!lastPart.ToLower().EndsWith(".cs") && !lastPart.ToLower().EndsWith(".csx"))
+                {
+                    githubPath = githubPath.TrimEnd('/') + "/" + lastPart + ".cs";
+                }
+
+                path = $"https://raw.githubusercontent.com/{githubUser}/{githubProject}/main/{githubPath}";
+
+                if (!_args.AllowUntrustedOrigin && !githubUser.Equals("CodegenCS", StringComparison.OrdinalIgnoreCase))
+                {
+                    await _logger.WriteLineAsync(ConsoleColor.Yellow, $"Warning: third-party template origin '{ConsoleColor.Cyan}https://github.com/{githubUser}{PREVIOUS_COLOR}' is unknown / untrusted.");
+                    await _logger.WriteLineAsync(ConsoleColor.Yellow, $"You can skip this question using the option \"--allow-untrusted-origin\"");
+                    ConsoleKey response;
+                    do
+                    {
+                        await _logger.WriteLineAsync(ConsoleColor.Yellow, $"Are you sure you want to download this template? Press \"y\" for Yes or \"n\" for No.");
+                        response = Console.ReadKey(false).Key;   // true is intercept key (dont show), false is show
+                        if (response != ConsoleKey.Enter)
+                            Console.WriteLine();
+
+                    } while (response != ConsoleKey.Y && response != ConsoleKey.N);
+                    if (response != ConsoleKey.Y)
+                        throw new UntrustedTemplateOriginException();
+                }
+            }
+            return path;
+        }
+
+    }
+    internal class UntrustedTemplateOriginException : Exception
+    {
     }
     
 }
