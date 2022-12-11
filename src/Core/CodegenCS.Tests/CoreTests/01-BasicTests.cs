@@ -1,6 +1,7 @@
 using CodegenCS.Models.DbSchema;
 using NUnit.Framework;
 using System;
+using System.ComponentModel;
 using System.Linq;
 
 namespace CodegenCS.Tests.CoreTests
@@ -166,7 +167,7 @@ I have a LOT of things to do today:
         public void TestEmptyIEnumerable2()
         {
             _w.Write($@"I have a LOT of things to do today: {emptyTodoList.Select(item => $"{item.Description}").RenderAsSingleLineCSV()}");
-            string expected = "I have a LOT of things to do today: ";
+            string expected = "I have a LOT of things to do today:";
 
             Assert.AreEqual(expected, _w.GetContents());
         }
@@ -266,6 +267,71 @@ namespace MyPocos
         }
         #endregion
 
+        #region Auto Indenting
+        [Test]
+        public void AutoIndentWhitespace()
+        {
+            string myMultilineBlock = "My\r\nMultiline\r\nstring";
+            _w.Write($$"""
+                    {{myMultilineBlock}}
+                void MyMethod()
+                {
+                    return 0;
+                }
+                """);
+            string expected = $$"""
+                    My
+                    Multiline
+                    string
+                void MyMethod()
+                {
+                    return 0;
+                }
+                """;
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+        [Test]
+        public void AutoIndentCSharpComments()
+        {
+        	//_w.PreserveNonWhitespaceIndent = true;
+            string myMultilineBlock = "My\r\nMultiline\r\nstring";
+            _w.Write($$"""
+                /// {{myMultilineBlock}}
+                void MyMethod()
+                {
+                    return 0;
+                }
+                """);
+            string expected = $$"""
+                /// My
+                /// Multiline
+                /// string
+                void MyMethod()
+                {
+                    return 0;
+                }
+                """;
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        [Test]
+        public void AutoIndentSQLComments()
+        {
+        	_w.PreserveNonWhitespaceIndent = true;
+            string myMultilineBlock = "My\r\nMultiline\r\nstring";
+            _w.Write($$"""
+                -- {{myMultilineBlock}}
+                INSERT INTO MyTable (...)
+                """);
+            string expected = $$"""
+                -- My
+                -- Multiline
+                -- string
+                INSERT INTO MyTable (...)
+                """;
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+        #endregion
 
         #region Text-Manipulation
         [Test]

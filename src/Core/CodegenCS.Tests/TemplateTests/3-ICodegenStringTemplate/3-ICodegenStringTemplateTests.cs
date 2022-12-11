@@ -106,6 +106,7 @@ partial class ICodegenStringTemplateTests : BaseTest
         var model = base.MyDbSchema;
 
         var writer = new CodegenTextWriter();
+        writer.RemoveWhitespaceFromEmptyLines = false;
         writer.LoadTemplate<MyPocoTemplate3>().Render(model);
 
         Assert_That_Content_IsEqual_To_File(writer, "MyDatabase.cs");

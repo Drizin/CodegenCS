@@ -10,6 +10,19 @@ namespace CodegenCS
         CodegenTextWriter.MultilineBehaviorType MultilineBehavior { get; set; }
         CodegenTextWriter.CurlyBracesStyleType CurlyBracesStyle { get; set; }
         RenderEnumerableOptions DefaultIEnumerableRenderOptions { get; set; }
+        
+        /// <inheritdoc cref="CodegenTextWriter.RemoveWhitespaceFromEmptyLines" />
+        bool RemoveWhitespaceFromEmptyLines { get; set; }
+        
+        /// <inheritdoc cref="CodegenTextWriter.AutoTrimEnd" />
+        bool AutoTrimEnd { get; set; }
+
+        /// <inheritdoc cref="CodegenTextWriter.PreserveWhitespaceIndent" />
+        bool PreserveWhitespaceIndent { get; set; }
+
+        /// <inheritdoc cref="CodegenTextWriter.PreserveNonWhitespaceIndent" />
+        bool PreserveNonWhitespaceIndent { get; set; }
+
         string NewLine { get; set; }
         Encoding Encoding { get; }
         void Close();

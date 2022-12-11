@@ -69,6 +69,8 @@ namespace CodegenCS
         /// </summary>
         protected static readonly Regex _lineBreaksRegex = new Regex(@"(\r\n|\n|\r)", RegexOptions.Compiled);
 
+        protected static readonly Regex _lineBreaksRegexRTL = new Regex(@"(\r\n|\n|\r)", RegexOptions.Compiled | RegexOptions.RightToLeft);
+
         /// <summary>
         /// If true, will normalize line breaks by replacing different styles (\n, \r\n, \r, etc) by _innerWriter.NewLine
         /// </summary>
@@ -148,6 +150,16 @@ namespace CodegenCS
         protected DependencyContainer _dependencyContainer = new DependencyContainer();
 
         public RenderEnumerableOptions DefaultIEnumerableRenderOptions { get; set; } = RenderEnumerableOptions.LineBreaksWithAutoSpacer;
+        
+        /// <summary>
+        /// If true (default), lines which only have whitespace will be trimmed (will remain as an empty line but without whitespaces)
+        /// </summary>
+        public bool RemoveWhitespaceFromEmptyLines { get; set; } = true;
+        
+        /// <summary>
+        /// If true (default is false) the contents will be Trimmed (whitespace removed) at the end.
+        /// </summary>
+        public bool AutoTrimEnd { get; set; } = false;
         #endregion
 
         #region ctors
@@ -230,6 +242,22 @@ namespace CodegenCS
         /// You can change to whatever you want
         /// </summary>
         public string IndentString { get; set; } = "    ";
+
+        /// <summary>
+        /// If enabled (default is true) then when the current line is dirty with whitespace <br />
+        /// and the delegate or object (embedded in string interpolation placeholders) writes multiple lines <br/>
+        /// the CodegenTextWriter will "preserve" the cursor position by prepending (repeating) the dirty line contents. <br />
+        /// This is used to preserve (repeating across subsequent lines) the prefix used for indentation.
+        /// </summary>
+        public bool PreserveWhitespaceIndent { get; set; } = true;
+
+        /// <summary>
+        /// If enabled (default is true) then when the current line is dirty with NON-whitespace <br />
+        /// and the delegate or object (embedded in string interpolation placeholders) writes multiple lines <br/>
+        /// the CodegenTextWriter will "preserve" the cursor position by prepending (repeating) the dirty line contents. <br />
+        /// This is used to preserve (repeating across subsequent lines) the prefix used for comments (triple-slashes for C# double-dashes for SQL).
+        /// </summary>
+        public bool PreserveNonWhitespaceIndent { get; set; } = true;
 
         /// <summary>
         /// Increases indentation level, so that the next text lines are all indented with an increased level. 
@@ -607,11 +635,65 @@ namespace CodegenCS
         }
         
         /// <summary>
+        /// Trims spaces and tabs from the end of the current line
+        /// </summary>
+        /// <param name="onlyIfLineIsAllWhitespace">If true (default) and the line contains any non-whitespace then nothing will be removed</param>
+        protected void TrimCurrentLineEnd(bool onlyIfLineIsAllWhitespace = true)
+        {
+            var contents = _innerWriter.GetStringBuilder().ToString();
+
+            var lastLineBreak = _lineBreaksRegexRTL.Match(contents);
+
+            // current line starts at the end of the previous line break (if any)
+            int currentLinePos = lastLineBreak.Index + lastLineBreak.Length;
+
+            string currentLine = (currentLinePos == 0 ? contents : contents.Substring(currentLinePos));
+
+            int lenToRemove = currentLine.Length - currentLine.TrimEnd().Length;
+            if (lenToRemove == 0)
+                return;
+
+            if (onlyIfLineIsAllWhitespace && lenToRemove != currentLine.Length)
+                return;
+
+            _innerWriter.GetStringBuilder().Remove(contents.Length - lenToRemove, lenToRemove);
+            _currentLine.Clear().Append(_innerWriter.GetStringBuilder().ToString().Substring(currentLinePos));
+
+            //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
+        }
+        
+        /// <summary>
+        /// Removes all whitespace (spaces, tabs, and linebreaks) at the end of the writer
+        /// </summary>
+        protected void TrimEnd()
+        {
+            var contents = _innerWriter.GetStringBuilder().ToString();
+
+            int lenToRemove = contents.Length - contents.TrimEnd().Length;
+            if (lenToRemove == 0)
+                return;
+
+            _innerWriter.GetStringBuilder().Remove(contents.Length - lenToRemove, lenToRemove);
+
+            contents = _innerWriter.GetStringBuilder().ToString();
+            var lastLineBreak = _lineBreaksRegexRTL.Match(contents);
+
+            // current line starts at the end of the previous line break (if any)
+            int currentLinePos = lastLineBreak.Index + lastLineBreak.Length;
+
+            _currentLine.Clear().Append(_innerWriter.GetStringBuilder().ToString().Substring(currentLinePos));
+
+            //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
+        }
+
+        /// <summary>
         /// Writes a new line
         /// </summary>
         /// <param name="newLine">Any newLine character (\r, \r\n, \n). If not defined will use default <see cref="NewLine"/> property </param>
         protected void InnerWriteNewLine(string newLine = null)
         {
+            if (RemoveWhitespaceFromEmptyLines)
+                TrimCurrentLineEnd(onlyIfLineIsAllWhitespace: true);
             InnerWriteRaw(newLine ?? this.NewLine);
             _currentLine.Clear();
             _nextWriteRequiresLineBreak = false;
@@ -655,6 +737,7 @@ namespace CodegenCS
                     InnerIndentCurrentLine();
 
                 InnerWriteRaw(line);
+                _currentLine.Append(line);
                 if (_normalizeLineEndings)
                     InnerWriteNewLine(); // will normalize to writer this.NewLine
                 else
@@ -679,15 +762,21 @@ namespace CodegenCS
         #region Inline Actions: basically we "save" the current cursor position and subsequent lines written in the action (after the first line) will all be idented with the same starting position
 
         /// <summary>
-        /// Invokes an inline action (which may reference current ICodegenTextWriter and write to it) <br />
-        /// If the action writes multiple lines and current line has some manually-written whitespace, <br />
-        /// this method will "save" current cursor position and the subsequent lines (after the first) will "preserve" the cursor position by prepending this manual indentation. <br />
-        /// In other words, this will capture manually-written whitespace indentation (those whice are not yet tracked by the automatic indentation), and will consider this manual indentation and preserve it in subsequent lines.
+        /// Invokes an inline action (anything written inside string interpolation placeholders)<br />
+        /// If the action writes multiple lines and current line is dirty (whitespace or anything else) <br />
+        /// this method will "save" current cursor position and the subsequent lines (after the first) will "preserve" the cursor position by prepending (repeating) the dirty line contents. <br />
+        /// In other words, this will capture whitespace indentation (or any other non-whitespace indentation) written directly in the strings (not generated by automatic indent control), 
+        /// and will honor and preserve this indentation in subsequent lines.
+        /// This behavior is controlled by <see cref="PreserveWhitespaceIndent"/> and <see cref="PreserveNonWhitespaceIndent"/>
         /// </summary>
         protected void InnerInlineAction(Action action)
         {
             string indent = _currentLine.ToString();
-            if (indent != null && indent.Length > 0 && string.IsNullOrWhiteSpace(indent))
+            if (indent != null && indent.Length > 0 && !_nextWriteRequiresLineBreak &&
+                (
+                (PreserveWhitespaceIndent && string.IsNullOrWhiteSpace(indent)) ||
+                (PreserveNonWhitespaceIndent && !string.IsNullOrWhiteSpace(indent))
+                ))
             {
                 // TODO: we could "detect" if the current indent is multiple of 4 spaces, or tabs, and do the conversion if appropriate, etc.
                 // TODO: we should probably reuse InnerIncreaseIndent , but push not only a primitive string but an object containing info like "dontIndentCurrentLine=true" (which is currently from ICodegenTextWriter)
@@ -732,7 +821,7 @@ namespace CodegenCS
             if (string.IsNullOrEmpty(format))
                 return;
             //https://www.meziantou.net/interpolated-strings-advanced-usages.htm
-            var stripCurlyBracesLiterals = format.Replace("{{", "  ").Replace("}}", "  "); // remove curly braces literals so the regex will capture position only for real placeholders
+            var stripCurlyBracesLiterals = format.Replace("{{", "  "); // remove curly braces literals so the regex will capture position only for real placeholders
             var matches = _formattableArgumentRegex.Matches(stripCurlyBracesLiterals);
             int lastPos = 0;
             string lastPart = null;
@@ -799,25 +888,8 @@ namespace CodegenCS
                 }
                 else if (arg is TrimLeadingWhitespaceSymbol)
                 {
-                    var contents = _innerWriter.GetStringBuilder().ToString().TrimEnd();
-                    if (contents.Length != _innerWriter.GetStringBuilder().Length)
-                    {
-                        _innerWriter.GetStringBuilder().Remove(contents.Length, _innerWriter.GetStringBuilder().Length - contents.Length);
-                        var matches = _lineBreaksRegex.Matches(contents);
-                        if (matches.Count == 0) // it's a single line
-                        {
-                            _currentLine.Clear().Append(_innerWriter.GetStringBuilder().ToString());
-                        }
-                        else
-                        {
-                            int lastLineBreakPos = matches[matches.Count - 1].Index;
-                            int lastLineBreakEnd = matches[matches.Count - 1].Index + matches[matches.Count - 1].Length;
-                            int previousLineBreakEnd = matches.Count == 1 ? 0 : matches[matches.Count - 2].Index + matches[matches.Count - 2].Length;
-                            _currentLine.Clear().Append(_innerWriter.GetStringBuilder().ToString().Substring(previousLineBreakEnd));
-                        }
-
-                    }
-                    //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
+                    TrimEnd();
+                    //TODO: create a symbol to invoke TrimTrailingWhitespaceFromCurrentLine();
                 }
                 else if (arg is TrimTrailingWhitespaceSymbol)
                 {
@@ -1523,7 +1595,15 @@ namespace CodegenCS
         {
             if (_controlFlowSymbols.Any())
                 throw new UnbalancedIfsException();
-            return _innerWriter.ToString();
+
+            string contents = _innerWriter.ToString();
+
+            if (AutoTrimEnd) // Trim removes both whitespace AND new lines
+                contents = contents.TrimEnd();
+            else if (RemoveWhitespaceFromEmptyLines) // this property usually acts after each linebreak, but we have to apply to the last line as well
+                contents = contents.TrimEnd(' ', '\t');
+
+            return contents;
         }
 
         private string DebuggerDisplay 

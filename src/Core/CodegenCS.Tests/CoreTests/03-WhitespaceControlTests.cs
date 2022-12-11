@@ -42,7 +42,7 @@ namespace CodegenCS.Tests.CoreTests
             Assert.AreEqual("""
                 public class MyClass
                 {
-                    
+                
                 }
                 """, _w.GetContents());
         }

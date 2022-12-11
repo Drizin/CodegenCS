@@ -16,6 +16,7 @@ using static CodegenCS.Utils.TypeUtils;
 using CodegenCS.Runtime;
 using CodegenCS.Models;
 using Newtonsoft.Json;
+using CodegenCS.IO;
 
 namespace CodegenCS.TemplateLauncher
 {
@@ -143,7 +144,13 @@ namespace CodegenCS.TemplateLauncher
                 typeof(ICodegenStringTemplate),
             };
 
-            // First we search for a single "Main" method.
+            // First we search for a single "TemplateMain" method.
+            if (_entryPointMethod == null && asmMethods.Where(m => m.Name == "TemplateMain").Count() == 1)
+            {
+                _entryPointMethod = asmMethods.Where(m => m.Name == "Main").Single();
+                _entryPointClass = _entryPointMethod.DeclaringType;
+            }
+            // Then we search for a single "Main" method //TODO: deprecate
             if (_entryPointMethod == null && asmMethods.Where(m => m.Name == "Main").Count() == 1)
             {
                 _entryPointMethod = asmMethods.Where(m => m.Name == "Main").Single();
@@ -579,7 +586,7 @@ namespace CodegenCS.TemplateLauncher
                 return -1;
             }
 
-            var savedFiles = _ctx.SaveFiles(_outputFolder).SavedFiles;
+            var savedFiles = _ctx.SaveToFolder(_outputFolder).SavedFiles;
 
             if (savedFiles.Count == 0)
             {
