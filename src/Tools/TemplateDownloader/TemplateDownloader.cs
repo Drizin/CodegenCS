@@ -97,7 +97,7 @@ namespace CodegenCS.TemplateDownloader
             try
             {
                 wc.DownloadFile(path.ToString(), targetFile);
-                await _logger.WriteLineErrorAsync(ConsoleColor.Green, $"Template {ConsoleColor.White}'{path.ToString()}'{PREVIOUS_COLOR} was successfully saved into {ConsoleColor.White}'{targetFile}'{PREVIOUS_COLOR}");
+                await _logger.WriteLineAsync(ConsoleColor.Green, $"Template {ConsoleColor.White}'{path.ToString()}'{PREVIOUS_COLOR} was successfully saved into {ConsoleColor.White}'{targetFile}'{PREVIOUS_COLOR}");
             }
             catch (Exception ex)
             {

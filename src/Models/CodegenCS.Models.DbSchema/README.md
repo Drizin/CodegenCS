@@ -31,7 +31,7 @@ If you don't have a database and want a sample schema you can download Adventure
 The `template clone` command is used to download a copy of any online template to your local folder.  
 Let's download a simple template called **SimplePocos** that can generate POCOs for all our database tables:
 
-`dotnet-codegencs template clone https://github.com/CodegenCS/Templates/SimplePocos/SimplePocos.cs`
+`dotnet-codegencs template clone https://github.com/CodegenCS/Templates/DatabaseSchema/SimplePocos/SimplePocos.cs`
 
 (You can browser other [sample templates here](https://github.com/CodegenCS/Templates/)).
 

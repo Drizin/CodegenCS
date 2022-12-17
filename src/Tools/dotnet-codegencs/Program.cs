@@ -27,7 +27,7 @@ namespace CodegenCS.DotNetTool
                 using (Console.WithColor(ConsoleColor.DarkGray))
                 {
                     Console.Write($"dotnet-codegencs.exe version {typeof(Program).Assembly.GetName().Version}");
-                    Console.WriteLine($" (CodegenCS.dll version {typeof(CodegenCS.ICodegenContext).Assembly.GetName().Version})");
+                    Console.WriteLine($" (CodegenCS.Core.dll version {typeof(CodegenCS.ICodegenContext).Assembly.GetName().Version})");
                 }
 
 

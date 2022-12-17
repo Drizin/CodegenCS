@@ -180,7 +180,7 @@ namespace CodegenCS.DotNetTool.Commands
             }
 
             // If user provided a single CS/CSX file (instead of a DLL file) first we need to build into a dll
-            if (Path.GetExtension(template).ToLower() != ".dll")
+            if (Path.GetExtension(_templateFile.Name).ToLower() != ".dll")
             {
                 currentCommand = "dotnet-codegencs template build";
                 string tmpFolder = Path.Combine(Path.GetTempPath() ?? Directory.GetCurrentDirectory(), Guid.NewGuid().ToString());
