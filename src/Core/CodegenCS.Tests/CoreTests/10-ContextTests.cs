@@ -1,4 +1,5 @@
 using CodegenCS;
+using CodegenCS.IO;
 using CodegenCS.Runtime;
 using NUnit.Framework;
 using System;
@@ -115,11 +116,11 @@ namespace CodegenCS.Tests.CoreTests
             Assert.That(_ctx.OutputFiles.Count == 1);
 
             string tmpFolder = Path.Combine(Path.GetTempPath() ?? Directory.GetCurrentDirectory(), Guid.NewGuid().ToString());
-            Assert.Throws<Exception>(() => { _ctx.SaveFiles(tmpFolder); });
+            Assert.Throws<Exception>(() => { _ctx.SaveToFolder(tmpFolder); });
 
             // Renaming DefaultOutputFile
             _ctx.DefaultOutputFile.RelativePath = "Renamed.cs";
-            Assert.AreEqual(1, _ctx.SaveFiles(tmpFolder).SavedFiles.Count());
+            Assert.AreEqual(1, _ctx.SaveToFolder(tmpFolder).SavedFiles.Count());
         }
 
 

@@ -1,4 +1,5 @@
-﻿using CodegenCS.Models.DbSchema;
+﻿using CodegenCS.IO;
+using CodegenCS.Models.DbSchema;
 using CodegenCS.Runtime;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -131,7 +132,7 @@ internal class BaseTest
         if (!Directory.Exists(folder))
         {
             Directory.CreateDirectory(folder);
-            context.SaveFiles(folder);
+            context.SaveToFolder(folder);
         }
 
         var files = Directory.GetFiles(folder);

@@ -1,0 +1,69 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Company>Rick Drizin</Company>
+    <Copyright>Rick Drizin</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/</PackageProjectUrl>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <PropertyGroup>
+        <SignAssembly>True</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\..\debug.snk</AssemblyOriginatorKeyFile>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <SignAssembly>True</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\..\release.snk</AssemblyOriginatorKeyFile>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <ItemGroup>
+    <Compile Remove="**\*-TestsOutput\**" />
+    <Content Include="**\*-TestsOutput\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.6.0-alpha1" />
+    <PackageReference Include="nunit" Version="3.10.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj" />
+    <ProjectReference Include="..\..\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" />
+    <ProjectReference Include="..\..\Tools\dotnet-codegencs\dotnet-codegencs.csproj" />
+    <ProjectReference Include="..\VS2022Extension\VS2022Extension.csproj" />
+  </ItemGroup>
+
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <ItemGroup>
+        <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj" />
+        <ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj" />
+        <ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj" />
+        <ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj" />
+        <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="CodegenCS.Core" Version="3.*" />
+        <PackageReference Include="CodegenCS.Runtime" Version="3.*" />
+        <PackageReference Include="CodegenCS.Models" Version="3.*" />
+        <PackageReference Include="CodegenCS.DotNet" Version="3.*" />
+        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.*" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+
+</Project>
