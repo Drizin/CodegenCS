@@ -14,7 +14,7 @@
     <Version>3.1.2</Version>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dotnet-codegencs</ToolCommandName>
-    <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
+    <PackageTags>code generation;code generator;templating;codegencs;t4;swagger;openapi;rest client;nswag generator</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <!-- Include symbol files (*.pdb) in the main .nupkg -->
