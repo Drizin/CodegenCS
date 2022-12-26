@@ -28,6 +28,8 @@
   <ItemGroup>
     <Compile Remove="**\*-TestsOutput\**" />
     <Content Include="**\*-TestsOutput\**" />
+    <Compile Remove="**\Snapshots\**" />
+    <Content Include="**\Snapshots\**" />
   </ItemGroup>
 
   <ItemGroup>

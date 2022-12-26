@@ -12,36 +12,6 @@ namespace CodegenCS.Tools.Tests
 {
     internal class BasicTests : BaseTest
     {
-        StringBuilder _stdOutBuffer;
-        StringBuilder _stdErrBuffer;
-        string _stdOut;
-        string _stdErr;
-
-        [SetUp]
-        public async Task Setup()
-        {
-            _stdOutBuffer = new StringBuilder();
-            _stdErrBuffer = new StringBuilder();
-        }
-        private async Task<CliWrap.CommandResult> Run(string arguments)
-        {
-            var result = await Cli.Wrap(Path.Combine(Directory.GetCurrentDirectory(),"dotnet-codegencs.exe"))
-                .WithArguments(arguments)
-                .WithWorkingDirectory(Directory.GetCurrentDirectory())
-                .WithValidation(CommandResultValidation.None)
-                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(_stdOutBuffer))
-                .WithStandardErrorPipe(PipeTarget.ToStringBuilder(_stdErrBuffer))
-                .ExecuteAsync();
-            _stdOut = _stdOutBuffer.ToString();
-            _stdErr = _stdErrBuffer.ToString();
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                System.Diagnostics.Debug.WriteLine(result.ExitCode);
-                System.Diagnostics.Debug.WriteLine(_stdOut);
-                System.Diagnostics.Debug.WriteLine(_stdErr);
-            }
-            return result;
-        }
 
         [Test]
         public async Task GetHelp()
@@ -294,7 +264,7 @@ namespace CodegenCS.Tools.Tests
         [TestCase("DapperExtensionPocos", "DatabaseSchema")]
         [TestCase("DapperDalPocos", "DatabaseSchema")]
         [TestCase("DapperActiveRecordPocos", "DatabaseSchema")]
-        [TestCase("NSwagClient", "OpenaPI")]
+        [TestCase("NSwagClient", "OpenAPI")]
         public async Task TestTemplate(string templateAlias, string modelType)
         {
             if (File.Exists($"{templateAlias}.dll"))

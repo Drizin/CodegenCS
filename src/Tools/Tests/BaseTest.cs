@@ -1,13 +1,49 @@
-﻿using CodegenCS.IO;
+﻿using CliWrap;
+using CodegenCS.IO;
 using NUnit.Framework;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace CodegenCS.Tools.Tests;
 
 internal class BaseTest
 {
     protected static string GetCurrentFolder([CallerFilePath] string path = null) => Path.GetDirectoryName(path);
+
+    private StringBuilder _stdOutBuffer;
+    private StringBuilder _stdErrBuffer;
+    protected string _stdOut;
+    protected string _stdErr;
+
+    [SetUp]
+    public async Task Setup()
+    {
+        _stdOutBuffer = new StringBuilder();
+        _stdErrBuffer = new StringBuilder();
+    }
+    protected async Task<CliWrap.CommandResult> Run(string arguments)
+    {
+        var result = await Cli.Wrap(Path.Combine(Directory.GetCurrentDirectory(), "dotnet-codegencs.exe"))
+            .WithArguments(arguments)
+            .WithWorkingDirectory(Directory.GetCurrentDirectory())
+            .WithValidation(CommandResultValidation.None)
+            .WithStandardOutputPipe(PipeTarget.ToStringBuilder(_stdOutBuffer))
+            .WithStandardErrorPipe(PipeTarget.ToStringBuilder(_stdErrBuffer))
+            .ExecuteAsync();
+        _stdOut = _stdOutBuffer.ToString();
+        _stdErr = _stdErrBuffer.ToString();
+        if (System.Diagnostics.Debugger.IsAttached)
+        {
+            System.Diagnostics.Debug.WriteLine(result.ExitCode);
+            System.Diagnostics.Debug.WriteLine(_stdOut);
+            System.Diagnostics.Debug.WriteLine(_stdErr);
+        }
+        return result;
+    }
+
+
 
     #region For tests that have their own output folder to compare results.
     #region Members

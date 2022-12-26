@@ -1,6 +1,7 @@
 ﻿using CodegenCS.ControlFlow;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace CodegenCS
@@ -77,5 +78,9 @@ namespace CodegenCS
         //TODO: Add something like $"{TWS}" (trim whitespace) that would behave like Jinja templates:
         //https://stackoverflow.com/questions/45719062/jinja-docx-template-avoiding-new-line-in-nested-for
         //https://ttl255.com/jinja2-tutorial-part-3-whitespace-control/
+
+        #region Debugging
+        public static Action BREAKIF(bool condition) => () => { if (condition) { System.Diagnostics.Debugger.Break(); } };
+        #endregion
     }
 }

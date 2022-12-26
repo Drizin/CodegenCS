@@ -144,7 +144,6 @@ namespace CodegenCS
         StringBuilder _currentLine = new StringBuilder();
 
         bool _nextWriteRequiresLineBreak = false;
-        bool _dontIndentCurrentLine = false; // when we're in the middle of a line and start an inline block (which could be multiline string), the first line don't need to be indented - only the next ones
         bool _trimWhileWhitespace = false;
         public DependencyContainer DependencyContainer { get { return _dependencyContainer; } internal set { _dependencyContainer = value; } }
         protected DependencyContainer _dependencyContainer = new DependencyContainer();
@@ -154,7 +153,7 @@ namespace CodegenCS
         /// <summary>
         /// If true (default), lines which only have whitespace will be trimmed (will remain as an empty line but without whitespaces)
         /// </summary>
-        public bool RemoveWhitespaceFromEmptyLines { get; set; } = true;
+        public bool RemoveWhitespaceFromEmptyLines { get; set; } = true; //TODO: EmptyLinesBehavior: None, RemoveWhitespace, Remove (remove all empty lines), KeepOneFullEmptyLine (allows up to one full empty line between contents)
         
         /// <summary>
         /// If true (default is false) the contents will be Trimmed (whitespace removed) at the end.
@@ -174,6 +173,9 @@ namespace CodegenCS
             _dependencyContainer.RegisterSingleton<ICodegenTextWriter>(() => this);
             _dependencyContainer.RegisterSingleton<CodegenTextWriter>(() => this);
             _dependencyContainer.RegisterSingleton<TextWriter>(() => this);
+
+            _scopeContexts = new Stack<ScopeContext>();
+            _scopeContexts.Push(ScopeContext.CreateRootContext(this)); // The first level (outer level) doesn't append any indentation
         }
 
         /// <summary>
@@ -227,19 +229,28 @@ namespace CodegenCS
 
         #region Indent-control: methods and members
         /// <summary>
-        /// Each level of indentation may have it's own indentation marker <br />
-        /// e.g. one block may have "    " (4 spaces), while other may have "-- " (SQL line-comment), etc.
+        /// ScopeContexts are used to manage the indentation that is automatically added to each new line.
+        /// Each context represents one "level" of indentation.
+        /// By default each indentation level will add 4 spaces on top of previous level (controller by <see cref="CodegenTextWriter.IndentString"/>)
+        /// (except for first level which doesn't add any indentation)
+        /// 
+        /// A new ScopeContext is created (and added to Stack) when:
+        /// - Indent is explicitly controlled like <see cref="CodegenTextWriter.IncreaseIndent"/> and <see cref="CodegenTextWriter.DecreaseIndent"/>
+        /// - Block Helpers like <see cref="CodegenTextWriter.WithCurlyBraces"/>) are used
+        /// - An interpolated object is rendered (including IEnumerables). This means that any interpolated object that renders into multiple lines 
+        ///   will "capture" the current indent of the line (whitespace or non-whitespace text that was added before the first interpolated object)
+        ///   and will automatically "replay" (preserve) that indent in the subsequent lines
         /// </summary>
-        protected Stack<string> _levelIndent = new Stack<string>();
-        
+        protected Stack<ScopeContext> _scopeContexts;
+
         /// <summary>
         /// Current IndentLevel
         /// </summary>
-        public int IndentLevel { get { return _levelIndent.Count; } }
-        
+        public int IndentLevel { get { return _scopeContexts.Count - 1; } }
+
         /// <summary>
-        /// Default Indentation marker is 4 strings. <br />
-        /// You can change to whatever you want
+        /// Default Indentation marker is 4 strings (each indentation level adding 4 spaces on top of previous level), <br />
+        /// but you can modify it to tabs or anything else.
         /// </summary>
         public string IndentString { get; set; } = "    ";
 
@@ -264,7 +275,7 @@ namespace CodegenCS
         /// </summary>
         protected void InnerIncreaseIndent()
         {
-            _levelIndent.Push(IndentString);
+            _scopeContexts.Push(new ScopeContext(this, this.IndentString));
         }
 
         /// <summary>
@@ -283,7 +294,7 @@ namespace CodegenCS
         /// </summary>
         protected void InnerDecreaseIndent()
         {
-            _levelIndent.Pop();
+            _scopeContexts.Pop();
         }
 
         /// <summary>
@@ -384,17 +395,15 @@ namespace CodegenCS
         /// </summary>
         protected void InnerIndentCurrentLine()
         {
-            string indent = string.Join("", _levelIndent.Reverse().ToList());
-            if (!string.IsNullOrEmpty(indent))
-                InnerWriteRaw(indent);
+            _scopeContexts.Peek().InnerIndentCurrentLine();
         }
         #endregion
 
-        #region If-Else-Blocks
-        /// <summary>
-        /// Each level of indentation may have it's own indentation marker <br />
-        /// e.g. one block may have "    " (4 spaces), while other may have "-- " (SQL line-comment), etc.
-        /// </summary>
+            #region If-Else-Blocks
+            /// <summary>
+            /// Each level of indentation may have it's own indentation marker <br />
+            /// e.g. one block may have "    " (4 spaces), while other may have "-- " (SQL line-comment), etc.
+            /// </summary>
         protected Stack<IControlFlowSymbol> _controlFlowSymbols = new Stack<IControlFlowSymbol>();
 
         /// <summary>
@@ -635,31 +644,32 @@ namespace CodegenCS
         }
         
         /// <summary>
-        /// Trims spaces and tabs from the end of the current line
+        /// Trims spaces and tabs from the end of the last line (current line).
+        /// Should only be used before writing a new linebreak
         /// </summary>
         /// <param name="onlyIfLineIsAllWhitespace">If true (default) and the line contains any non-whitespace then nothing will be removed</param>
         protected void TrimCurrentLineEnd(bool onlyIfLineIsAllWhitespace = true)
         {
-            var contents = _innerWriter.GetStringBuilder().ToString();
+            int lenToRemove = 0;
+            if (_currentLine.Length > 0)
+            {
+                lenToRemove += _currentLine.ToString().Length - _currentLine.ToString().Trim().Length;
+                if (onlyIfLineIsAllWhitespace && lenToRemove < _currentLine.Length)
+                    return;
+                _currentLine.Remove(_currentLine.Length - lenToRemove, lenToRemove);
+            }
 
-            var lastLineBreak = _lineBreaksRegexRTL.Match(contents);
+            // If the whole "real content" of the line was removed (or if the line didn't had any real content), then we should also remove the automatic added indent
+            if (_currentLine.Length == 0)
+            {
+                if (_scopeContexts.Peek().IndentWritten && !string.IsNullOrEmpty(_scopeContexts.Peek().IndentString))
+                    lenToRemove += _scopeContexts.Peek().IndentString.Length;
+            }
 
-            // current line starts at the end of the previous line break (if any)
-            int currentLinePos = lastLineBreak.Index + lastLineBreak.Length;
-
-            string currentLine = (currentLinePos == 0 ? contents : contents.Substring(currentLinePos));
-
-            int lenToRemove = currentLine.Length - currentLine.TrimEnd().Length;
             if (lenToRemove == 0)
                 return;
 
-            if (onlyIfLineIsAllWhitespace && lenToRemove != currentLine.Length)
-                return;
-
-            _innerWriter.GetStringBuilder().Remove(contents.Length - lenToRemove, lenToRemove);
-            _currentLine.Clear().Append(_innerWriter.GetStringBuilder().ToString().Substring(currentLinePos));
-
-            //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
+            _innerWriter.GetStringBuilder().Remove(_innerWriter.GetStringBuilder().Length - lenToRemove, lenToRemove);
         }
         
         /// <summary>
@@ -667,9 +677,22 @@ namespace CodegenCS
         /// </summary>
         protected void TrimEnd()
         {
+            // If last line has contents but it can't be fully trimmed, then we don't even have to look in previous lines
+            int lenToRemove = 0;
+            if (_currentLine.Length > 0)
+            {
+                lenToRemove += _currentLine.ToString().Length - _currentLine.ToString().Trim().Length;
+                if (lenToRemove < _currentLine.Length)
+                {
+                    _currentLine.Remove(_currentLine.Length - lenToRemove, lenToRemove);
+                    _innerWriter.GetStringBuilder().Remove(_innerWriter.GetStringBuilder().Length - lenToRemove, lenToRemove);
+                    return;
+                }
+            }
+
             var contents = _innerWriter.GetStringBuilder().ToString();
 
-            int lenToRemove = contents.Length - contents.TrimEnd().Length;
+            lenToRemove = contents.Length - contents.TrimEnd().Length;
             if (lenToRemove == 0)
                 return;
 
@@ -681,9 +704,7 @@ namespace CodegenCS
             // current line starts at the end of the previous line break (if any)
             int currentLinePos = lastLineBreak.Index + lastLineBreak.Length;
 
-            _currentLine.Clear().Append(_innerWriter.GetStringBuilder().ToString().Substring(currentLinePos));
-
-            //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
+            _currentLine.Clear().Append(contents.Substring(currentLinePos));
         }
 
         /// <summary>
@@ -695,9 +716,17 @@ namespace CodegenCS
             if (RemoveWhitespaceFromEmptyLines)
                 TrimCurrentLineEnd(onlyIfLineIsAllWhitespace: true);
             InnerWriteRaw(newLine ?? this.NewLine);
+            if (_currentLine.ToString().Trim().Length > 0)
+                foreach(var scope in _scopeContexts)
+                    scope.NonWhitespaceLines++;
+            else
+                foreach (var scope in _scopeContexts)
+                    scope.WhitespaceLines++;
+            foreach (var scope in _scopeContexts)
+                scope.IndentWritten = false;
             _currentLine.Clear();
+            _scopeContexts.Peek().ImplicitIndentBeforeFirstPlaceHolder = null;
             _nextWriteRequiresLineBreak = false;
-            _dontIndentCurrentLine = false;
         }
         #endregion
 
@@ -732,8 +761,7 @@ namespace CodegenCS
                 }
 
                 // indent before starting writing a new line
-                // if _dontIndentCurrentLine is set, it's because we're starting an inner block right "at cursor position"-  no need to indent again - we're already positioned!
-                if (line.Length > 0 && _currentLine.Length == 0 && !_dontIndentCurrentLine)
+                if (line.Length > 0 && _currentLine.Length == 0)
                     InnerIndentCurrentLine();
 
                 InnerWriteRaw(line);
@@ -751,11 +779,10 @@ namespace CodegenCS
                 WriteLine();
             }
 
-            if (lastLine.Length > 0 && _currentLine.Length == 0 && !_dontIndentCurrentLine)
+            if (lastLine.Length > 0 && _currentLine.Length == 0)
                 InnerIndentCurrentLine();
             InnerWriteRaw(lastLine);
             _currentLine.Append(lastLine);
-            _dontIndentCurrentLine = false;
         }
         #endregion
 
@@ -771,25 +798,45 @@ namespace CodegenCS
         /// </summary>
         protected void InnerInlineAction(Action action)
         {
-            string indent = _currentLine.ToString();
-            if (indent != null && indent.Length > 0 && !_nextWriteRequiresLineBreak &&
-                (
-                (PreserveWhitespaceIndent && string.IsNullOrWhiteSpace(indent)) ||
-                (PreserveNonWhitespaceIndent && !string.IsNullOrWhiteSpace(indent))
-                ))
+            string implicitIndent = _scopeContexts.Peek().ImplicitIndentBeforeFirstPlaceHolder;
+
+            // implicit indent of current line wasn't set by a previous placeholder in same line
+            if (implicitIndent == null)
             {
-                // TODO: we could "detect" if the current indent is multiple of 4 spaces, or tabs, and do the conversion if appropriate, etc.
-                // TODO: we should probably reuse InnerIncreaseIndent , but push not only a primitive string but an object containing info like "dontIndentCurrentLine=true" (which is currently from ICodegenTextWriter)
-                // maybe another IDisposable class like IndentedBlockScope
-                _levelIndent.Push(indent);
-                _dontIndentCurrentLine = true;
-                _currentLine.Clear();
-                action();
-                _levelIndent.Pop(); // TODO: if there were no linebreaks written we should restore currentLine - levelIndent should be a class to keep track of more context
+                if (!_nextWriteRequiresLineBreak && // if next line will render a linebreak anyway we don't need to capture indent
+                    _currentLine.Length > 0 &&
+                    (
+                        PreserveNonWhitespaceIndent ||
+                        (PreserveWhitespaceIndent && string.IsNullOrWhiteSpace(_currentLine.ToString()))
+                    ))
+                {
+                    // TODO: we could "detect" if the current indent is multiple of 4 spaces, or tabs, and do the conversion if appropriate, etc.
+                    implicitIndent = _currentLine.ToString();
+                    _scopeContexts.Peek().ImplicitIndentBeforeFirstPlaceHolder = implicitIndent;
+                }
             }
-            else
+
+            if (implicitIndent != null)
             {
-                action();
+                _scopeContexts.Push(new ScopeContext(this, implicitIndent) { DontIndentFirstLine = true });
+                _currentLine.Clear(); // implicitIndent will be added to all subsequent lines written by action
+            }
+
+            action();
+
+            if (implicitIndent != null)
+            {
+                var writtenLen = _innerWriter.GetStringBuilder().Length - _scopeContexts.Peek().StartingPos;
+
+                // The inner action might have removed characters due to ItemsSeparatorBehavior.RemoveLastLine or similar methods/options
+                // For those cases _currentLine should have been recalculated
+
+                // For all other cases (where nothing was written or something was written but we're still in the same line since no linebreaks were written)
+                // we have to restore the implicitIndent back to _currentLine
+                if (writtenLen >= 0 && _scopeContexts.Peek().WhitespaceLines == 0 && _scopeContexts.Peek().NonWhitespaceLines == 0)
+                    _currentLine.Insert(0, implicitIndent);
+
+                _scopeContexts.Pop();
             }
         }
         #endregion
@@ -824,7 +871,6 @@ namespace CodegenCS
             var stripCurlyBracesLiterals = format.Replace("{{", "  "); // remove curly braces literals so the regex will capture position only for real placeholders
             var matches = _formattableArgumentRegex.Matches(stripCurlyBracesLiterals);
             int lastPos = 0;
-            string lastPart = null;
             for (int i = 0; i < matches.Count; i++)
             {
                 int argPos = int.Parse(matches[i].Groups["ArgPos"].Value);
@@ -838,7 +884,7 @@ namespace CodegenCS
 
                 InnerWriteFormattableArgument(arg, argFormat);
             }
-            lastPart = UnescapeCurlyBraces(format.Substring(lastPos));
+            string lastPart = UnescapeCurlyBraces(format.Substring(lastPos));
             InnerWrite(lastPart);
         }
 
@@ -1196,17 +1242,24 @@ namespace CodegenCS
 
             if (typeof(System.Collections.IEnumerable).IsAssignableFrom(arg.GetType()))
             {
-                int previousPos = this._innerWriter.ToString().Length;
+                int previousItemStart;
+                bool someItemWroteMultipleLines = false;
                 InnerInlineAction(() =>
                 {
                     System.Collections.IEnumerable list = (System.Collections.IEnumerable)arg;
-                    bool addMiddleSeparator = false;
-                    bool previousItemWroteMultilines = false;
                     int items = 0;
-                    foreach (var item in list)
+                    var enumerator = list.GetEnumerator();
+                    bool loop = enumerator.MoveNext();
+                    ItemsSeparatorBehavior? nextSeparator = (loop ? (ItemsSeparatorBehavior?)null : enumerableRenderOptions.EmptyListBehavior);
+                    List<int> itemPositions = new List<int>();
+                    while (loop)
                     {
-                        if (addMiddleSeparator)
-                            WriteIEnumerableItemSeparator(enumerableRenderOptions, enumerableRenderOptions.BetweenItemsBehavior, previousItemWroteMultilines: previousItemWroteMultilines);
+                        previousItemStart = this._innerWriter.GetStringBuilder().Length;
+                        var item = enumerator.Current;
+                        if (nextSeparator != null) // it's enumerableRenderOptions.BetweenItemsBehavior
+                            WriteIEnumerableItemSeparator(enumerableRenderOptions, nextSeparator.Value);
+
+                        itemPositions.Add(this._innerWriter.GetStringBuilder().Length);
 
                         if (ienumerableCallbackActionMethod != null) // if there's a specific action to be executed for each item
                         {
@@ -1224,15 +1277,27 @@ namespace CodegenCS
                             InnerWriteFormattableArgument(item, "");
                         }
                         items++;
-                        addMiddleSeparator = true;
-                        string previousItem = this._innerWriter.ToString().Substring(previousPos); 
-                        previousItemWroteMultilines = _lineBreaksRegex.Split(previousItem.Trim()).Length > 1; // at least 1 line break inside the rendered item
-                        previousPos = this._innerWriter.ToString().Length;
+                        loop = enumerator.MoveNext();
+                        nextSeparator = (loop ? enumerableRenderOptions.BetweenItemsBehavior : enumerableRenderOptions.AfterLastItemBehavior);
+                        if (nextSeparator == ItemsSeparatorBehavior.EnsureFullEmptyLineAfterMultilineItems)
+                        {
+                            string previousItem = this._innerWriter.ToString().Substring(previousItemStart).Trim(); // remove surrounding linebreaks before and after item
+                            var lastLineBreak = _lineBreaksRegexRTL.Match(previousItem);
+                            //previousItemWroteMultilines = lastLineBreak.Index > 0; // at least 1 line break inside the rendered item
+                            someItemWroteMultipleLines |= (lastLineBreak.Index > 0);
+                        }
                     }
-                    if (items > 0) // write according to AfterLastItemBehavior
-                        WriteIEnumerableItemSeparator(enumerableRenderOptions, enumerableRenderOptions.AfterLastItemBehavior, previousItemWroteMultilines);
-                    else
-                        WriteIEnumerableItemSeparator(enumerableRenderOptions, enumerableRenderOptions.EmptyListBehavior, previousItemWroteMultilines);
+
+                    if (someItemWroteMultipleLines && enumerableRenderOptions.BetweenItemsBehavior == ItemsSeparatorBehavior.EnsureFullEmptyLineAfterMultilineItems)
+                    {
+                        //TODO: option to call WriteLine() before first item and after last item, instead of only between items
+                        for (int i = itemPositions.Count-1; i > 0; i--)
+                        {
+                            this._innerWriter.GetStringBuilder().Insert(itemPositions[i], this.NewLine);
+                        }
+                    }
+
+                    WriteIEnumerableItemSeparator(enumerableRenderOptions, nextSeparator.Value);
                 });
                 return;
             }
@@ -1298,7 +1363,7 @@ namespace CodegenCS
             #endregion
 
         }
-        private void WriteIEnumerableItemSeparator(RenderEnumerableOptions options, ItemsSeparatorBehavior behavior, bool previousItemWroteMultilines)
+        private void WriteIEnumerableItemSeparator(RenderEnumerableOptions options, ItemsSeparatorBehavior behavior)
         {
             switch(behavior)
             {
@@ -1314,8 +1379,7 @@ namespace CodegenCS
                     break;
                 case ItemsSeparatorBehavior.EnsureFullEmptyLineAfterMultilineItems:
                     EnsureEmptyLine(); // if current line is dirty, add a line break (giving a new empty line)
-                    if (previousItemWroteMultilines)
-                        WriteLine();   // if item wrote multiple lines we add a full empty line
+                    //WriteLine();   // this is currently being handled AFTER the IEnumerable block ends, so we can detect if ANY item wrote multiple lines
                     break;
                 case ItemsSeparatorBehavior.EnsureLineBreakBeforeNextWrite:
                     EnsureLineBreakBeforeNextWrite(); 
@@ -1521,32 +1585,50 @@ namespace CodegenCS
         #endregion
 
         #region Text Manipulation
+        /// <summary>
+        /// Removes the last line (current line) completely (including the last linebreak)
+        /// </summary>
+        /// <param name="onlyIfAllWhitespace"></param>
         public void RemoveLastLine(bool onlyIfAllWhitespace = false)
         {
             var contents = _innerWriter.GetStringBuilder().ToString();
-            var matches = _lineBreaksRegex.Matches(contents);
-            if (matches.Count == 0) // it's still a single line
+
+            var lastLineBreak = _lineBreaksRegexRTL.Match(contents);
+            int lastLineBreakPos = lastLineBreak.Index;
+
+            if (lastLineBreakPos == 0) // it's still a single line
             {
-                if (onlyIfAllWhitespace && _innerWriter.ToString().Trim() != "")
+                if (onlyIfAllWhitespace && contents.Trim() != "")
                     return;
                 _innerWriter.GetStringBuilder().Clear();
                 _currentLine.Clear();
                 return;
             }
-            int lastLineBreakPos = matches[matches.Count - 1].Index;
-            int lastLineBreakEnd = matches[matches.Count - 1].Index + matches[matches.Count - 1].Length;
-            if (onlyIfAllWhitespace && _innerWriter.ToString().Substring(lastLineBreakEnd).Trim() != "")
+            if (onlyIfAllWhitespace && contents.Substring(lastLineBreakPos).Trim() != "")
                 return;
+
             _innerWriter.GetStringBuilder().Remove(lastLineBreakPos, contents.Length - lastLineBreakPos);
-            int previousLineBreakEnd = matches.Count == 1 ? 0 : matches[matches.Count - 2].Index + matches[matches.Count - 2].Length;
-            _currentLine.Clear().Append(_innerWriter.GetStringBuilder().ToString().Substring(previousLineBreakEnd));
-            //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
+            var previousLineBreak = _lineBreaksRegexRTL.Match(contents, startat: lastLineBreakPos);
+            int previousLineBreakEnd = previousLineBreak.Index + previousLineBreak.Length;
+
+            _currentLine.Clear().Append(contents.Substring(previousLineBreakEnd, lastLineBreakPos - previousLineBreakEnd));
+
+            // The last line was certainly padded with the current context
+            // But the previous line could either be padded with current context or previous one, so we have to check both
+            if (_currentLine.ToString().StartsWith(_scopeContexts.Peek().IndentString))
+                _currentLine.Remove(0, _scopeContexts.Peek().IndentString.Length);
+            else if (_currentLine.ToString().StartsWith(_scopeContexts.Skip(1).First().IndentString))
+                _currentLine.Remove(0, _scopeContexts.Skip(1).First().IndentString.Length);
+
         }
         public void ClearLastLine(bool onlyIfAllWhitespace = false)
         {
             var contents = _innerWriter.GetStringBuilder().ToString();
-            var matches = _lineBreaksRegex.Matches(contents);
-            if (matches.Count == 0) // it's still a single line
+            
+            var lastLineBreak = _lineBreaksRegexRTL.Match(contents);
+            int lastLineBreakPos = lastLineBreak.Index;
+
+            if (lastLineBreakPos == 0) // it's still a single line
             {
                 if (onlyIfAllWhitespace && _innerWriter.ToString().Trim() != "")
                     return;
@@ -1554,12 +1636,11 @@ namespace CodegenCS
                 _currentLine.Clear();
                 return;
             }
-            int lastLineBreakEnd = matches[matches.Count - 1].Index + matches[matches.Count - 1].Length;
+            int lastLineBreakEnd = lastLineBreak.Index + lastLineBreak.Length;
             if (onlyIfAllWhitespace && _innerWriter.ToString().Substring(lastLineBreakEnd).Trim() != "")
                 return;
             _innerWriter.GetStringBuilder().Remove(lastLineBreakEnd, contents.Length - lastLineBreakEnd);
             _currentLine.Clear();
-            //TODO: do we have to restore _nextWriteRequiresLineBreak and _dontIndentCurrentLine?
         }
         #endregion
 
