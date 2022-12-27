@@ -54,8 +54,13 @@ namespace CodegenCS.Tools.Tests
         public async Task TestTemplate(string templateAlias, string model)
         {
             string cmd = $"template run {templateAlias}.dll {model} MyNamespace";
+            
             var result = await Run(cmd);
             Assert.AreEqual(0, result.ExitCode);
+
+            // Debug:
+            //var result = await new TemplateCliArgsTests().LaunchAsync($"{templateAlias}.dll", new string[] { model }, new string[] { "MyNamespace" });
+            //Assert.AreEqual(0, result);
 
             StringAssert.Contains($"Loading '{templateAlias}.dll'...", _stdOut);
             StringAssert.Contains("Model type is 'NSwag.OpenApiDocument'...", _stdOut);

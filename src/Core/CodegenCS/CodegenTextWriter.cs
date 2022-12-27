@@ -13,7 +13,6 @@ using static CodegenCS.Utils.TypeUtils;
 using System.Globalization;
 using IOExtensions = global::CodegenCS.IO.Extensions;
 
-
 namespace CodegenCS
 {
     /// <summary>
@@ -644,32 +643,38 @@ namespace CodegenCS
         }
         
         /// <summary>
-        /// Trims spaces and tabs from the end of the last line (current line).
+        /// Trims spaces and tabs from the end of the last line (current line), including automatically-added indentation
         /// Should only be used before writing a new linebreak
         /// </summary>
         /// <param name="onlyIfLineIsAllWhitespace">If true (default) and the line contains any non-whitespace then nothing will be removed</param>
         protected void TrimCurrentLineEnd(bool onlyIfLineIsAllWhitespace = true)
         {
-            int lenToRemove = 0;
-            if (_currentLine.Length > 0)
-            {
-                lenToRemove += _currentLine.ToString().Length - _currentLine.ToString().Trim().Length;
-                if (onlyIfLineIsAllWhitespace && lenToRemove < _currentLine.Length)
-                    return;
-                _currentLine.Remove(_currentLine.Length - lenToRemove, lenToRemove);
-            }
+            var sb = _innerWriter.GetStringBuilder();
+            int remove = 0;
+            int len = _currentLine.Length;
+            char c;
+
+            // Remove everything until we find last linebreak
+            while (remove < len && ((c = _currentLine[len - remove - 1]) == '\r' || c == '\n' || c == '\t' || c == ' '))
+                remove++;
+
+            if (remove != 0)
+                _currentLine.Remove(_currentLine.Length - remove, remove);
 
             // If the whole "real content" of the line was removed (or if the line didn't had any real content), then we should also remove the automatic added indent
-            if (_currentLine.Length == 0)
+            if (remove == len && _scopeContexts.Peek().IndentWritten)
             {
-                if (_scopeContexts.Peek().IndentWritten && !string.IsNullOrEmpty(_scopeContexts.Peek().IndentString))
-                    lenToRemove += _scopeContexts.Peek().IndentString.Length;
+                string indentString = _scopeContexts.Peek().IndentString;
+                bool match = true;
+                for (int i = 0; match && i < indentString.Length; i++)
+                    if (sb[sb.Length - remove - i - 1] != indentString[indentString.Length - i - 1])
+                        match = false;
+                if (match)
+                    remove += indentString.Length;
             }
 
-            if (lenToRemove == 0)
-                return;
-
-            _innerWriter.GetStringBuilder().Remove(_innerWriter.GetStringBuilder().Length - lenToRemove, lenToRemove);
+            if (remove != 0)
+                sb.Remove(sb.Length - remove, remove);
         }
         
         /// <summary>
@@ -677,34 +682,26 @@ namespace CodegenCS
         /// </summary>
         protected void TrimEnd()
         {
-            // If last line has contents but it can't be fully trimmed, then we don't even have to look in previous lines
-            int lenToRemove = 0;
-            if (_currentLine.Length > 0)
-            {
-                lenToRemove += _currentLine.ToString().Length - _currentLine.ToString().Trim().Length;
-                if (lenToRemove < _currentLine.Length)
-                {
-                    _currentLine.Remove(_currentLine.Length - lenToRemove, lenToRemove);
-                    _innerWriter.GetStringBuilder().Remove(_innerWriter.GetStringBuilder().Length - lenToRemove, lenToRemove);
-                    return;
-                }
-            }
+            var sb = _innerWriter.GetStringBuilder();
+            int remove = 0;
+            int len = sb.Length;
+            char c;
 
-            var contents = _innerWriter.GetStringBuilder().ToString();
+            // Remove everything until we find last linebreak
+            while (remove < len && ((c = sb[len - remove - 1]) == '\r' || c == '\n' || c == '\t' || c == ' '))
+                remove++;
 
-            lenToRemove = contents.Length - contents.TrimEnd().Length;
-            if (lenToRemove == 0)
+            if (remove == 0)
                 return;
+            sb.Remove(sb.Length - remove, remove);
 
-            _innerWriter.GetStringBuilder().Remove(contents.Length - lenToRemove, lenToRemove);
-
-            contents = _innerWriter.GetStringBuilder().ToString();
-            var lastLineBreak = _lineBreaksRegexRTL.Match(contents);
-
-            // current line starts at the end of the previous line break (if any)
-            int currentLinePos = lastLineBreak.Index + lastLineBreak.Length;
-
-            _currentLine.Clear().Append(contents.Substring(currentLinePos));
+            // Recalculate _currentLine
+            int lastLinePos = Math.Max(0, sb.Length - remove - 1);
+            while (lastLinePos > 1 && (c = sb[lastLinePos - 1]) != '\r' && c != '\n')
+                lastLinePos--;
+            _currentLine.Clear();
+            for (int i = lastLinePos; i < sb.Length; i++)
+                _currentLine.Append(sb[i]);
         }
 
         /// <summary>
@@ -818,7 +815,8 @@ namespace CodegenCS
 
             if (implicitIndent != null)
             {
-                _scopeContexts.Push(new ScopeContext(this, implicitIndent) { DontIndentFirstLine = true });
+                // implicit indent was captured and we're starting a new scope - but the first line should not have indent written (it was already explicitly written)
+                _scopeContexts.Push(new ScopeContext(this, implicitIndent) { IndentWritten = true });
                 _currentLine.Clear(); // implicitIndent will be added to all subsequent lines written by action
             }
 
@@ -1242,7 +1240,6 @@ namespace CodegenCS
 
             if (typeof(System.Collections.IEnumerable).IsAssignableFrom(arg.GetType()))
             {
-                int previousItemStart;
                 bool someItemWroteMultipleLines = false;
                 InnerInlineAction(() =>
                 {
@@ -1254,7 +1251,7 @@ namespace CodegenCS
                     List<int> itemPositions = new List<int>();
                     while (loop)
                     {
-                        previousItemStart = this._innerWriter.GetStringBuilder().Length;
+                        int itemStart = this._innerWriter.GetStringBuilder().Length;
                         var item = enumerator.Current;
                         if (nextSeparator != null) // it's enumerableRenderOptions.BetweenItemsBehavior
                             WriteIEnumerableItemSeparator(enumerableRenderOptions, nextSeparator.Value);
@@ -1279,12 +1276,18 @@ namespace CodegenCS
                         items++;
                         loop = enumerator.MoveNext();
                         nextSeparator = (loop ? enumerableRenderOptions.BetweenItemsBehavior : enumerableRenderOptions.AfterLastItemBehavior);
-                        if (nextSeparator == ItemsSeparatorBehavior.EnsureFullEmptyLineAfterMultilineItems)
+                        if (!someItemWroteMultipleLines && nextSeparator == ItemsSeparatorBehavior.EnsureFullEmptyLineAfterMultilineItems)
                         {
-                            string previousItem = this._innerWriter.ToString().Substring(previousItemStart).Trim(); // remove surrounding linebreaks before and after item
-                            var lastLineBreak = _lineBreaksRegexRTL.Match(previousItem);
-                            //previousItemWroteMultilines = lastLineBreak.Index > 0; // at least 1 line break inside the rendered item
-                            someItemWroteMultipleLines |= (lastLineBreak.Index > 0);
+                            // Ignore surrounding linebreaks before and after item
+                            int start = itemStart;
+                            int end = this._innerWriter.GetStringBuilder().Length - 1;
+                            while (this._innerWriter.GetStringBuilder().Length > start && (this._innerWriter.GetStringBuilder()[start] == '\r' || this._innerWriter.GetStringBuilder()[start] == '\n'))
+                                start++;
+                            while (end >= start && (this._innerWriter.GetStringBuilder()[end] == '\r' || this._innerWriter.GetStringBuilder()[end] == '\n'))
+                                end--;
+                            for (int check = start; !someItemWroteMultipleLines && check <= end; check++)
+                                if (this._innerWriter.GetStringBuilder()[check] == '\r' || this._innerWriter.GetStringBuilder()[check] == '\n')
+                                    someItemWroteMultipleLines = true;
                         }
                     }
 
@@ -1591,27 +1594,36 @@ namespace CodegenCS
         /// <param name="onlyIfAllWhitespace"></param>
         public void RemoveLastLine(bool onlyIfAllWhitespace = false)
         {
-            var contents = _innerWriter.GetStringBuilder().ToString();
+            var sb = _innerWriter.GetStringBuilder();
+            int remove = 0;
+            int len = sb.Length;
+            char c;
 
-            var lastLineBreak = _lineBreaksRegexRTL.Match(contents);
-            int lastLineBreakPos = lastLineBreak.Index;
-
-            if (lastLineBreakPos == 0) // it's still a single line
+            // Remove everything until we find last linebreak
+            while (remove < len && (c = sb[len - remove - 1]) != '\r' && c != '\n')
             {
-                if (onlyIfAllWhitespace && contents.Trim() != "")
+                if (onlyIfAllWhitespace && c != ' ' && c != '\t')
                     return;
-                _innerWriter.GetStringBuilder().Clear();
-                _currentLine.Clear();
-                return;
+                remove++;
             }
-            if (onlyIfAllWhitespace && contents.Substring(lastLineBreakPos).Trim() != "")
+            // Remove the last linebreak itself
+            if (remove < len && sb[len - remove - 1] == '\n')
+                remove++;
+            if (remove < len && sb[len - remove - 1] == '\r')
+                remove++;
+
+            if (remove == 0)
                 return;
 
-            _innerWriter.GetStringBuilder().Remove(lastLineBreakPos, contents.Length - lastLineBreakPos);
-            var previousLineBreak = _lineBreaksRegexRTL.Match(contents, startat: lastLineBreakPos);
-            int previousLineBreakEnd = previousLineBreak.Index + previousLineBreak.Length;
+            sb.Remove(sb.Length - remove, remove);
 
-            _currentLine.Clear().Append(contents.Substring(previousLineBreakEnd, lastLineBreakPos - previousLineBreakEnd));
+            // Recalculate _currentLine
+            int lastLinePos = Math.Max(0, sb.Length - remove - 1);
+            while (lastLinePos > 1 && (c = sb[lastLinePos - 1]) != '\r' && c != '\n')
+                lastLinePos--;
+            _currentLine.Clear();
+            for (int i = lastLinePos; i < sb.Length; i++)
+                _currentLine.Append(sb[i]);
 
             // The last line was certainly padded with the current context
             // But the previous line could either be padded with current context or previous one, so we have to check both
@@ -1623,23 +1635,26 @@ namespace CodegenCS
         }
         public void ClearLastLine(bool onlyIfAllWhitespace = false)
         {
-            var contents = _innerWriter.GetStringBuilder().ToString();
-            
-            var lastLineBreak = _lineBreaksRegexRTL.Match(contents);
-            int lastLineBreakPos = lastLineBreak.Index;
 
-            if (lastLineBreakPos == 0) // it's still a single line
+            var sb = _innerWriter.GetStringBuilder();
+            int remove = 0;
+            int len = sb.Length;
+            char c;
+
+            // Remove everything until we find last linebreak
+            while (remove < len && (c = sb[len - remove - 1]) != '\r' && c != '\n')
             {
-                if (onlyIfAllWhitespace && _innerWriter.ToString().Trim() != "")
+                if (onlyIfAllWhitespace && c != ' ' && c != '\t')
                     return;
-                _innerWriter.GetStringBuilder().Clear();
-                _currentLine.Clear();
-                return;
+                remove++;
             }
-            int lastLineBreakEnd = lastLineBreak.Index + lastLineBreak.Length;
-            if (onlyIfAllWhitespace && _innerWriter.ToString().Substring(lastLineBreakEnd).Trim() != "")
+
+            if (remove == 0)
                 return;
-            _innerWriter.GetStringBuilder().Remove(lastLineBreakEnd, contents.Length - lastLineBreakEnd);
+
+            sb.Remove(sb.Length - remove, remove);
+
+
             _currentLine.Clear();
         }
         #endregion
@@ -1692,7 +1707,7 @@ namespace CodegenCS
             get 
             {
                 return _innerWriter.ToString() + 
-                    (_controlFlowSymbols.Any() ? $" - (warning: there are {_controlFlowSymbols.Count} open IF block(s)" : "");
+                    (_controlFlowSymbols.Any() ? $"[warning: there are {_controlFlowSymbols.Count} open IF block(s)]" : "");
             }
         }
         #endregion

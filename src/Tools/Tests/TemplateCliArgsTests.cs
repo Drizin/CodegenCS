@@ -59,10 +59,13 @@ namespace CodegenCS.Tools.Tests
             _tmpDll = Path.Combine(_tmpFolder, Guid.NewGuid().ToString() + ".dll");
             new DirectoryInfo(_tmpFolder).Create();
             File.WriteAllText(_tmpTemplateFile, template.ToString());
-
+            await BuildAsync(_tmpTemplateFile);
+        }
+        public async Task BuildAsync(string templateFile)
+        { 
             _builderArgs = new TemplateBuilderArgs()
             {
-                Template = new string[] { _tmpTemplateFile },
+                Template = new string[] { templateFile },
                 Output = _tmpDll,
                 VerboseMode = true,
             };
@@ -72,6 +75,10 @@ namespace CodegenCS.Tools.Tests
 
         }
         private async Task<int> LaunchAsync(string[] models = null, string[] templateArgs = null)
+        {
+            return await LaunchAsync(_builderArgs.Output, models, templateArgs);
+        }
+        public async Task<int> LaunchAsync(string templateDll, string[] models = null, string[] templateArgs = null)
         {
             models ??= new string[0];
             templateArgs ??= new string[0];
@@ -84,7 +91,7 @@ namespace CodegenCS.Tools.Tests
 
             _launcherArgs = new TemplateLauncherArgs()
             {
-                Template = _builderArgs.Output,
+                Template = templateDll,
                 Models = models,
                 OutputFolder = _tmpFolder,
                 DefaultOutputFile = Path.GetFileName(_tmpTemplateFile) + ".generated.cs",
@@ -92,7 +99,7 @@ namespace CodegenCS.Tools.Tests
             };
             var launcher = new TemplateLauncher.TemplateLauncher(_logger, _context, dependencyContainer, true);
 
-            var loadResult = await launcher.LoadAsync(_builderArgs.Output);
+            var loadResult = await launcher.LoadAsync(templateDll);
 
             if (loadResult.ReturnCode != 0)
                 return loadResult.ReturnCode;
