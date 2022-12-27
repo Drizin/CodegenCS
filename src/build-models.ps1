@@ -16,7 +16,7 @@ Push-Location $dir
 
 if (-not $PSBoundParameters.ContainsKey('configuration'))
 {
-	$configuration = (Test-Path Release.snk) ? "Release" : "Debug"
+	if (Test-Path Release.snk) { $configuration = "Release"; } else { $configuration = "Debug"; }
 }
 Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 

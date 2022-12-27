@@ -17,7 +17,7 @@ Push-Location $dir
 
 if (-not $PSBoundParameters.ContainsKey('configuration'))
 {
-	#$configuration = (Test-Path Release.snk) ? "Release" : "Debug"
+	#if (Test-Path Release.snk) { $configuration = "Release"; } else { $configuration = "Debug"; }
 	$configuration = "Debug"
 }
 elseif ($configuration -eq "Release") {
