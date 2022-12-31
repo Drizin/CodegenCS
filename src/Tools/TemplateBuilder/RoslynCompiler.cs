@@ -23,7 +23,7 @@ namespace CodegenCS.TemplateBuilder
         protected ILogger _logger;
         protected TemplateBuilder _builder;
 
-        public RoslynCompiler(TemplateBuilder builder, ILogger logger)
+        public RoslynCompiler(TemplateBuilder builder, ILogger logger, List<string> extraReferences, List<string> extraNamespaces)
         {
             _builder = builder;
             _logger = logger;
@@ -131,7 +131,10 @@ namespace CodegenCS.TemplateBuilder
             // Add this library? //AddAssembly(typeof(RoslynCompiler));
             // maybe just add AppDomain.CurrentDomain.GetAssemblies() ?
 
-            _builder.OnConfigureReferences(_namespaces, _references);
+            if (extraNamespaces != null)
+                extraNamespaces.ForEach(ns => _namespaces.Add(ns));
+            if (extraReferences != null)
+                extraReferences.ForEach(rfc => AddAssembly(MetadataReference.CreateFromFile(rfc)));
 
 
             _compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)

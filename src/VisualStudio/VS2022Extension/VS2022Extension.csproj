@@ -54,9 +54,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);VS2022</DefineConstants>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
@@ -64,6 +61,9 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);VS2022;VS2022_OR_NEWER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\Shared\CustomToolGenerator\BaseCodeGenerator.cs">
@@ -83,6 +83,9 @@
     </Compile>
     <Compile Include="..\Shared\Utils\Utils.cs">
       <Link>Utils\Utils.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\Utils\AssembliesLoader.cs">
+      <Link>Utils\AssembliesLoader.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VisualStudioPackage.cs" />

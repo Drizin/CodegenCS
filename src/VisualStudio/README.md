@@ -10,6 +10,16 @@ This page is only about **CodegenCS Visual Studio Extension**:
 
 # Visual Studio Extension
 
+CodegenCS has two editions of the Visual Studio Extension.  
+If you have Visual Studio 2022+ you should use the **VS2022 Edition**, which is the latest. (if it doesn't work for any reason you can also try the **Compatibility Edition**).  
+If you have Visual Studio 2019 you should use the **Compatibility Edition**, which allows templates to be compiled and executed using an isolated AppDomain (so that latest Roslyn libraries don't conflict with older VS2019 libraries).  
+
+Edition | Description | Source | Visual Studio Marketplace
+------------ | ------------- | ------------- | -------------
+**VS2022** | Works with Visual Studio 2022+ | [Sources](https://github.com/CodegenCS/CodegenCS/tree/master/src/VisualStudio/VS2022Extension) | [Download here](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS)
+**Compatibility Edition** | Works with Visual Studio 2019+ (compiles and executes templates using an isolated AppDomain) | [Sources](https://github.com/CodegenCS/CodegenCS/tree/master/src/VisualStudio/VS2019Extension) | [Download here](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS-Compatibility)
+
+
 ## Quickstart
 
 - Install it from Visual Studio (Tools - Extensions - search for "CodegenCS") or download it [here](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS)

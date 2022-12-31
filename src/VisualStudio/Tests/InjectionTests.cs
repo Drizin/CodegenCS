@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis;
 using static CodegenCS.TemplateBuilder.TemplateBuilder;
 using ExecutionContext = CodegenCS.Runtime.ExecutionContext;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace CodegenCS.VisualStudio.Tests
 {
@@ -71,15 +72,11 @@ namespace CodegenCS.VisualStudio.Tests
                 Template = new string[] { _tmpTemplateFile },
                 Output = _tmpDll,
                 VerboseMode = true,
+                ExtraReferences = new List<string>() { typeof(VSExecutionContext).GetTypeInfo().Assembly.Location } // CodegenCS.Runtime.VisualStudio
             };
             var builder = new CodegenCS.TemplateBuilder.TemplateBuilder(_logger, _builderArgs);
-            builder.ConfigureReferences += AddVisualStudioReferences;
             var builderResult = await builder.ExecuteAsync();
             Assert.AreEqual(0, builderResult.ReturnCode);
-        }
-        private void AddVisualStudioReferences(object sender, ConfigureReferencesEventArgs e)
-        {
-            e.References.Add(MetadataReference.CreateFromFile(typeof(VSExecutionContext).GetTypeInfo().Assembly.Location)); // CodegenCS.Runtime.VisualStudio
         }
         private async Task<int> LaunchAsync(string[] models = null, string[] templateArgs = null)
         {

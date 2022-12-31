@@ -12,14 +12,20 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using static CodegenCS.TemplateBuilder.TemplateBuilder;
-using static CodegenCS.TemplateLauncher.TemplateLauncher;
 using TemplateLauncherArgs = CodegenCS.TemplateLauncher.TemplateLauncher.TemplateLauncherArgs;
 using Task = System.Threading.Tasks.Task;
+using CodegenCS.VisualStudio.Shared.Utils;
 using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
+#if VS2019
+using VisualStudioPackage = CodegenCS.VisualStudio.VS2019Extension.VisualStudioPackage;
+#else
+using VisualStudioPackage = CodegenCS.VisualStudio.VS2022Extension.VisualStudioPackage;
+#endif
 
 namespace CodegenCS.VisualStudio.Shared.RunTemplate
 {
-    internal class RunTemplateWrapper
+    internal class RunTemplateWrapper : MarshalByRefObject
     {
         private DTE2 _dte { get; set; }
         static internal IVsOutputWindowPane _customPane = null;
@@ -37,7 +43,9 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
 
         static RunTemplateWrapper()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
+            // Host AppDomain (VisualStudio) may need to resolve libraries embedded in our extension
+            // For compatibility edition we offer to child domain all VS assemblies, and also smart matching for best version or compatible libraries
+            AssemblyLoaderInitialization.Initialize();
         }
 
         public static void Init()
@@ -77,17 +85,23 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
 
         public async Task RunAsync()
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _joinableTaskFactory.SwitchToMainThreadAsync();
 
             _errorListProvider = _errorListProvider ?? new ErrorListProvider(_serviceProvider);
-            //_errorListProvider.Tasks.Clear();
-            // let's clear only errors specific to this file (or any file which was deleted/renamed)
-            var tasks = _errorListProvider.Tasks.OfType<ErrorTask>().ToList();
-            foreach(var task in tasks)
+
+            // Let's clear only errors specific to this file (or any file which was deleted/renamed), instead of clearing all tasks like errorListProvider.Tasks.Clear()
+#if VS2022_OR_NEWER
+            ClearPreviousErrors(_errorListProvider);
+#elif VS2019_OR_OLDER
+            try 
             {
-                if (task.Document == _templateItemPath || !File.Exists(task.Document))
-                    _errorListProvider.Tasks.Remove(task);
+                ClearPreviousErrors(_errorListProvider);
+            } 
+            catch (TypeLoadException) // Interop versioning hell
+            {
+                ClearPreviousErrorsDynamic(_errorListProvider);
             }
+#endif
 
             // TODO: improve async calls
             // check https://github.com/Microsoft/vs-threading/blob/main/doc/cookbook_vs.md#how-to-write-a-fire-and-forget-method-responsibly
@@ -138,6 +152,41 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
             });
         }
 
+#if VS2022_OR_NEWER
+        void ClearPreviousErrors(ErrorListProvider errorListProvider)
+        {
+            // For VS2022 edition (libraries version >=17.x) the tasks (even ErrorTask) all inherit from Microsoft.VisualStudio.Shell.TaskListItem
+            foreach (var task in errorListProvider.Tasks.OfType<TaskListItem>())
+            {
+                if (task.Document == _templateItemPath || !File.Exists(task.Document))
+                    errorListProvider.Tasks.Remove(task);
+            }
+        }
+#elif VS2019_OR_OLDER
+        void ClearPreviousErrors(ErrorListProvider errorListProvider)
+        {
+            // For VS2019 (libraries version 16.x) the tasks inherit from Microsoft.VisualStudio.Shell.Task
+            foreach (var task in errorListProvider.Tasks.OfType<ErrorTask>().ToList())
+            {
+                if (task.Document == _templateItemPath || !File.Exists(task.Document))
+                    errorListProvider.Tasks.Remove(task);
+            }
+        }
+        void ClearPreviousErrorsDynamic(ErrorListProvider errorListProvider)
+        {
+            // However static typing (ClearPreviousErrors above) is not forward-compatible: if someone runs Compatibility Edition under VS2022+
+            // then VS would redirect assembly bindings (ErrorTask would be compiled using 16.x but during runtime it would load 17.x)
+            // and then the properties from the old base class (Task) wouldn't load (Task doesn't exist anymore in 17.x) and would crash (before loading this method - so we catch-retry outside):
+            // "Could not load type 'Microsoft.VisualStudio.Shell.Task' from assembly 'Microsoft.VisualStudio.Shell.15.0, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'."
+            // So in order to make our "Compatibility Edition" forward-compatible (work not only in VS2019 but also VS2022+), let's use dynamic typing (no static references to Task class)
+            foreach (var task in errorListProvider.Tasks.OfType<ErrorTask>().Cast<dynamic>().ToList())
+            {
+                if ((string)task.Document == _templateItemPath || !File.Exists((string)task.Document))
+                    errorListProvider.Tasks.Remove(task);
+            }
+        }
+#endif
+
         async Task<TemplateBuilderResponse> BuildTemplateAsync(string itemFullPath)
         {
             var builderArgs = new CodegenCS.TemplateBuilder.TemplateBuilder.TemplateBuilderArgs()
@@ -145,10 +194,47 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
                 Template = new string[] { itemFullPath },
                 Output = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), Path.GetFileNameWithoutExtension(itemFullPath)) + ".dll", //TODO: cache by Template-hash
                 VerboseMode = false,
+                ExtraReferences = new List<string>() { typeof(VSExecutionContext).GetTypeInfo().Assembly.Location } // CodegenCS.Runtime.VisualStudio
             };
-            var builder = new CodegenCS.TemplateBuilder.TemplateBuilder(_logger, builderArgs);
-            builder.ConfigureReferences += AddVisualStudioReferences;
-            var builderResult = await builder.ExecuteAsync();
+
+            TemplateBuilderResponse builderResult = null;
+
+            // Latest VS2022 can run TemplateBuilder (Roslyn Microsoft.CodeAnalysis.CSharp 4.2) in same AppDomain without conflict
+#if VS2022_OR_NEWER
+            var builder = new TemplateBuilder.TemplateBuilder(_logger, builderArgs);
+            builderResult = await builder.ExecuteAsync();
+
+            // Older versions need to run in isolated process
+#else
+
+
+
+            var isolatedScope = VisualStudioPackage.IsolatedAppDomainWrapper.Value;
+            if (isolatedScope.Loader == null)
+            {
+                // All assemblies loaded by Visual Studio should be available to child AppDomain
+                var hostAssemblies = AssemblyLoaderInitialization.GetCurrentAssemblies();
+
+                // Since AssembliesLoader is [Serializable] we just create it here and pass it to child AppDomain:
+                var loader = new AssembliesLoader(hostAssemblies);
+                isolatedScope.Loader ??= loader;
+                // if AssembliesLoader was MarshalByRefObject then we would create it directly in the child AppDomain: var loader = isolatedScope.Create<AssembliesLoader>(hostAssemblies); 
+                // else (not [Serializable] nor MarshalByRefObject) then we could use callback AppDomainSetup.AppDomainInitializer to deserialize hostAssemblies and create a new AssembliesLoader
+            }
+
+            // Remote Proxies:
+            // VsOutputWindowPaneOutputLogger should be a remote proxy. Can't be local (in the calling AppDomain) because FormattableString can't be serialized from the child AppDomain
+            var crossDomainLogger = isolatedScope.Create<VsOutputWindowPaneOutputLogger>(_customPane);
+                
+            // TemplateBuilder should run in isolated AppDomain to avoid conflicting packages (we use recent Roslyn 4.2 version, and old Visual Studio versions conflict with Roslyn and dependencies)
+            var builder = isolatedScope.Create<TemplateBuilder.TemplateBuilder>(crossDomainLogger, builderArgs);
+
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+            builderResult = builder.Execute(); // we can't call ExecuteAsync because Task<T> is not serializable (nor inherits MarshalByRefObject), so calling async cross-domains throw SerializationException
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
+#endif
+
+
 
             if (builderResult.ReturnCode != 0)
             {
@@ -158,11 +244,6 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
             _customPane.OutputStringThreadSafe("\r\n");
             await Task.Delay(1); // let UI refresh
             return builderResult;
-        }
-
-        private void AddVisualStudioReferences(object sender, ConfigureReferencesEventArgs e)
-        {
-            e.References.Add(MetadataReference.CreateFromFile(typeof(VSExecutionContext).GetTypeInfo().Assembly.Location)); // CodegenCS.Runtime.VisualStudio
         }
 
         async Task<int> RunTemplateAsync(string templateDll, string defaultOutputFile)
@@ -280,16 +361,41 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
 
         void AddError(string errorMessage, TaskCategory category, int line, int column)
         {
+#if VS2022_OR_NEWER
+            AddErrorStatic(errorMessage, category, line, column);
+#elif VS2019_OR_OLDER
+            try
+            {
+                AddErrorStatic(errorMessage, category, line, column);
+            }
+            catch (TypeLoadException) // Interop versioning hell
+            {
+                AddErrorDynamic(errorMessage, category, line, column);
+            }
+#endif
+        }
+
+        void AddErrorStatic(string errorMessage, TaskCategory category, int line, int column)
+        {
             var newError = new ErrorTask()
             {
                 ErrorCategory = TaskErrorCategory.Error,
-                Category = category,
-                Text = errorMessage,
-                Document = _templateItemPath,
-                Line = line,
-                Column = column,
-                HierarchyItem = _hierarchyItem
+                HierarchyItem = _hierarchyItem,
             };
+
+            // in Microsoft.VisualStudio.Shell.15.0 v17 many of the properties below belong to the parent class "TaskListItem"
+            // in Microsoft.VisualStudio.Shell.15.0 v16 those properties are in new parent class "Task"
+            // (As explained in ClearPreviousErrors(), Task class doesn't exist anymore in 17.x)
+            // Even though we don't reference directly type "TaskListItem" or "Task", using those properties with static typing requires those class to exist (breaks forward binary compatibility)
+
+            // VS2022 edition requires VS2022 so it will always have 17.x+ libraries and therefore we don't need dynamic typing
+            // VS2019 edition running under VS2019 should also work with this static types (static references to parent class)
+
+            newError.Category = category;
+            newError.Text = errorMessage;
+            newError.Document = _templateItemPath;
+            newError.Line = line;
+            newError.Column = column;
 
 
             newError.Navigate += (s2, e2) =>
@@ -300,63 +406,31 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
             };
             _errorListProvider.Tasks.Add(newError);
         }
-
-        #region Assembly Redirects
-        static Assembly[] _assemblies = null;
-        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+#if VS2019_OR_OLDER
+        void AddErrorDynamic(string errorMessage, TaskCategory category, int line, int column)
         {
-            var name = new AssemblyName(args.Name);
-            if (name.Name == "CodegenCS.Models.DbSchema")
-                return typeof(CodegenCS.Models.DbSchema.DatabaseSchema).Assembly;
-            if (name.Name == "CodegenCS.Models")
-                return typeof(CodegenCS.Models.IInputModel).Assembly;
-            if (name.Name == "CodegenCS.Core")
-                return typeof(CodegenCS.ICodegenContext).Assembly;
-            if (name.Name == "InterpolatedColorConsole")
-                return typeof(InterpolatedColorConsole.ColoredConsole).Assembly;
-            if (name.Name == "NJsonSchema")
-                return typeof(NJsonSchema.ConversionUtilities).Assembly;
-            if (name.Name.Contains("CoreLib"))
+            var newError = new ErrorTask()
             {
-                var asm = Assembly.LoadFrom(@"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.17\System.Private.CoreLib.dll");
-                return asm;
-                //return typeof(object).GetTypeInfo().Assembly; // FOR VS Extension (.net framework) this is mscorlib 4.0.0.0
-            }
-            if (name.Name == "System.CommandLine.NamingConventionBinder")
-            {
-                return typeof(System.CommandLine.NamingConventionBinder.BindingContextExtensions).Assembly;
-            }
-            if (name.Name == "System.CommandLine")
-            {
-                return typeof(System.CommandLine.Argument).Assembly;
-            }
+                ErrorCategory = TaskErrorCategory.Error,
+                HierarchyItem = _hierarchyItem,
+            };
 
-            if (_assemblies == null)
+            // VS2019 edition running under VS2022 requires dynamic typing (no static references to Task class, so it's forward-compatible binary-compatible with future versions):
+            ((dynamic)newError).Category = category;
+            ((dynamic)newError).Text = errorMessage;
+            ((dynamic)newError).Document = _templateItemPath;
+            ((dynamic)newError).Line = line;
+            ((dynamic)newError).Column = column;
+            ((dynamic)newError).Navigate += new EventHandler((s2, e2) =>
             {
-                _assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            }
+                ((dynamic)newError).Line++; // TaskProvider.Navigate bug? it goes to PREVIOUS line. And column is ignored.
+                _errorListProvider.Navigate(newError, Guid.Parse(EnvDTE.Constants.vsViewKindCode));
+                ((dynamic)newError).Line--;
+            });
 
-            Assembly assembly;
-            if (_assemblies != null)
-            {
-                if ((assembly = _assemblies.FirstOrDefault(asm => asm.FullName == name.FullName)) != null)
-                    return assembly;
-                if ((assembly = _assemblies.FirstOrDefault(asm => asm.FullName.StartsWith(name.Name + ", Version=" + name.Version.Major))) != null)
-                    return assembly;
-                var matches = _assemblies.Where(asm => asm.FullName.StartsWith(name.Name + ", Version="));
-                if (matches.Any())
-                    return matches.OrderByDescending(a => a.FullName).First(); // yeah, I know.
-            }
-
-            string[] Parts = args.Name.Split(',');
-            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + Parts[0].Trim() + ".dll";
-            if (File.Exists(path))
-                return System.Reflection.Assembly.LoadFrom(path);
-
-            return null;
+            ((dynamic)_errorListProvider.Tasks).Add(newError); // TaskCollection.Add(TaskListItem) vs TaskCollection.Add(Task)
         }
-        #endregion
-
+#endif
 
 
     }

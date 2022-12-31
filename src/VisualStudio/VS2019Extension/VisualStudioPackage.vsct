@@ -74,7 +74,7 @@
 		<Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_ITEM_INCLUDEEXCLUDE"/>
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>Run CodegenCS Template (VS2019)</ButtonText>
+          <ButtonText>Run CodegenCS Template (Compatibility)</ButtonText>
         </Strings>
       </Button>
     </Buttons>

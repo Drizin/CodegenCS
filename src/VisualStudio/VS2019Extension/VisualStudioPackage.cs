@@ -1,10 +1,12 @@
 ﻿using CodegenCS.VisualStudio.Shared.CustomToolGenerator;
 using CodegenCS.VisualStudio.Shared.RunTemplate;
+using CodegenCS.VisualStudio.Shared.Utils;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextTemplating.VSHost;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
@@ -51,6 +53,10 @@ namespace CodegenCS.VisualStudio.VS2019Extension
 
         internal EnvDTE80.DTE2 _dte;
 
+#if VS2019_OR_OLDER
+        static internal Lazy<IsolatedAppDomainWrapper> IsolatedAppDomainWrapper = new Lazy<IsolatedAppDomainWrapper>();
+#endif
+
         /// <summary>
         /// Initializes a new instance of the <see cref="VisualStudioPackage"/> class.
         /// </summary>
@@ -60,6 +66,9 @@ namespace CodegenCS.VisualStudio.VS2019Extension
             // any Visual Studio service because at this point the package object is created but
             // not sited yet inside Visual Studio environment. The place to do all the other
             // initialization is the Initialize method.
+
+            AssemblyLoaderInitialization.Initialize();
+
         }
 
         #region Package Members
@@ -81,6 +90,14 @@ namespace CodegenCS.VisualStudio.VS2019Extension
             //TODO: create some command to set a checkbox "Automatically rebuild template on each save", which would update item.Properties.Item("CustomTool").Value = CustomToolGenerator.RunTemplateCustomTool.CustomToolName;
         }
 
+        protected override void Dispose(bool disposing)
+        {
+#if VS2019_OR_OLDER
+            if (IsolatedAppDomainWrapper.IsValueCreated)
+                IsolatedAppDomainWrapper.Value.Dispose();
+#endif
+            base.Dispose(disposing);
+        }
         #endregion
     }
 }

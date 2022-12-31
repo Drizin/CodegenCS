@@ -43,21 +43,26 @@ try {
 			   /p:IncludeSymbols=true                                  `
 			   /verbosity:minimal                                      `
 			   /p:ContinuousIntegrationBuild=true
+	if (! $?) { throw "msbuild failed" }
 
 	& $msbuild ".\VisualStudio\VS2022Extension\VS2022Extension.csproj"   `
 			   /t:Restore /t:Build                                     `
 			   '/p:targetFrameworks="net472"'                 `
 			   /p:Configuration=$configuration
 	if (! $?) { throw "msbuild failed" }
+	copy .\VisualStudio\VS2022Extension\bin\$configuration\CodegenCS.VisualStudio.VS2022Extension.vsix .\packages-local\
 	
 	& $msbuild ".\VisualStudio\VS2019Extension\VS2019Extension.csproj"   `
 			   /t:Restore /t:Build                                     `
 			   '/p:targetFrameworks="net472"'                 `
 			   /p:Configuration=$configuration                        		   
 	if (! $?) { throw "msbuild failed" }
+	copy .\VisualStudio\VS2019Extension\bin\$configuration\CodegenCS.VisualStudio.VS2019Extension.vsix .\packages-local\
 
 	# The secret to VSIX painless-troubleshooting is inspecting the VSIX package:
 	# & "C:\Program Files\7-Zip\7zFM.exe" .\VisualStudio\VS2022Extension\bin\Debug\CodegenCS.VSExtensions.VisualStudio2022.vsix
+	# Sometimes command-line shows errors that Visual Studio ignores
+	# Sometimes in the extension folder we will have ZERO-bytes files
 
 
 
