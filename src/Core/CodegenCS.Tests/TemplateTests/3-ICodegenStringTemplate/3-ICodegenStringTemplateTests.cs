@@ -15,7 +15,7 @@ class MyPocoTemplate2 : ICodegenStringTemplate<Table>
 {
     public FormattableString Render(Table table)
     {
-        // This is a "Raw String Literal", available since C# 11 (Requires Visual Studio 2012 17.2+ and requires <LangVersion>preview</LangVersion> in the csproj file)
+        // This is a "Raw String Literal", available since C# 11 (Requires Visual Studio 2022 17.2+ and requires <LangVersion>preview</LangVersion> in the csproj file)
         // It requires 3 (or more) quotes - so we can use double quotes inside without having to escape
         // Since it started with 2 dollars it means that variables are interpolated using 2 curly braces (instead of the default of 1),
         // following a mustache-like pattern and making it easier to write C#/Java/C code.
@@ -34,7 +34,7 @@ class MyPocoTemplate2 : ICodegenStringTemplate<Table>
         // and will automatically remove the last line - which means that if we want to keep a linebreak after the closing braces we should leave an empty line before the ending line
         
         // Raw String Literals are not required (but they help a lot if your template includes quotes and curly braces!):
-        // if you're not using C#11/VS2012 you can still use ICodegenStringTemplate returning a regular interpolated string.
+        // if you're not using C#11/VS2022 you can still use ICodegenStringTemplate returning a regular interpolated string.
     }
 }
 partial class ICodegenStringTemplateTests : BaseTest

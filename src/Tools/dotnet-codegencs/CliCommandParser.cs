@@ -84,7 +84,7 @@ namespace CodegenCS.DotNetTool
                             return;
                         }
 
-                        var loadResult = await _runTemplateCommandWrapper.LoadTemplateAsync();
+                        var loadResult = await _runTemplateCommandWrapper.LoadTemplateAsync(_runTemplateCommandWrapper._initialParsedModels);
                         if (loadResult != 0)
                         {
                             context.InvocationResult = new ErrorResult("Could not load template: " + template);

@@ -963,7 +963,7 @@ This nice behavior (which our library have been doing for years now, longer befo
 
 ## Raw String minimum requirements
 
-To use raw string you need Visual Studio 2012 17.2 (or newer) and you need to enable C# 11 features preview (adding `<LangVersion>preview</LangVersion>` to the csproj file).  
+To use raw string you need Visual Studio 2022 17.2 (or newer) and you need to enable C# 11 features preview (adding `<LangVersion>preview</LangVersion>` to the csproj file).  
 
 CodegenCS has been historically doing something very similar (stripping left-padding and first empty line from multiline blocks) but since C# 11 we believe that raw string literals provides a better syntax (specially because of the double mustaches and being able to render curly-braces easily).  
 If you can't use C# 11 you can still use CodegenCS with the old multiline blocks behavior.

@@ -207,10 +207,10 @@ namespace CodegenCS.DotNetTool.Commands
             return 0;
         }
 
-        public async Task<int> LoadTemplateAsync()
+        public async Task<int> LoadTemplateAsync(int? providedModels)
         {
             _launcher ??= new TemplateLauncher.TemplateLauncher(_logger, _ctx, _dependencyContainer, _verboseMode) { _originallyInvokedTemplateFile = _originallyInvokedTemplateFile };
-            var loadResult = await _launcher.LoadAsync(_templateFile.FullName);
+            var loadResult = await _launcher.LoadAsync(_templateFile.FullName, providedModels);
             _expectedModels = (loadResult.Model1Type != null ? 1 : 0) + (loadResult.Model2Type != null ? 1 : 0);
             return loadResult.ReturnCode;
         }
@@ -235,7 +235,7 @@ namespace CodegenCS.DotNetTool.Commands
                 if (_launcher == null) // is this possible? arriving here without LoadTemplateAsync
                 {
                     _launcher ??= new TemplateLauncher.TemplateLauncher(_logger, _ctx, _dependencyContainer, _verboseMode) { _originallyInvokedTemplateFile = _originallyInvokedTemplateFile};
-                    var loadResult = await _launcher.LoadAsync(_templateFile.FullName);
+                    var loadResult = await _launcher.LoadAsync(_templateFile.FullName, cliArgs.Models == null ? 0 : cliArgs.Models.Length);
                     return loadResult.ReturnCode;
                 }
 

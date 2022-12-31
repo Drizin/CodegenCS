@@ -95,7 +95,7 @@ namespace CodegenCS.TemplateLauncher
 
         public async Task<int> LoadAndExecuteAsync(TemplateLauncherArgs args, ParseResult parseResult)
         {
-            var loadResult = await LoadAsync(args.Template);
+            var loadResult = await LoadAsync(args.Template, args.Models.Length);
             if (loadResult.ReturnCode != 0)
                 return loadResult.ReturnCode;
             return await ExecuteAsync(args, parseResult);
@@ -108,7 +108,13 @@ namespace CodegenCS.TemplateLauncher
             public Type Model2Type { get; set; }
         }
 
-        public async Task<TemplateLoadResponse> LoadAsync(string templateDll)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="templateDll"></param>
+        /// <param name="providedModels">If there are multiple constructors or multiple entrypoints it will pick the overload where the number of provided models match the expected models</param>
+        /// <returns></returns>
+        public async Task<TemplateLoadResponse> LoadAsync(string templateDll, int? providedModels = null)
         {
             if (!((_templateFile = new FileInfo(templateDll)).Exists || (_templateFile = new FileInfo(templateDll + ".dll")).Exists))
             {
@@ -118,7 +124,7 @@ namespace CodegenCS.TemplateLauncher
 
             await _logger.WriteLineAsync(ConsoleColor.Green, $"Loading {ConsoleColor.Yellow}'{_templateFile.Name}'{PREVIOUS_COLOR}...");
 
-            bool success = await FindEntryPoint();
+            bool success = await FindEntryPoint(providedModels);
 
             if (!success || _entryPointClass == null || _entryPointMethod == null)
             {
@@ -138,7 +144,7 @@ namespace CodegenCS.TemplateLauncher
             // For TemplateMain() or Main() we have to ensure that models are NOT being expected by both, and also ensure set _expectedModels/_model1Type/_model2Type
 
             // Find the best constructor
-            var bestCtor = FindConstructor();
+            var bestCtor = FindConstructor(providedModels);
 
             if (bestCtor == null)
             {
@@ -176,7 +182,7 @@ namespace CodegenCS.TemplateLauncher
             return new TemplateLoadResponse() { ReturnCode = 0, Model1Type = _model1Type, Model2Type = _model2Type };
         }
 
-        async Task<bool> FindEntryPoint()
+        async Task<bool> FindEntryPoint(int? providedModels)
         {
 
             if (_entryPointMethod != null && _entryPointClass != null) // previously calculated
@@ -193,31 +199,52 @@ namespace CodegenCS.TemplateLauncher
             var asmMethods = asmTypes.SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)).ToList();
 
 
-            // First we search for "TemplateMain" entrypoint method.
-            if (_entryPointMethod == null && (candidates = asmMethods.Where(m => m.Name == "TemplateMain").ToList()).Any())
+            // If providedModels was not provided, we look for any entrypoint (any number of required models)
+            // if provided we'll first look for an exact match, then if not found we'll look for a match that doesn't require any model
+            // (maybe the models are going to constructor and not required by entrypoint method)
+            int?[] searchModels;
+            if (providedModels == null)
+                searchModels = new int?[] { null };
+            else if (providedModels == 0)
+                searchModels = new int?[] { 0 };
+            else
+                searchModels = new int?[] { providedModels, 0 };
+
+            foreach (var searchModel in searchModels)
             {
 
-                var evaluatedCandidates = candidates.Select(method => new MethodOverload<MethodInfo>(method, method.GetParameters().Select(p => p.ParameterType).ToList())).ToList();
-                var best = FindBestOverload(evaluatedCandidates, _modelFactory);
-                if (best != null)
+                // First we search for "TemplateMain" entrypoint method.
+                if (_entryPointMethod == null && (candidates = asmMethods.Where(m => m.Name == "TemplateMain").ToList()).Any())
                 {
-                    _entryPointMethod = best.CtorOrMethod;
-                    _entryPointClass = _entryPointMethod.DeclaringType;
-                    return true;
+
+                    var evaluatedCandidates = candidates.Select(method => new MethodOverload<MethodInfo>(method, method.GetParameters().Select(p => p.ParameterType).ToList())).ToList();
+                    var best = FindBestOverload(evaluatedCandidates, _modelFactory, searchModel);
+                    if (best != null)
+                    {
+                        _entryPointMethod = best.CtorOrMethod;
+                        _entryPointClass = _entryPointMethod.DeclaringType;
+                        return true;
+                    }
+                }
+                // Then we search for a single "Main" entrypoint method //TODO: deprecate?
+                if (_entryPointMethod == null && (candidates = asmMethods.Where(m => m.Name == "Main").ToList()).Any())
+                {
+                    var evaluatedCandidates = candidates.Select(method => new MethodOverload<MethodInfo>(method, method.GetParameters().Select(p => p.ParameterType).ToList())).ToList();
+                    var best = FindBestOverload(evaluatedCandidates, _modelFactory, searchModel);
+
+                    if (best != null)
+                    {
+                        _entryPointMethod = best.CtorOrMethod;
+                        _entryPointClass = _entryPointMethod.DeclaringType;
+                        return true;
+                    }
+                    else
+                    {
+                        // TODO: we can't find an exact match with the number of provided models... show error message and show the expected overloads/models?
+                    }
                 }
             }
-            // Then we search for a single "Main" entrypoint method //TODO: deprecate?
-            if (_entryPointMethod == null && (candidates = asmMethods.Where(m => m.Name == "Main").ToList()).Any())
-            {
-                var evaluatedCandidates = candidates.Select(method => new MethodOverload<MethodInfo>(method, method.GetParameters().Select(p => p.ParameterType).ToList())).ToList();
-                var best = FindBestOverload(evaluatedCandidates, _modelFactory);
-                if (best != null)
-                {
-                    _entryPointMethod = best.CtorOrMethod;
-                    _entryPointClass = _entryPointMethod.DeclaringType;
-                    return true;
-                }
-            }
+
 
             #region LEGACY Templating interfaces (prefer using TemplateMain() or Main() entrypoints)
             //TODO: deprecate
@@ -313,10 +340,18 @@ namespace CodegenCS.TemplateLauncher
             return false;
 
         }
-        private MethodOverload<ConstructorInfo> FindConstructor()
+        private MethodOverload<ConstructorInfo> FindConstructor(int? providedModels)
         {
             var ctors = _entryPointClass.GetConstructors().Select(ctor => new MethodOverload<ConstructorInfo>(ctor, ctor.GetParameters().Select(p => p.ParameterType).ToList())).ToList();
-            var bestCtor = FindBestOverload(ctors, _modelFactory);
+            var bestCtor = FindBestOverload(ctors, _modelFactory, providedModels);
+            if (bestCtor == null && providedModels > 0) // maybe the models are going to entrypoint method and not required by constructor
+                bestCtor = FindBestOverload(ctors, _modelFactory, 0);
+
+            if (bestCtor == null)
+            {
+                // TODO: we can't find an exact match with the number of provided models... show error message and show the expected overloads/models?
+            }
+
             _ctorInfo = bestCtor.CtorOrMethod;
             return bestCtor;
         }
@@ -341,7 +376,13 @@ namespace CodegenCS.TemplateLauncher
                 ParameterType = type;
             }
         }
-        private MethodOverload<T> FindBestOverload<T>(List<MethodOverload<T>> overloads, IModelFactory modelFactory)
+        
+        /// <summary>
+        /// Given a list of overloads (for method or constructor) will find the best match
+        /// </summary>
+        /// <param name="providedModels">Null means "any" number of models. Other values will look for an exact match</param>
+        /// <returns></returns>
+        private MethodOverload<T> FindBestOverload<T>(List<MethodOverload<T>> overloads, IModelFactory modelFactory, int? providedModels)
         {
             foreach (var overload in overloads)
             {
@@ -357,13 +398,15 @@ namespace CodegenCS.TemplateLauncher
                 //TODO: check if other non-Model parameters can be resolved using DependencyContainer? (probably requires receiving parent dependencyContainer)
             }
 
-            var bestOverload = overloads
+            var bestOverloads = overloads
                 .Where(o => o.ErrorMessage == null)
                 .OrderByDescending(ctor => ctor.Parameters.Where(p => p.IsModel).Count()) // prefer the overload with the largest number of models
-                .ThenByDescending(ctor => ctor.Parameters.Count()) // then the largest number of total parameters
-                .FirstOrDefault();
+                .ThenByDescending(ctor => ctor.Parameters.Count()); // then the largest number of total parameters
 
-            return bestOverload;
+            if (providedModels != null && bestOverloads.Any(o => o.Parameters.Where(p => p.IsModel).Count() == providedModels))
+                return bestOverloads.First(o => o.Parameters.Where(p => p.IsModel).Count() == providedModels);
+
+            return bestOverloads.FirstOrDefault();
         }
 
         public async Task<int> ExecuteAsync(TemplateLauncherArgs _args, ParseResult parseResult)
