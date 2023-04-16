@@ -25,7 +25,7 @@ Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 & $msbuild ".\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj"        `
            /t:Restore /t:Build /t:Pack                             `
            /p:PackageOutputPath="..\..\packages-local\"               `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0"'    `
            /p:Configuration=$configuration                         `
            /p:IncludeSymbols=true                                  `
            /p:SymbolPackageFormat=snupkg                           `
@@ -35,7 +35,7 @@ if (! $?) { throw "msbuild failed" }
 
 & $msbuild ".\Models\CodegenCS.Models.DbSchema.Extractor\CodegenCS.Models.DbSchema.Extractor.csproj" `
            /t:Restore /t:Build                                                  `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'                 `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
            /p:SymbolPackageFormat=snupkg                                        `
@@ -48,7 +48,7 @@ if (! $?) { throw "msbuild failed" }
 & $msbuild ".\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj"        `
            /t:Restore /t:Build /t:Pack                             `
            /p:PackageOutputPath="..\..\packages-local\"               `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0"'    `
            /p:Configuration=$configuration                         `
            /p:IncludeSymbols=true                                  `
            /p:SymbolPackageFormat=snupkg                           `

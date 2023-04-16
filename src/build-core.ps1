@@ -31,7 +31,7 @@ try {
 	& $msbuild ".\Core\CodegenCS\CodegenCS.Core.csproj"                          `
 			   /t:Restore /t:Build /t:Pack                             `
 			   /p:PackageOutputPath="..\..\packages-local\"               `
-			   '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
+			   '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0"'    `
 			   /p:Configuration=$configuration                         `
 			   /p:IncludeSymbols=true                                  `
 			   /p:SymbolPackageFormat=snupkg                           `
@@ -44,7 +44,7 @@ try {
 	& $msbuild ".\Core\CodegenCS.Models\CodegenCS.Models.csproj"                          `
 			   /t:Restore /t:Build /t:Pack                             `
 			   /p:PackageOutputPath="..\..\packages-local\"               `
-			   '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
+			   '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0"'    `
 			   /p:Configuration=$configuration                         `
 			   /p:IncludeSymbols=true                                  `
 			   /p:SymbolPackageFormat=snupkg                           `
@@ -56,7 +56,7 @@ try {
 	& $msbuild ".\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj"                          `
 			   /t:Restore /t:Build /t:Pack                             `
 			   /p:PackageOutputPath="..\..\packages-local\"               `
-			   '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
+			   '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0"'    `
 			   /p:Configuration=$configuration                         `
 			   /p:IncludeSymbols=true                                  `
 			   /p:SymbolPackageFormat=snupkg                           `
@@ -67,7 +67,7 @@ try {
 	& $msbuild ".\Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj"                          `
 			   /t:Restore /t:Build /t:Pack                             `
 			   /p:PackageOutputPath="..\..\packages-local\"               `
-			   '/p:targetFrameworks="netstandard2.0;net472;net5.0"'    `
+			   '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0"'    `
 			   /p:Configuration=$configuration                         `
 			   /p:IncludeSymbols=true                                  `
 			   /p:SymbolPackageFormat=snupkg                           `
