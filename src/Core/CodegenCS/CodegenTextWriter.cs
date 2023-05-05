@@ -624,6 +624,15 @@ namespace CodegenCS
 
         #region Raw Writes to _innerWriter (raw methods don't add any indent): InnerWriteRaw
         /// <summary>
+        /// Writes the specified string without indentation.
+        /// </summary>
+        public ICodegenTextWriter WriteRaw(string value)
+        {
+            InnerWriteRaw(value);
+            return this;
+        }
+
+        /// <summary>
         /// This is the lowest-level Write method. All writing methods end up here.
         /// </summary>
         protected void InnerWriteRaw(string value)
@@ -641,7 +650,7 @@ namespace CodegenCS
             _innerWriter.Write(value);
             OnWritten(value);
         }
-        
+
         /// <summary>
         /// Trims spaces and tabs from the end of the last line (current line), including automatically-added indentation
         /// Should only be used before writing a new linebreak
@@ -938,6 +947,13 @@ namespace CodegenCS
                 else if (arg is TrimTrailingWhitespaceSymbol)
                 {
                     _trimWhileWhitespace = true;
+                }
+                else if (arg is WriteRawSymbol)
+                {
+                    string text = ((WriteRawSymbol)arg).Text;
+
+                    if (!string.IsNullOrEmpty(text))
+                        InnerWriteRaw(text);
                 }
                 else
                     throw new NotImplementedException();
