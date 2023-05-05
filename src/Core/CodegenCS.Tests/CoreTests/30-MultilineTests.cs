@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using static CodegenCS.Symbols;
+
 namespace CodegenCS.Tests.CoreTests
 {
     public class MultilineTests
@@ -426,8 +428,38 @@ namespace AdventureWorks
             Assert.AreEqual(expected, _w.GetContents());
         }
 
+        [Test]
+        public void TestMultilineStringWithRAW()
+        {
+            var s = @"a
+empty:
 
+b
+indented:
+    c
+empty:
 
+d";
+
+            _w.WriteLine($$"""
+                public string Test()
+                {
+                    // comment1
+                    return @"{{RAW(s)}}";
+                    // comment2
+                }
+                """);
+
+            var expected = @$"public string Test()
+{{
+    // comment1
+    return @""{s}"";
+    // comment2
+}}
+";
+
+            Assert.AreEqual(expected, _w.GetContents());
+        }
 
     }
 }

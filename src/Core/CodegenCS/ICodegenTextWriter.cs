@@ -30,6 +30,7 @@ namespace CodegenCS
         string ToString();
         int IndentLevel { get; }
         string IndentString { get; set; }
+        ICodegenTextWriter WriteRaw(string value);
         ICodegenTextWriter IncreaseIndent();
         ICodegenTextWriter DecreaseIndent();
         ICodegenTextWriter EnsureEmptyLine();

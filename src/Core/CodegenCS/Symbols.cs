@@ -9,6 +9,14 @@ namespace CodegenCS
     public class Symbols
     {
         /// <summary>
+        /// Writes the specified string without indentation
+        /// </summary>
+        public static WriteRawSymbol RAW(string text)
+        {
+            return new WriteRawSymbol(text);
+        }
+
+        /// <summary>
         /// Starts a conditional block. If condition is false, everything written to TextWriter until the matching ELSE or ENDIF will be discarded.
         /// </summary>
         /// <param name="condition"></param>
