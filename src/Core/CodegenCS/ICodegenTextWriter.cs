@@ -21,7 +21,11 @@ namespace CodegenCS
         bool PreserveWhitespaceIndent { get; set; }
 
         /// <inheritdoc cref="CodegenTextWriter.PreserveNonWhitespaceIndent" />
+        [Obsolete("Please use PreserveNonWhitespaceIndentBehavior")]
         bool PreserveNonWhitespaceIndent { get; set; }
+
+        /// <inheritdoc cref="CodegenTextWriter.PreserveNonWhitespaceIndentBehavior" />
+        CodegenTextWriter.PreserveNonWhitespaceIndentBehaviorType PreserveNonWhitespaceIndentBehavior { get; set; }
 
         string NewLine { get; set; }
         Encoding Encoding { get; }

@@ -315,9 +315,9 @@ namespace MyPocos
         }
 
         [Test]
-        public void AutoIndentSQLComments()
+        public void AutoIndentSQLComments_PreserveNonWhitespaceIndentBehaviorType_PreserveAnything()
         {
-        	_w.PreserveNonWhitespaceIndent = true;
+            //_w.PreserveNonWhitespaceIndentBehavior = CodegenTextWriter.PreserveNonWhitespaceIndentBehaviorType.PreserveAnything; // default.
             string myMultilineBlock = "My\r\nMultiline\r\nstring";
             _w.Write($$"""
                 -- {{myMultilineBlock}}
@@ -331,6 +331,43 @@ namespace MyPocos
                 """;
             Assert.AreEqual(expected, _w.GetContents());
         }
+
+        [Test]
+        public void AutoIndentSQLComments_PreserveNonWhitespaceIndentBehaviorType_Trim()
+        {
+            _w.PreserveNonWhitespaceIndentBehavior = CodegenTextWriter.PreserveNonWhitespaceIndentBehaviorType.Trim;
+            string myMultilineBlock = "My\r\nMultiline\r\nstring";
+            _w.Write($$"""
+                -- {{myMultilineBlock}}
+                INSERT INTO MyTable (...)
+                """);
+            string expected = $$"""
+                -- My
+                Multiline
+                string
+                INSERT INTO MyTable (...)
+                """;
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
+        [Test]
+        public void AutoIndentSQLComments_PreserveNonWhitespaceIndentBehaviorType_()
+        {
+            _w.PreserveNonWhitespaceIndentBehavior = CodegenTextWriter.PreserveNonWhitespaceIndentBehaviorType.PreservePosition;
+            string myMultilineBlock = "My\r\nMultiline\r\nstring";
+            _w.Write($$"""
+                -- {{myMultilineBlock}}
+                INSERT INTO MyTable (...)
+                """);
+            string expected = $$"""
+                -- My
+                   Multiline
+                   string
+                INSERT INTO MyTable (...)
+                """;
+            Assert.AreEqual(expected, _w.GetContents());
+        }
+
         #endregion
 
         #region Text-Manipulation

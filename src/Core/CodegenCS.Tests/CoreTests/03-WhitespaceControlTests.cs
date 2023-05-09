@@ -137,6 +137,76 @@ namespace CodegenCS.Tests.CoreTests
         }
 
         [Test]
+        public void TestTLW2()
+        {
+            FormattableString code = $"""
+                var a = 1;
+                var b = 2;
+                """;
+
+            _w.Write($$"""
+                public void Test()
+                {
+                    {{TLW}}{{code}}
+                }
+                """);
+
+            Assert.AreEqual("""
+                public void Test()
+                {var a = 1;
+                {var b = 2;
+                }
+                """, _w.GetContents());
+        }
+
+        [Test]
+        public void TestTLW3()
+        {
+            FormattableString code = $"""
+                var a = 1;
+                var b = 2;
+                """;
+
+            _w.PreserveNonWhitespaceIndentBehavior = CodegenTextWriter.PreserveNonWhitespaceIndentBehaviorType.Trim;
+            _w.Write($$"""
+                public void Test()
+                {
+                    {{TLW}}{{code}}
+                }
+                """);
+
+            Assert.AreEqual("""
+                public void Test()
+                {var a = 1;
+                var b = 2;
+                }
+                """, _w.GetContents());
+        }
+
+        [Test]
+        public void TestTLW4()
+        {
+            FormattableString code = $"""
+                var a = 1;
+                var b = 2;
+                """;
+
+            _w.PreserveNonWhitespaceIndentBehavior = CodegenTextWriter.PreserveNonWhitespaceIndentBehaviorType.PreservePosition;
+            _w.Write($$"""
+                public void Test()
+                {{{code}}
+                }
+                """);
+
+            Assert.AreEqual("""
+                public void Test()
+                {var a = 1;
+                 var b = 2;
+                }
+                """, _w.GetContents());
+        }
+
+        [Test]
         public void TestTTW()
         {
             _w.Write($$"""
