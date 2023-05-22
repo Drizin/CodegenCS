@@ -53,9 +53,9 @@
             protected internal string IndentString { get; protected set; }
 
             /// <summary>
-            /// Indent was written to current line
+            /// Indent State regarding the current line (if <see cref="IndentString"/> was already written to current line)
             /// </summary>
-            protected internal bool IndentWritten { get; set; } = false;
+            protected internal IndentStateEnum IndentState { get; set; } = IndentStateEnum.None;
 
             protected internal int StartingPos { get; protected set; }
 
@@ -66,11 +66,6 @@
             /// Implicit Indent captured before the first placeholder in the current line
             /// </summary>
             protected internal string ImplicitIndentBeforeFirstPlaceHolder { get; set; } = null;
-
-            /// <summary>
-            /// When we're in the middle of a line and start an inline block (which could be multiline string), the first line don't need to be indented - only the next ones
-            /// </summary>
-            internal bool DontIndentFirstLine = false;
 
             protected internal int IndentLevel { get; set; }
 
@@ -84,17 +79,36 @@
             /// </summary>
             protected internal void InnerIndentCurrentLine()
             {
-                if (IndentWritten)
+                if (IndentState != IndentStateEnum.None)
                     return;
                 if (string.IsNullOrEmpty(this.IndentString))
                     return;
-                // if DontIndentFirstLine is set it's because we're starting an inner block right "at cursor position"-  no need to indent again - we're already positioned!
-                if (DontIndentFirstLine && WhitespaceLines == 0 && NonWhitespaceLines == 0)
-                    return;
                 ParentTextWriter.InnerWriteRaw(this.IndentString);
-                IndentWritten = true;
+                IndentState = IndentStateEnum.None;
             }
             #endregion
+
+            #region IndentStateEnum
+            protected internal enum IndentStateEnum
+            {
+                /// <summary>
+                /// Indent wasn't written to current line
+                /// </summary>
+                None,
+
+                /// <summary>
+                /// Indent was implicitly captured from the current line (no need to write it while in this same line)
+                /// </summary>
+                ImplicitlyCaptured,
+
+
+                /// <summary>
+                /// Indent was written
+                /// </summary>
+                Written
+            }
+            #endregion
+
         }
     }
 }

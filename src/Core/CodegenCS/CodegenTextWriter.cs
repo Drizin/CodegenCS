@@ -679,23 +679,32 @@ namespace CodegenCS
             int len = _currentLine.Length;
             char c;
 
-            // Remove everything until we find last linebreak
-            while (remove < len && ((c = _currentLine[len - remove - 1]) == '\r' || c == '\n' || c == '\t' || c == ' '))
+            // Trim all trailing whitespace from _currentLine
+            while (remove < len && ((c = _currentLine[len - remove - 1]) == '\r' || c == '\n' || c == '\t' || c == ' ')) //TODO: support for onlyIfLineIsAllWhitspace=false
                 remove++;
-
             if (remove != 0)
                 _currentLine.Remove(_currentLine.Length - remove, remove);
 
-            // If the whole "real content" of the line was removed (or if the line didn't had any real content), then we should also remove the automatic added indent
-            if (remove == len && _scopeContexts.Peek().IndentWritten)
+            // If the whole "real content" of the line was removed (or if the line didn't had any real content), then we should also remove the automatic added indent(s) (if any)
+            if (remove == len) //TODO: should also loop to remove PARENT scopes if they match contents
             {
-                string indentString = _scopeContexts.Peek().IndentString;
-                bool match = true;
-                for (int i = 0; match && i < indentString.Length; i++)
-                    if (sb[sb.Length - remove - i - 1] != indentString[indentString.Length - i - 1])
-                        match = false;
-                if (match)
-                    remove += indentString.Length;
+                // Loop through all parent scopes, and while the indent of each scope matches what was written to the line we "revert" that indent written by each scope
+                ScopeContext scope;
+                for (int j = 0; j < _scopeContexts.Count && (scope = _scopeContexts.ElementAt(j)) != null && scope.IndentState == ScopeContext.IndentStateEnum.Written; j++)
+                {
+                    string indentString = scope.IndentString;
+
+                    bool match = true;
+                    for (int i = 0; match && i < indentString.Length; i++)
+                        if (sb[sb.Length - remove - i - 1] != indentString[indentString.Length - i - 1])
+                            match = false;
+
+                    if (match)
+                    {
+                        remove += indentString.Length;
+                        scope.IndentState = ScopeContext.IndentStateEnum.None;
+                    }
+                }
             }
 
             if (remove != 0)
@@ -712,10 +721,9 @@ namespace CodegenCS
             int len = sb.Length;
             char c;
 
-            // Remove everything until we find last linebreak
+            // Trim all trailing whitespace from _innerWriter
             while (remove < len && ((c = sb[len - remove - 1]) == '\r' || c == '\n' || c == '\t' || c == ' '))
                 remove++;
-
             if (remove == 0)
                 return;
             sb.Remove(sb.Length - remove, remove);
@@ -745,7 +753,10 @@ namespace CodegenCS
                 foreach (var scope in _scopeContexts)
                     scope.WhitespaceLines++;
             foreach (var scope in _scopeContexts)
-                scope.IndentWritten = false;
+            {
+                if (scope.IndentState == ScopeContext.IndentStateEnum.ImplicitlyCaptured)
+                    scope.IndentState = ScopeContext.IndentStateEnum.None; // subsequent lines should get indent added
+            }
             _currentLine.Clear();
             _scopeContexts.Peek().ImplicitIndentBeforeFirstPlaceHolder = null;
             _nextWriteRequiresLineBreak = false;
@@ -832,8 +843,8 @@ namespace CodegenCS
 
             if (implicitIndent != null)
             {
-                // implicit indent was captured and we're starting a new scope - but the first line should not have indent written (it was already explicitly written)
-                _scopeContexts.Push(new ScopeContext(this, implicitIndent) { IndentWritten = true });
+                // implicit indent was captured and we're starting a new scope - but the first line should not have indent written (it was already explicitly written) - only the subsequent lines
+                _scopeContexts.Push(new ScopeContext(this, implicitIndent) { IndentState = ScopeContext.IndentStateEnum.ImplicitlyCaptured });
                 _currentLine.Clear(); // implicitIndent will be added to all subsequent lines written by action
             }
 
@@ -1716,7 +1727,6 @@ namespace CodegenCS
                 return;
 
             sb.Remove(sb.Length - remove, remove);
-
 
             _currentLine.Clear();
         }
