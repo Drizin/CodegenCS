@@ -12,7 +12,7 @@
     <copyright>Copyright Rick Drizin 2019</copyright>
     <dependencies>
 		<!--
-		<dependency id="CodegenCS.Core" version="[3.0.0" include="All" />
+		<dependency id="CodegenCS.Core" version="[3.3.1" include="All" />
 		<dependency id="CodegenCS.Models.DbSchema" version="[3.0.0" include="All" />
 		-->
 		<dependency id="NJsonSchema" version="[10.8.0" include="All" />
