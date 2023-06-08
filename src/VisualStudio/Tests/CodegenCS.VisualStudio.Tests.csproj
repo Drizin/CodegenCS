@@ -60,7 +60,7 @@
         <PackageReference Include="CodegenCS.Runtime" Version="3.*" />
         <PackageReference Include="CodegenCS.Models" Version="3.*" />
         <PackageReference Include="CodegenCS.DotNet" Version="3.*" />
-        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.*" />
+        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.0.1" />
       </ItemGroup>
     </Otherwise>
   </Choose>

@@ -12,7 +12,7 @@
     <copyright>Copyright Rick Drizin 2019</copyright>
     <dependencies>
 		<dependency id="CodegenCS.Core" version="[3.0.0" include="All" />
-		<dependency id="CodegenCS.Models" version="[3.0.0" include="All" />
+		<dependency id="CodegenCS.Models" version="[3.0.1" include="All" />
     </dependencies>
   </metadata>
   <files>

@@ -11,7 +11,7 @@
     <description>This is a Model Adapter that allow CodegenCS templates to read OpenAPI models (JSON or YAML format) using NSWag</description>
     <copyright>Copyright Rick Drizin 2019</copyright>
     <dependencies>
-		<dependency id="CodegenCS.Core" version="[3.0.0" include="All" />
+		<dependency id="CodegenCS.Core" version="[3.0.1" include="All" />
     </dependencies>
   </metadata>
   <files>
