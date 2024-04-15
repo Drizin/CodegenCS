@@ -1,10 +1,9 @@
 ﻿using CodegenCS.IO;
 using CodegenCS.Models.DbSchema;
-using CodegenCS.Runtime;
-using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 namespace CodegenCS.Tests;
 

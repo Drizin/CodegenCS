@@ -1,10 +1,8 @@
-using CodegenCS;
-using static CodegenCS.Symbols;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using CodegenCS.ControlFlow;
+using NUnit.Framework;
+using static CodegenCS.Symbols;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
+
 
 namespace CodegenCS.Tests.CoreTests
 {

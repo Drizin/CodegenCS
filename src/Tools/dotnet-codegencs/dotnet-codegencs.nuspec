@@ -16,10 +16,10 @@
 		<dependency id="CodegenCS.Models.DbSchema" version="[3.0.1" include="All" />
 		-->
 		<dependency id="NJsonSchema" version="[10.8.0" include="All" />
-		<dependency id="NSwag.Core" version="[13.17.0" include="All" />
-		<dependency id="NSwag.Core.Yaml" version="[13.17.0" include="All" />
+		<dependency id="NSwag.Core" version="[14.0.7" include="All" />
+		<dependency id="NSwag.Core.Yaml" version="[14.0.7" include="All" />
 		<dependency id="Npgsql" version="[5.0.0" include="All" />
-		<dependency id="System.Data.SqlClient" version="[4.8.2" include="All" />
+		<dependency id="System.Data.SqlClient" version="[4.8.6" include="All" />
 		<dependency id="Dapper" version="[2.0.78" include="All" />
 	</dependencies>
   </metadata>

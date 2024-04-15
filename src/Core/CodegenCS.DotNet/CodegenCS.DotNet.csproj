@@ -2,14 +2,14 @@
 
   <PropertyGroup>
 	<OutputType>Library</OutputType>
-    <TargetFrameworks>netstandard2.0;net472;net5.0;net6.0;net7.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/blob/master/src/Core/CodegenCS.DotNet/</PackageProjectUrl>
     <Description>Class Library and Toolkit for Code Generation using plain C#</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>3.0.0</Version>
+    <Version>3.4.0</Version>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
@@ -46,7 +46,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="CodegenCS.Core" Version="3.*" />
+        <PackageReference Include="CodegenCS.Core" Version="3.4.0" />
       </ItemGroup>
     </Otherwise>
   </Choose>

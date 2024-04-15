@@ -8,6 +8,7 @@ param(
 # How to run: .\build.ps1   or   .\build.ps1 -configuration Debug
 
 
+$env:VSToolsPath="C:\Program Files\Microsoft Visual Studio\2022\Professional\Msbuild\Microsoft\VisualStudio\v17.0"
 
 . .\build-clean.ps1
 
@@ -37,5 +38,6 @@ dotnet build -c $configuration .\Core\CodegenCS.Tests\CodegenCS.Tests.csproj
 
 # VSExtension (not working with Release yet - error NU1106: Unable to satisfy conflicting requests)
 #. .\build-visualstudio.ps1 $configuration
+.\build-visualstudio.ps1 "Debug"
 
 

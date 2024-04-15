@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>netstandard2.0;net472;net5.0;net6.0;net7.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema.Extractor</PackageProjectUrl>
     <Description>Methods to extract schema from MSSQL/PostgreSQL database into json files.</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>3.0.1</Version>
+    <Version>3.4.0</Version>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
@@ -38,12 +38,12 @@
 
   <ItemGroup>
 	<PackageReference Include="InterpolatedColorConsole" Version="1.0.3" />
-    <PackageReference Include="Dapper.StrongName" Version="2.0.123" />
-    <PackageReference Include="Npgsql" Version="5.0.3" />
+    <PackageReference Include="Dapper.StrongName" Version="2.1.44" />
+    <PackageReference Include="Npgsql" Version="8.0.2" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-codegencs" />
 	<PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-codegencs" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -57,7 +57,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.0.1" />
+        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.4.0" />
       </ItemGroup>
     </Otherwise>
   </Choose>

@@ -1,8 +1,7 @@
-using CodegenCS;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 namespace CodegenCS.Tests.CoreTests
 {

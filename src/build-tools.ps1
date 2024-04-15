@@ -25,7 +25,7 @@ Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 dotnet restore .\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj
 & $msbuild ".\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj" `
            /t:Restore /t:Build                                                  `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0"'                 `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
            /p:SymbolPackageFormat=snupkg                                        `
@@ -36,7 +36,7 @@ if (! $?) { throw "msbuild failed" }
 dotnet restore .\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj
 & $msbuild ".\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" `
            /t:Restore /t:Build                                                  `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0"'                 `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
            /p:SymbolPackageFormat=snupkg                                        `
@@ -47,7 +47,7 @@ if (! $?) { throw "msbuild failed" }
 dotnet restore .\Tools\TemplateDownloader\CodegenCS.Tools.TemplateDownloader.csproj
 & $msbuild ".\Tools\TemplateDownloader\CodegenCS.Tools.TemplateDownloader.csproj" `
            /t:Restore /t:Build                                                  `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0"'                 `
+           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
            /p:SymbolPackageFormat=snupkg                                        `
@@ -61,7 +61,7 @@ if (! $?) { throw "msbuild failed" }
 & $msbuild ".\Tools\dotnet-codegencs\dotnet-codegencs.csproj"   `
            /t:Restore /t:Build /t:Pack                             `
            /p:PackageOutputPath="..\..\packages-local\"      `
-           '/p:targetFrameworks="net5.0;net6.0;net7.0"'                 `
+           '/p:targetFrameworks="net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                `
            /p:IncludeSymbols=true                         `
            /p:SymbolPackageFormat=snupkg                  `

@@ -1,8 +1,7 @@
-using CodegenCS.Models.DbSchema;
 using NUnit.Framework;
 using System;
-using System.Linq;
 using static CodegenCS.Symbols;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 namespace CodegenCS.Tests.CoreTests
 {

@@ -3,6 +3,7 @@ using NUnit.Framework;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 namespace CodegenCS.Tests.SchemaTests
 {

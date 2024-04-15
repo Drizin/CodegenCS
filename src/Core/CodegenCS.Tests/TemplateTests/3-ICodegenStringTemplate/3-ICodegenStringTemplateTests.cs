@@ -1,9 +1,8 @@
-﻿using CodegenCS;
-using CodegenCS.Models.DbSchema;
+﻿using CodegenCS.Models.DbSchema;
 using NUnit.Framework;
 using System;
-using System.IO;
 using System.Linq;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 namespace CodegenCS.Tests.TemplateTests;
 
