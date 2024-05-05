@@ -1,6 +1,6 @@
 # How does CodegenCS compare to Roslyn?
 
-Roslyn has a **totally** different purpose, so this is like comparing Apples to Organges.
+Roslyn has a **totally** different purpose, so this is like comparing Apples to Oranges.
 
 ## What is Roslyn?
 

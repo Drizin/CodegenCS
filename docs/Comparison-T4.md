@@ -1,11 +1,11 @@
 # How does CodegenCS compare to T4 Templates?
 
-I suggest that you check the [documentation](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) of the core library, but I can summarize a few differences:
+I suggest that you check the [Main Project Documentation](https://github.com/CodegenCS/CodegenCS) but I can summarize a few differences:
 
 
 ## Indentation Control
 
-T4 **does not have indentation control** (it's a major headache to adjust indents, spacing, and linebreaks).  
+[T4 Templates](https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates?view=vs-2022) **do not have indentation control** (it's a major headache to adjust indents, spacing, and linebreaks).  
 
 In CodegenCS indenting works like magic - you can embed anything a text block (even multiline blocks or complex callback actions) and indenting is just preserved/consistent.  
 CodegenCS TextWriter accepts virtually anything embedded in the interpolated string but yet it **preserves the indentation of the outer blocks**.  
@@ -14,9 +14,11 @@ This means that subtemplates don't need to worry (or even know) about parent blo
 
 ## Managing Multiple Files
 
-T4 has **poor support for managing multiple files** (it's a single output stream, requires some hacks/workarounds to save the output buffer in chunks into individual files).  
+T4 has [**terrible support for managing multiple files**](https://stackoverflow.com/a/44340464/): basically there is a single output stream and it requires a lot of hacks to break down the output buffer into individual files. This also means that multiple output streams cannot live together (you can't write to a file until you're done with the previous one).
 
 In CodegenCS it's first-class citizen.
+
+Other templating engines don't support multiple files at all.
 
 ## Coding Paradigm
 
@@ -45,7 +47,7 @@ It's possible to use C#11 Raw String Literals even if the target project is not 
 
 T4 has **poor intellisense** and tooling.
 
-CodegenCS templates are plain C# so they can benefit from good C# IDEs intellisense.
+CodegenCS templates are plain C# so they can benefit from amazing IDEs and intellisense.
 
 ## Out-of-the-box Models
 

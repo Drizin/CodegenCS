@@ -3,7 +3,7 @@
 Before anything else, don't forget to read the [Main Project Page](https://github.com/CodegenCS/CodegenCS/) to learn the basics (basic idea, basic features, and major components).
 
 This page is only about **CodegenCS Command-line Tool (dotnet-codegencs)**:
-- If you are **writing a template** (code generator) and want to learn more about CodegenCS features (and internals) then check out the [CodegenCS Core Library](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) documentation.
+- If you are **writing a template** (code generator) and want to learn more about CodegenCS features (and internals) then check out the [CodegenCS Main Project](https://github.com/CodegenCS/CodegenCS) documentation.
 - If you want to **compile and run templates** or **reverse-engineer a database schema** this is the right place.
 - If you want to **browse the sample templates** (POCO Generators, DAL generators, etc) check out [https://github.com/CodegenCS/Templates/](https://github.com/CodegenCS/Templates/)
 - If you just want to **download the Visual Studio Extension** check out the [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VisualStudio/)
@@ -49,7 +49,7 @@ When you run `dotnet-codegencs template run`:
   Different file can be specified using option `--File [DefaultOutputFile]`
 - Using statements are automatically added to the script (if not there) to let templates be as simple as possible
  
-In the templates repository you'll find templates using the [legacy syntax](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L35) which requires templates to implements one of the [templating interfaces](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS#template-interfaces) (`ICodegenTemplate<TModel>`, `ICodegenMultifileTemplate<TModel>`, `ICodegenStringTemplate<TModel>`). That's legacy, now that it's possible (and easier) to just use a `Main()` method and inject whatever object you need.
+In the templates repository you'll find templates using the [legacy syntax](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L35) which requires templates to implements one of the legacy templating interfaces (`ICodegenTemplate<TModel>`, `ICodegenMultifileTemplate<TModel>`, `ICodegenStringTemplate<TModel>`). That's legacy since now it's possible (and easier) to just use a `Main()` method and inject whatever object you need.
 
 
 
@@ -101,7 +101,7 @@ If you're running templates directly from `.dll` and you have modified the `.cs`
 
 <!-- # <a name="writing-templates"></a>How to Write Templates
 
-When you run `dotnet-codegencs template run` it expects that your template implements one of the [possible templating interfaces](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS#template-interfaces):
+When you run `dotnet-codegencs template run` it expects that your template implements one of the possible templating interfaces:
 - `ICodegenTemplate<TModel>`: This is the most common template interface - it gets a model (type TModel) and writes output to a ICodegenTextWriter (so it's a "single-file template"):
 - `ICodegenMultifileTemplate<TModel>`: This is similar to the previous but instead of getting a ICodegenTextWriter (and writing into a single file) it gets a ICodegenContext (and therefore can write to multiple files)
 - `ICodegenStringTemplate<TModel>`: for templates that just return an interpolated string
