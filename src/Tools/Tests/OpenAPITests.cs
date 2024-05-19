@@ -176,6 +176,22 @@ namespace CodegenCS.Tools.Tests
             Assert.That(_context.OutputFiles[0].GetContents() == "Pet" + "\r\n");
         }
 
+        [Test]
+        public async Task TestOpenApiDocumentAdapter() // should read using the right adapter, not just deserializing the JSON
+        {
+            var factory = ModelFactoryBuilder.CreateModelFactory(new string[] { TemplatesFolder });
+
+            // async
+            var doc = await factory.LoadModelFromFileAsync<OpenApiDocument>(@"Models\Petstore-OpenAPI3.json");
+            var op = doc.Operations.Single(o => o.Operation.OperationId == "listPets");
+            Assert.GreaterOrEqual(op.Operation.Parameters.Count, 1);
+
+            // sync
+            doc = factory.LoadModelFromFile<OpenApiDocument>(@"Models\Petstore-OpenAPI3.json");
+            op = doc.Operations.Single(o => o.Operation.OperationId == "listPets");
+            Assert.GreaterOrEqual(op.Operation.Parameters.Count, 1);
+
+        }
 
     }
 }

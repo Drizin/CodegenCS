@@ -7,6 +7,7 @@ using Console = InterpolatedColorConsole.ColoredConsole;
 using static InterpolatedColorConsole.Symbols;
 using CodegenCS.Runtime;
 using DependencyContainer = CodegenCS.Utils.DependencyContainer;
+using System.IO;
 
 namespace CodegenCS.DotNetTool.Commands
 {
@@ -84,7 +85,7 @@ namespace CodegenCS.DotNetTool.Commands
                 if (builderResult.ReturnCode != 0)
                     return builderResult.ReturnCode;
 
-                var executionContext = new ExecutionContext(builderResult.TargetFile);
+                var executionContext = new ExecutionContext(builderResult.TargetFile, Directory.GetCurrentDirectory());
                 var dependencyContainer = new DependencyContainer().AddConsole();
                 dependencyContainer.RegisterSingleton<ExecutionContext>(() => executionContext);
 

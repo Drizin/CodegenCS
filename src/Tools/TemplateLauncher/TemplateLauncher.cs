@@ -17,6 +17,7 @@ using CodegenCS.Runtime;
 using CodegenCS.Models;
 using Newtonsoft.Json;
 using CodegenCS.IO;
+using ExecutionContext = CodegenCS.Runtime.ExecutionContext;
 
 namespace CodegenCS.TemplateLauncher
 {
@@ -51,8 +52,19 @@ namespace CodegenCS.TemplateLauncher
             _logger = logger;
             _ctx = ctx;
             VerboseMode = verboseMode;
-            _dependencyContainer = new DependencyContainer().AddModelFactory();
-            _dependencyContainer.ParentContainer = parentDependencyContainer;
+            _dependencyContainer = new DependencyContainer();
+            _dependencyContainer.ParentContainer = parentDependencyContainer; //TODO: Autofac, parent-child scopes
+            string[] searchPaths = null;
+            try
+            {
+                var exCtx = parentDependencyContainer.Resolve<ExecutionContext>();
+                searchPaths = new string[] { new FileInfo(exCtx.TemplatePath).Directory.FullName, exCtx.CurrentDirectory };
+            }
+            catch (Exception ex) 
+            {
+                _logger.WriteLineErrorAsync("Can't resolve ExecutionContext");
+            }
+            _dependencyContainer.AddModelFactory(searchPaths);
             _modelFactory = _dependencyContainer.Resolve<IModelFactory>();
         }
 

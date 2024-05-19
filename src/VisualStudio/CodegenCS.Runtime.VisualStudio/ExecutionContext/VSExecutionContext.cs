@@ -26,7 +26,7 @@ namespace CodegenCS.Runtime
 
         // TODO: TemplateCalculatedNamespace - based on ProjectNamespace and TemplateRelativePath
 
-        public VSExecutionContext(string templatePath, string projectPath, string solutionPath) : base(templatePath)
+        public VSExecutionContext(string templatePath, string projectPath, string solutionPath) : base(templatePath, null) // no point in passing Directory.GetCurrentDirectory() from VS Extension
         {
             ProjectPath = projectPath;
             SolutionPath = solutionPath;

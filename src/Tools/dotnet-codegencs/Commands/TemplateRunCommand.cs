@@ -64,7 +64,7 @@ namespace CodegenCS.DotNetTool.Commands
                 _command = GetFakeRunCommand();
                 _command.AddCommand(fakeTemplateCommand);
             }
-            _dependencyContainer = new DependencyContainer().AddConsole().AddModelFactory();
+            _dependencyContainer = new DependencyContainer().AddConsole();
         }
 
         public Command GetCommand(string commandName = "run")
@@ -204,6 +204,14 @@ namespace CodegenCS.DotNetTool.Commands
                 _originallyInvokedTemplateFile = _templateFile;
                 _templateFile = new FileInfo(builderArgs.Output);
             }
+
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var templatePath = (_originallyInvokedTemplateFile ?? _templateFile).FullName;
+            var executionContext = new ExecutionContext(templatePath, currentDirectory);
+            _dependencyContainer.RegisterSingleton<ExecutionContext>(() => executionContext);
+            var searchPaths = new string[] { new FileInfo(executionContext.TemplatePath).Directory.FullName, currentDirectory };
+            _dependencyContainer.AddModelFactory(searchPaths);
+
             return 0;
         }
 
@@ -247,13 +255,10 @@ namespace CodegenCS.DotNetTool.Commands
                     Template = _templateFile.FullName,
                     Models = cliArgs.Models,
                     OutputFolder = cliArgs.OutputFolder,
+                    ExecutionFolder = Directory.GetCurrentDirectory(),
                     DefaultOutputFile = cliArgs.File,
                     TemplateSpecificArguments = cliArgs.TemplateArgs,
                 };
-
-
-                var executionContext = new ExecutionContext(_templateFile.FullName);
-                _dependencyContainer.RegisterSingleton<ExecutionContext>(() => executionContext);
 
                 statusCode = await _launcher.ExecuteAsync(launcherArgs, parseResult);
 

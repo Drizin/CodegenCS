@@ -1,16 +1,15 @@
 ﻿using CodegenCS.Models;
 using CodegenCS.Models.NSwagAdapter;
-using System;
 using System.Collections.Generic;
-using System.Text;
+
 
 namespace CodegenCS
 {
     public class ModelFactoryBuilder
     {
-        public static IModelFactory GetModelFactory()
+        public static IModelFactory CreateModelFactory(string[] searchPaths)
         {
-            return new ModelFactory(new List<IInputModelAdapter>() { new OpenApiDocumentAdapter() });
+            return new ModelFactory(searchPaths, new List<IInputModelAdapter>() { new OpenApiDocumentAdapter() });
         }
     }
 }

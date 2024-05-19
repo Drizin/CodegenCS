@@ -8,7 +8,12 @@
         /// <summary>
         /// Full path of the Template being executed
         /// </summary>
-        public string TemplatePath { get; set; }
-        public ExecutionContext(string templatePath) { TemplatePath = templatePath; }
+        public string TemplatePath { get; set; } // DLL or CS? Why not have both?
+        public string CurrentDirectory { get; set; }
+        public ExecutionContext(string templatePath, string currentDirectory) 
+        { 
+            TemplatePath = templatePath;
+            CurrentDirectory = currentDirectory;
+        }
     }
 }

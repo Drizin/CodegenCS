@@ -256,8 +256,8 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
                 ExecutionFolder = _executionFolder,
                 DefaultOutputFile = defaultOutputFile,
             };
-
-            var dependencyContainer = new DependencyContainer().AddModelFactory();
+            var searchPaths = new string[] { new FileInfo(_templateItemPath).Directory.FullName, _executionFolder };
+            var dependencyContainer = new DependencyContainer().AddModelFactory(searchPaths);
 
             dependencyContainer.RegisterSingleton<ExecutionContext>(() => _executionContext);
             dependencyContainer.RegisterSingleton<VSExecutionContext>(() => _executionContext as VSExecutionContext);

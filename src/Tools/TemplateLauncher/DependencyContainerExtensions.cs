@@ -5,9 +5,9 @@ namespace CodegenCS
 {
     public static class DependencyContainerExtensions
     {
-        public static DependencyContainer AddModelFactory(this DependencyContainer dependencyContainer, string[] args = null)
+        public static DependencyContainer AddModelFactory(this DependencyContainer dependencyContainer, string[] searchPaths)
         {
-            dependencyContainer.RegisterSingleton<IModelFactory>(ModelFactoryBuilder.GetModelFactory());
+            dependencyContainer.RegisterSingleton<IModelFactory>(ModelFactoryBuilder.CreateModelFactory(searchPaths));
             return dependencyContainer;
         }
     }

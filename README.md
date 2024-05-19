@@ -147,7 +147,7 @@ When a template is invoked there are many types that can be automatically inject
 - `CommandLineArgs`: provides command-line arguments  
   Only available when template is executed through CLI
 - `IModelFactory`: can be used to load (deserialize) any models from JSON files.  
-  No need to write boilerplate code (reading from file, deserializing, check if file exists, etc)
+  No need to write boilerplate code (locating the file, reading from it, etc)
 - `ILogger`: templates can log (what they are doing) to this interface.  
 Logs are automatically printed to console (if using dotnet-codegencs) or to Visual Studio Output Window Pane (if using VS Extension)
 
