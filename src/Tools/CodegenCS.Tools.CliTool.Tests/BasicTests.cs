@@ -1,14 +1,13 @@
-﻿using DependencyContainer = CodegenCS.Utils.DependencyContainer;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
-using CliWrap;
-using System.Text;
 using System.Net;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
+using NUnit.Framework.Legacy;
 
-namespace CodegenCS.Tools.Tests
+namespace CodegenCS.Tools.CliTool.Tests
 {
     internal class BasicTests : BaseTest
     {
@@ -297,9 +296,5 @@ namespace CodegenCS.Tools.Tests
             StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(($"{templateAlias}.generated.cs"))); 
         }
         #endregion
-
-
-
-
     }
 }

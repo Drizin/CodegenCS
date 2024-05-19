@@ -4,11 +4,13 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
-using CliWrap;
 using System.Text;
 using System.Net;
+using NUnit.Framework.Legacy;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
-namespace CodegenCS.Tools.Tests
+
+namespace CodegenCS.Tools.CliTool.Tests
 {
     internal class NSwagClientTests : BaseTest
     {
@@ -68,7 +70,7 @@ namespace CodegenCS.Tools.Tests
             StringAssert.Contains($"Successfully executed template '{templateAlias}.dll'.", _stdOut);
             StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
             FileAssert.Exists($"{templateAlias}.generated.cs");
-            string snapshot = Path.Combine(GetCurrentFolder(), "Snapshots", "petstore-openapi3.generated.cs");
+            string snapshot = Path.Combine(GetSourceFileFolder(), "Snapshots", "petstore-openapi3.generated.cs");
             FileAssert.AreEqual(snapshot, $"{templateAlias}.generated.cs");
         }
         #endregion

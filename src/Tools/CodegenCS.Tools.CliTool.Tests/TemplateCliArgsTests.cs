@@ -1,5 +1,4 @@
-﻿using DependencyContainer = CodegenCS.Utils.DependencyContainer;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -10,20 +9,14 @@ using System.CommandLine;
 using System.CommandLine.Parsing;
 using CodegenCS.DotNetTool;
 using CodegenCS.Runtime;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
-namespace CodegenCS.Tools.Tests
+
+namespace CodegenCS.Tools.CliTool.Tests
 {
     internal class TemplateCliArgsTests : BaseTest
     {
-        string _tmpFolder;
-        string _tmpTemplateFile;
-        string _tmpDll;
-        ICodegenContext _context;
-        TemplateBuilderArgs _builderArgs;
-        TemplateLauncherArgs _launcherArgs;
-        ILogger _logger = new DebugOutputLogger();
-        CliCommandParser _cliCommandParser = new CliCommandParser();
-        string _dbschemaModelPath = Path.Combine(GetCurrentFolder(), @"..\..\Models\CodegenCS.Models.DbSchema.SampleDatabases\AdventureWorksSchema.json");
+        string _dbschemaModelPath = Path.Combine(GetSourceFileFolder(), @"..\..\Models\CodegenCS.Models.DbSchema.SampleDatabases\AdventureWorksSchema.json");
 
         [SetUp]
         public void Setup()
@@ -31,85 +24,6 @@ namespace CodegenCS.Tools.Tests
             Assert.That(File.Exists(_dbschemaModelPath));
         }
 
-
-
-        private async Task BuildAsync(FormattableString templateBody)
-        {
-            FormattableString template = $$"""
-                using CodegenCS;
-                using CodegenCS.Models.DbSchema;
-                using System;
-                using System.Collections.Generic;
-                using System.IO;
-                using System.Linq;
-                using System.Runtime.CompilerServices;
-                using System.Text.RegularExpressions;
-                using Newtonsoft.Json;
-                using static CodegenCS.Symbols;
-                using static InterpolatedColorConsole.Symbols;
-                using System.CommandLine.Binding;
-                using System.CommandLine;
-                using CodegenCS.Utils;
-
-                {{templateBody}}
-                """;
-
-            _tmpFolder = Path.Combine(Path.GetTempPath() ?? Directory.GetCurrentDirectory(), Guid.NewGuid().ToString());
-            _tmpTemplateFile = Path.Combine(_tmpFolder, Guid.NewGuid().ToString() + ".cs");
-            _tmpDll = Path.Combine(_tmpFolder, Guid.NewGuid().ToString() + ".dll");
-            new DirectoryInfo(_tmpFolder).Create();
-            File.WriteAllText(_tmpTemplateFile, template.ToString());
-            await BuildAsync(_tmpTemplateFile);
-        }
-        public async Task BuildAsync(string templateFile)
-        { 
-            _builderArgs = new TemplateBuilderArgs()
-            {
-                Template = new string[] { templateFile },
-                Output = _tmpDll,
-                VerboseMode = true,
-            };
-            var builder = new CodegenCS.TemplateBuilder.TemplateBuilder(_logger, _builderArgs);
-            var builderResult = await builder.ExecuteAsync();
-            Assert.AreEqual(0, builderResult.ReturnCode);
-
-        }
-        private async Task<int> LaunchAsync(string[] models = null, string[] templateArgs = null)
-        {
-            return await LaunchAsync(_builderArgs.Output, models, templateArgs);
-        }
-        public async Task<int> LaunchAsync(string templateDll, string[] models = null, string[] templateArgs = null)
-        {
-            models ??= new string[0];
-            templateArgs ??= new string[0];
-            _context = new CodegenContext();
-
-            // Faking TemplateRunCommand, which also provides this context info
-            var executionContext = new ExecutionContext(@"C:\FakeTemplate.csx");
-            var dependencyContainer = new DependencyContainer().AddTestsConsole();
-            dependencyContainer.RegisterSingleton<ExecutionContext>(() => executionContext);
-
-            _launcherArgs = new TemplateLauncherArgs()
-            {
-                Template = templateDll,
-                Models = models,
-                OutputFolder = _tmpFolder,
-                DefaultOutputFile = Path.GetFileName(_tmpTemplateFile) + ".generated.cs",
-                TemplateSpecificArguments = templateArgs
-            };
-            var launcher = new TemplateLauncher.TemplateLauncher(_logger, _context, dependencyContainer, true);
-
-            var loadResult = await launcher.LoadAsync(templateDll);
-
-            if (loadResult.ReturnCode != 0)
-                return loadResult.ReturnCode;
-
-            _cliCommandParser = new CliCommandParser(); // HACK: this is modified in some places (fake parser) so we should better start fresh
-            launcher.ParseCliUsingCustomCommand = _cliCommandParser._runTemplateCommandWrapper.ParseCliUsingCustomCommand;
-            var parseResult = _cliCommandParser.Parser.Parse($"testhost template run {_launcherArgs.Template} {string.Join(" ", models?.Any() == true ? models : new string[0])} {string.Join(" ", templateArgs?.Any() == true ? templateArgs : new string[0])}");
-            int executeResult = await launcher.LoadAndExecuteAsync(_launcherArgs, parseResult);
-            return executeResult;
-        }
 
         [Test]
         public async Task SimpleBuild()

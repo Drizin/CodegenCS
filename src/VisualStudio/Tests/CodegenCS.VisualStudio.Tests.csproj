@@ -40,7 +40,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj" />
     <ProjectReference Include="..\..\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" />
-    <ProjectReference Include="..\..\Tools\dotnet-codegencs\dotnet-codegencs.csproj" />
+    <ProjectReference Include="..\..\Tools\Tests\CodegenCS.Tools.Tests.csproj" />
     <ProjectReference Include="..\VS2022Extension\VS2022Extension.csproj" />
   </ItemGroup>
 

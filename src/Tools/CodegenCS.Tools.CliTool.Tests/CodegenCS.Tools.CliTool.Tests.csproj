@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net8.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <Company>Rick Drizin</Company>
     <Copyright>Rick Drizin</Copyright>
@@ -35,14 +35,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="NUnit" Version="4.1.0" />
+    <PackageReference Include="CliWrap" Version="3.6.6" />
+    <PackageReference Include="nunit" Version="4.1.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-codegencs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj" />
     <ProjectReference Include="..\..\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" />
+    <ProjectReference Include="..\..\Tools\dotnet-codegencs\dotnet-codegencs.csproj" />
   </ItemGroup>
 
   <Choose>

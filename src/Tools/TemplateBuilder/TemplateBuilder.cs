@@ -7,8 +7,6 @@ using static InterpolatedColorConsole.Symbols;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using CodegenCS.Runtime;
-using System.Reflection;
-using System.Xml.Linq;
 
 namespace CodegenCS.TemplateBuilder
 {
