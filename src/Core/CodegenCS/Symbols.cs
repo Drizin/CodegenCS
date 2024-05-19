@@ -88,7 +88,15 @@ namespace CodegenCS
         //https://ttl255.com/jinja2-tutorial-part-3-whitespace-control/
 
         #region Debugging
+        // If you're debugging through visual studio (e.g. Unit Tests, or any other code going through CodegenTextWriter)
+        // it can be difficult to debug through CodegenTextWriter because it writes interpolated strings element-by-element
+        // If you want to brea in the debugger at any specific point inside an interpolated string (markup mode)
+        // all you have to do is interpolate BREAKIF(true)
         public static Action BREAKIF(bool condition) => () => { if (condition) { System.Diagnostics.Debugger.Break(); } };
+        
+        // If you want to break from inside a method in your template (programmatic mode)
+        // then you can just use System.Diagnostics.Debugger.Break() and make sure you
+        // disable "Tools - Debugging - General - Enable Just My Code", in order to break and see the template source code
         #endregion
     }
 }

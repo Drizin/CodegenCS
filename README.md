@@ -1053,6 +1053,16 @@ class MyTemplate
 }
 ```
 
+## Debugging Support
+
+It's possible to debug templates using Visual Studio.  
+To break into the debugger inside markup mode (interpolated string) you just have to interpolate `BREAKIF(true)`.  
+To break into the debugger inside programmatic mode (method) you just have to call `System.Diagnostics.Debugger.Break()` and disable `Tools - Debugging - General - Enable Just My Code`.  
+See example in
+[Debugging.cs Unit Test](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/Tests/Templates/0090-Debugging.cs).
+
+
+
 # Learn More
 
 - [CodegenTextWriter documentation](https://github.com/CodegenCS/CodegenCS/tree/master/docs/CodegenTextWriter.md)

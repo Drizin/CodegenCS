@@ -230,7 +230,7 @@ namespace CodegenCS.TemplateBuilder
             using (var dllStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
             {
-                var emitResult = compilation.Emit(dllStream, pdbStream);
+                var emitResult = compilation.Emit(dllStream, pdbStream); // roslyn throws a lot of exceptions, so "break on all exceptions" is not nice at this line
 
                 //TODO: combine all errors into a single statement, 
                 // since Powershell ISE stops at first stderr message when $ErrorActionPreference = "Stop"
@@ -343,7 +343,13 @@ namespace CodegenCS.TemplateBuilder
                 if (Regex.IsMatch(templateSource, @"(?<!\.)\bInvocationContext\b"))
                     AddMissingUsing(ref rootNode, "System.CommandLine.Invocation");
 
-                if (Regex.IsMatch(templateSource, @"(?<!\.)\bIF\(\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bIIF\(\b"))
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bIF\(\b") || 
+                    Regex.IsMatch(templateSource, @"(?<!\.)\bIIF\(\b") || 
+                    Regex.IsMatch(templateSource, @"(?<!\.)\bBREAKIF\(\b") ||
+                    Regex.IsMatch(templateSource, @"(?<!\.)\bTLW\(\b") ||
+                    Regex.IsMatch(templateSource, @"(?<!\.)\bTTW\(\b") ||
+                    Regex.IsMatch(templateSource, @"(?<!\.)\bCOMMENT\(\b") ||
+                    Regex.IsMatch(templateSource, @"(?<!\.)\bRAW\(\b"))
                     AddMissingUsing(ref rootNode, "CodegenCS.Symbols", true);
 
                 if (Regex.IsMatch(templateSource, @"(?<!\.)\bPREVIOUS_COLOR\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bPREVIOUS_BACKGROUND_COLOR\b"))
