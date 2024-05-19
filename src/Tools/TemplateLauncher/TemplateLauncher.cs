@@ -650,25 +650,62 @@ namespace CodegenCS.TemplateLauncher
                     object[] entryPointMethodArgs = new object[argTypes.Length];
                     for (int i = 0; i < argTypes.Length; i++)
                         entryPointMethodArgs[i] = _ctx.DependencyContainer.Resolve(argTypes[i]);
-                    if (_entryPointMethod.ReturnType == typeof(FormattableString))
+
+                    Type returnType = _entryPointMethod.ReturnType;
+                    object result = _entryPointMethod.Invoke(instance, entryPointMethodArgs);
+                    Type[] genericTypes;
+                    
+                    // Tasks should be executed/awaited
+                    if (IsAssignableToType(returnType, typeof(Task)))
                     {
-                        var fs = (FormattableString)_entryPointMethod.Invoke(instance, entryPointMethodArgs);
+                        var task = (Task)result;
+                        await task;
+                        
+                        // and result should be unwrapped
+                        if (IsAssignableToGenericType(returnType, typeof(Task<>)) && (genericTypes = returnType.GetGenericArguments()) != null)
+                        {
+                            if (genericTypes[0]==typeof(FormattableString))
+                            {
+                                returnType = typeof(FormattableString);
+                                result = ((Task<FormattableString>)result).Result;
+                            }
+                            else if (genericTypes[0]==typeof(int))
+                            {
+                                returnType = typeof(int);
+                                result = ((Task<int>)result).Result;
+                            }
+                        }
+                        else
+                        {
+                            returnType = typeof(void);
+                        }
+                    }
+
+                    if (returnType == typeof(FormattableString))
+                    {
+                        var fs = (FormattableString)result;
                         _ctx.DefaultOutputFile.Write(fs);
                     }
-                    else if (_entryPointMethod.ReturnType == typeof(FormattableString))
+                    else if (returnType == typeof(string))
                     {
-                        var s = (string)_entryPointMethod.Invoke(instance, entryPointMethodArgs);
+                        var s = (string)result;
                         _ctx.DefaultOutputFile.Write(s);
                     }
-                    else
+                    else if (returnType == typeof(int))
                     {
-                        object result = _entryPointMethod.Invoke(instance, entryPointMethodArgs);
-                        if (_entryPointMethod.ReturnType == typeof(int) && ((int)result) != 0)
-                        {
+                    	if (((int)result) != 0)
+                    	{
                             await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"\nExiting with non-zero result code from template ({(int)result}). Nothing saved.");
                             return (int)result;
                         }
                     }
+                    else if (returnType == typeof(void)) 
+                    {
+                        // a void method should write directly to output streams
+                    }
+                    else
+                        throw new NotImplementedException($"Unsupported Template Return Type {returnType.Name}");
+
                 }
                 #endregion
             }

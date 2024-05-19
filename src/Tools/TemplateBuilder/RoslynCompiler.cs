@@ -45,6 +45,7 @@ namespace CodegenCS.TemplateBuilder
             AddAssembly("netstandard.dll");
 
             AddAssembly("System.Runtime.dll");
+            AddAssembly("System.Threading.dll");
             #endregion
 
             #region System.Linq
@@ -136,6 +137,7 @@ namespace CodegenCS.TemplateBuilder
             if (extraReferences != null)
                 extraReferences.ForEach(rfc => AddAssembly(MetadataReference.CreateFromFile(rfc)));
 
+            _namespaces.Clear(); // TODO: review why these namespaces don't make any difference here - only AddMissingUsing (applied directly to tree) matters
 
             _compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
                     .WithOverflowChecks(true)
@@ -320,13 +322,19 @@ namespace CodegenCS.TemplateBuilder
                     )
                     AddMissingUsing(ref rootNode, "CodegenCS.Runtime");
                 if (Regex.IsMatch(templateSource, @"(?<!\.)\bILogger\b") && Regex.IsMatch(templateSource, @"\bWriteLine(\w*)Async\b"))
-                    AddMissingUsing(ref rootNode, "CodegenCS.Utils");
+                    AddMissingUsing(ref rootNode, "CodegenCS.Runtime");
                 if (Regex.IsMatch(templateSource, @"(?<!\.)\bIInputModel\b") 
                     || Regex.IsMatch(templateSource, @"(?<!\.)\bIJsonInputModel\b") 
                     || Regex.IsMatch(templateSource, @"(?<!\.)\bIValidatableJsonInputModel\b")
                     || Regex.IsMatch(templateSource, @"(?<!\.)\bIModelFactory\b")
                     )
                     AddMissingUsing(ref rootNode, "CodegenCS.Models");
+                
+                if (Regex.IsMatch(templateSource, @"(?<!\.)\bTask\b")) 
+                {
+                    AddMissingUsing(ref rootNode, "System.Threading");
+                    AddMissingUsing(ref rootNode, "System.Threading.Tasks");
+                }
 
                 if (Regex.IsMatch(templateSource, @"(?<!\.)\bConfigureCommand\b") || Regex.IsMatch(templateSource, @"(?<!\.)\bParseResult\b"))
                     AddMissingUsing(ref rootNode, "System.CommandLine"); // System.CommandLine.Command, System.CommandLine.ParseResult

@@ -609,20 +609,24 @@ It's possible to interpolate special symbols like `IF/ELSE/ENDIF` or `IIF` to ad
 **IF-ENDIF statements**
 
 ```cs
-using CodegenCS;                 // besides this...
-using static CodegenCS.Symbols;  // you also need this
-
-void RenderMyApiClient(bool injectHttpClient)
+class MyTemplate
 {
-    w.WriteLine($$"""
-        public class MyApiClient
-        {
-            public MyApiClient({{ IF(injectHttpClient) }}HttpClient httpClient{{ ENDIF }})
-            { {{ IF(injectHttpClient) }}
-                _httpClient = httpClient; {{ ENDIF }}
-            }
-        }
-        """);
+  void Main(ICodegenOutputFile writer)
+  {
+      RenderMyApiClient(writer, true);
+  }
+  void RenderMyApiClient(ICodegenOutputFile w, bool injectHttpClient)
+  {
+      w.WriteLine($$"""
+          public class MyApiClient
+          {
+              public MyApiClient({{ IF(injectHttpClient) }}HttpClient httpClient{{ ENDIF }})
+              { {{ IF(injectHttpClient) }}
+                  _httpClient = httpClient; {{ ENDIF }}
+              }
+          }
+          """);
+  }
 }
 ```
 
@@ -641,48 +645,83 @@ public class MyApiClient
 **IF-ELSE-ENDIF**
 
 ```cs
-w.WriteLine($$"""
-    public class MyApiClient
-    {
-        public void InvokeApi()
+class MyTemplate
+{
+  void Main(ICodegenOutputFile writer)
+  {
+      var settings = new MySettings() { SwallowExceptions = true };
+      RenderMyApiClient(writer, settings);
+  }
+  class MySettings
+  {
+    public bool SwallowExceptions;
+  }
+  void RenderMyApiClient(ICodegenOutputFile w, MySettings settings)
+  {
+    w.WriteLine($$"""
+        public class MyApiClient
         {
-            try
+            public void InvokeApi()
             {
-                restApi.Invoke();
-            }
-            catch (Exception ex)
-            { {{IF(settings.swallowExceptions) }}
-                Log.Error(ex); {{ ELSE }}
-                throw; {{ ENDIF }}
+                try
+                {
+                    restApi.Invoke();
+                }
+                catch (Exception ex)
+                { {{IF(settings.SwallowExceptions) }}
+                    Log.Error(ex); {{ ELSE }}
+                    throw; {{ ENDIF }}
+                }
             }
         }
-    }
-    """);
+        """);
+  }
+}
 ```
 
 **Nested IF statements**
 ```cs
-w.WriteLine($$"""
-    {{ IF(generateConstructor) }}public class MyApiClient
-    {
-        public MyApiClient({{ IF(injectHttpClient) }}HttpClient httpClient{{ ENDIF }})
-        { {{IF(injectHttpClient) }} 
-            _httpClient = httpClient; {{ ENDIF }}
-        }}
-    } {{ ENDIF }}
-    """);
+class MyTemplate
+{
+  void Main(ICodegenOutputFile writer)
+  {
+      RenderMyApiClient(writer, true, true);
+  }
+  void RenderMyApiClient(ICodegenOutputFile w, bool generateConstructor, bool injectHttpClient)
+  {
+    w.WriteLine($$"""
+        {{ IF(generateConstructor) }}public class MyApiClient
+        {
+            public MyApiClient({{ IF(injectHttpClient) }}HttpClient httpClient{{ ENDIF }})
+            { {{IF(injectHttpClient) }} 
+                _httpClient = httpClient; {{ ENDIF }}
+            }}
+        } {{ ENDIF }}
+        """);
+  }
+}
 ```
 
 **IIF (Immediate IF):**
 
 ```cs
-w.WriteLine($$"""
-    public class User
-    {
-        {{ IIF(isVisibilityPublic, $"public ") }}string FirstName { get; set; }
-        {{ IIF(isVisibilityPublic, $"public ", $"protected ") }}string FirstName { get; set; }
-    }
-    """);
+class MyTemplate
+{
+  void Main(ICodegenOutputFile writer)
+  {
+      RenderMyApiClient(writer, true);
+  }
+  void RenderMyApiClient(ICodegenOutputFile w, bool isVisibilityPublic)
+  {
+    w.WriteLine($$"""
+        public class User
+        {
+            {{ IIF(isVisibilityPublic, $"public ") }}string FirstName { get; set; }
+            {{ IIF(isVisibilityPublic, $"public ", $"protected ") }}string FirstName { get; set; }
+        }
+        """);
+  }
+}
 ```
 
 
@@ -998,7 +1037,21 @@ Generated 1 file: 'C:\Users\drizin\MyTemplate.generated.cs'
 Successfully executed template 'MyTemplate.cs'.
 ```
 
+## Async Support
 
+Templates can also be `async Task`, `async Task<FormattableString>` or `async Task<int>`:
+
+```cs
+class MyTemplate
+{
+    //Task<FormattableString> Main() => Task.FromResult((FormattableString)$"My first template");
+    async Task<FormattableString> Main(ILogger logger) 
+    {
+        await logger.WriteLineAsync($"Generating MyTemplate...");
+        return $"My first template";
+    }
+}
+```
 
 # Learn More
 
