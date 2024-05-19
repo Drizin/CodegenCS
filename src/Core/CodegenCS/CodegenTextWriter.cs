@@ -75,13 +75,13 @@ namespace CodegenCS
         /// </summary>
         protected bool _normalizeLineEndings = true;
 
+        public CultureInfo CultureInfo { get; set; } = CultureInfo.InvariantCulture;
+
         /// <summary>
         /// How multi-line text blocks are adjusted
         /// </summary>
         [Obsolete("Please prefer Raw String Literals using $$\"\"\" text \"\"\" . Currently this property default to NONE (text is NOT adjusted)")]
         public MultilineBehaviorType MultilineBehavior { get; set; } = MultilineBehaviorType.None; // TODO: deprecate
-
-        public CultureInfo CultureInfo { get; set; } = CultureInfo.InvariantCulture;
 
         /// <summary>
         /// How multi-line text blocks are adjusted
@@ -148,14 +148,71 @@ namespace CodegenCS
         protected DependencyContainer _dependencyContainer = new DependencyContainer();
 
         public virtual RenderEnumerableOptions DefaultIEnumerableRenderOptions { get; set; } = RenderEnumerableOptions.LineBreaksWithAutoSpacer;
-        
+
+        /// <summary>
+        /// How whitespace is adjusted after each line is written (happens after linebreak)
+        /// </summary>
+        public LineTrimBehaviorType LineTrimBehavior { get; set; } = LineTrimBehaviorType.TrimEnd;
+
+        /// <summary>
+        /// How whitespace is adjusted after each line is written (happens after linebreak)
+        /// </summary>
+        public enum LineTrimBehaviorType
+        {
+            /// <summary>
+            /// Do not trim lines. <br />
+            /// </summary>
+            None,
+            /// <summary>
+            /// Will remove trailing whitespace of each line
+            /// Useful because control symbols (IF/ELSE/ENDIF) can have a leading space which will be ignored if it's just trailing whitespace
+            /// </summary>
+            TrimEnd,
+
+            //TODO: OnlyTrimWhitespaceLine - remove trailing whitespace only if the whole line is whitespace
+            //TODO: TrimKeepParentIndent - Will remove trailing whitespace of each line, but never removing whitespace that is part of parent implicit-indent
+        }
+
+        /// <summary>
+        /// How whitespace is adjusted after an EMPTY line is written (happens after linebreak)
+        /// </summary>
+        public EmptyLineTrimBehaviorType EmptyLineTrimBehavior { get; set; } = EmptyLineTrimBehaviorType.TrimEnd;
+
+        /// <summary>
+        /// How whitespace is adjusted after an EMPTY line is written (happens after linebreak)
+        /// </summary>
+        public enum EmptyLineTrimBehaviorType
+        {
+            /// <summary>
+            /// Do not trim lines. <br />
+            /// </summary>
+            None,
+            /// <summary>
+            /// Will remove trailing whitespace of each line
+            /// Useful because control symbols (IF/ELSE/ENDIF) can have a leading space which will be ignored if it's just trailing whitespace
+            /// </summary>
+            TrimEnd,
+
+            //TODO: OnlyTrimWhitespaceLine - remove trailing whitespace only if the whole line is whitespace
+            //TODO: TrimKeepParentIndent - Will remove trailing whitespace of each line, but never removing whitespace that is part of parent implicit-indent
+            //TODO: RemoveLine - Removes empty lines (not only trims it but also removed the linebreak)
+            //TODO: KeepOneFullEmptyLine (remove any subsequent empty line after another empty line)
+        }
+
+
         /// <summary>
         /// If true (default), lines which only have whitespace will be trimmed (will remain as an empty line but without whitespaces)
         /// </summary>
-        public virtual bool RemoveWhitespaceFromEmptyLines { get; set; } = true; //TODO: EmptyLinesBehavior: None, RemoveWhitespace, Remove (remove all empty lines), KeepOneFullEmptyLine (allows up to one full empty line between contents)
+        [Obsolete("Use EmptyLineTrimBehavior")]
+        public virtual bool RemoveWhitespaceFromEmptyLines 
+        {
+            get { return EmptyLineTrimBehavior == EmptyLineTrimBehaviorType.TrimEnd;  }
+            set { EmptyLineTrimBehavior = value ? EmptyLineTrimBehaviorType.TrimEnd : EmptyLineTrimBehaviorType.None; }
+        }
         
         /// <summary>
-        /// If true (default is false) the contents will be Trimmed (whitespace removed) at the end.
+        /// If true (default is false) the contents will be Trimmed (whitespace removed, multiple lines may be removed) at the end.
+        /// Contents will not end with a linebreak.
         /// </summary>
         public virtual bool AutoTrimEnd { get; set; } = false;
         #endregion
@@ -671,22 +728,27 @@ namespace CodegenCS
         /// Trims spaces and tabs from the end of the last line (current line), including automatically-added indentation
         /// Should only be used before writing a new linebreak
         /// </summary>
-        /// <param name="onlyIfLineIsAllWhitespace">If true (default) and the line contains any non-whitespace then nothing will be removed</param>
-        protected virtual void TrimCurrentLineEnd(bool onlyIfLineIsAllWhitespace = true)
+        protected virtual void TrimCurrentLine()
         {
             var sb = _innerWriter.GetStringBuilder();
             int remove = 0;
             int len = _currentLine.Length;
+            int len2 = sb.Length;
             char c;
 
-            // Trim all trailing whitespace from _currentLine
-            while (remove < len && ((c = _currentLine[len - remove - 1]) == '\r' || c == '\n' || c == '\t' || c == ' ')) //TODO: support for onlyIfLineIsAllWhitspace=false
+            // Trim all trailing whitespace from _currentLine (current scope) //TODO: do we have to check currentScope IndentState ?
+            //TODO: there was a bug here: two interpolated objects in same line where last one is TLW - _currentLine would get indentation restored but it wasn't matching the modified sb. So it was removing non-whitespace characters from sb. Looks like it was fixed but requires more testing (review how/why _currentLine is restored in those cases)
+            while (remove < len && ((c = sb[len2 - remove - 1]) == '\r' || c == '\n' || c == '\t' || c == ' ') && c == _currentLine[len - remove - 1])
                 remove++;
-            if (remove != 0)
-                _currentLine.Remove(_currentLine.Length - remove, remove);
+
+            // if remove==len then the line (current scope, not counting parent scopes indentation) is all whitespace - so it's what we consider an empty line
+            if (remove==len & EmptyLineTrimBehavior == EmptyLineTrimBehaviorType.None)
+                return;
+            if (remove < len && LineTrimBehavior == LineTrimBehaviorType.None)
+                return;
 
             // If the whole "real content" of the line was removed (or if the line didn't had any real content), then we should also remove the automatic added indent(s) (if any)
-            if (remove == len) //TODO: should also loop to remove PARENT scopes if they match contents
+            if (remove == len)
             {
                 // Loop through all parent scopes, and while the indent of each scope matches what was written to the line we "revert" that indent written by each scope
                 ScopeContext scope;
@@ -704,6 +766,8 @@ namespace CodegenCS
                         remove += indentString.Length;
                         scope.IndentState = ScopeContext.IndentStateEnum.None;
                     }
+                    else
+                        break;
                 }
             }
 
@@ -743,8 +807,7 @@ namespace CodegenCS
         /// <param name="newLine">Any newLine character (\r, \r\n, \n). If not defined will use default <see cref="NewLine"/> property </param>
         protected virtual void InnerWriteNewLine(string newLine = null)
         {
-            if (RemoveWhitespaceFromEmptyLines)
-                TrimCurrentLineEnd(onlyIfLineIsAllWhitespace: true);
+            TrimCurrentLine();
             InnerWriteRaw(newLine ?? this.NewLine);
             if (_currentLine.ToString().Trim().Length > 0)
                 foreach(var scope in _scopeContexts)
@@ -854,11 +917,11 @@ namespace CodegenCS
             {
                 var writtenLen = _innerWriter.GetStringBuilder().Length - _scopeContexts.Peek().StartingPos;
 
-                // The inner action might have removed characters due to ItemsSeparatorBehavior.RemoveLastLine or similar methods/options
+                // The inner action might have removed characters due to ItemsSeparatorBehavior.RemoveLastLine or similar methods/options (and writtenLen would be < 0)
                 // For those cases _currentLine should have been recalculated
 
                 // For all other cases (where nothing was written or something was written but we're still in the same line since no linebreaks were written)
-                // we have to restore the implicitIndent back to _currentLine
+                // we have to restore the implicitIndent back to _currentLine (since child scope didn't add it yet)
                 if (writtenLen >= 0 && _scopeContexts.Peek().WhitespaceLines == 0 && _scopeContexts.Peek().NonWhitespaceLines == 0)
                     _currentLine.Insert(0, implicitIndent);
 
@@ -1765,12 +1828,27 @@ namespace CodegenCS
             if (_controlFlowSymbols.Any())
                 throw new UnbalancedIfsException();
 
+            // GetContents should not modify the inner writer (_innerWriter.GetStringBuilder()) - it's intentional to avoid side effects
             string contents = _innerWriter.ToString();
 
-            if (AutoTrimEnd) // Trim removes both whitespace AND new lines
+            if (AutoTrimEnd) // Trim removes trailing whitespace from the whole block
                 contents = contents.TrimEnd();
-            else if (RemoveWhitespaceFromEmptyLines) // this property usually acts after each linebreak, but we have to apply to the last line as well
-                contents = contents.TrimEnd(' ', '\t');
+            else 
+            {
+                // LineTrimBehavior / EmptyLineTrimBehavior are applied immediately after each linebreak, but we also have to apply them here for the last linebreak
+                if (LineTrimBehavior == LineTrimBehaviorType.TrimEnd && EmptyLineTrimBehavior == EmptyLineTrimBehaviorType.TrimEnd)
+                    contents = contents.TrimEnd(' ', '\t');
+                else
+                {
+                    string[] parts = _lineBreaksRegex.Split(contents);
+                    var lastLine = parts.Last();
+                    bool lastLineAllWhiteSpace = lastLine.TrimEnd().Length == 0;
+                    if (lastLineAllWhiteSpace && EmptyLineTrimBehavior == EmptyLineTrimBehaviorType.TrimEnd)
+                        contents = contents.TrimEnd(' ', '\t');
+                    else if (!lastLineAllWhiteSpace && LineTrimBehavior == LineTrimBehaviorType.TrimEnd)
+                        contents = contents.TrimEnd(' ', '\t');
+                }
+            }
 
             return contents;
         }
