@@ -119,6 +119,7 @@ namespace CodegenCS.TemplateBuilder
             AddAssembly(MetadataReference.CreateFromFile(typeof(NSwag.OpenApiDocument).GetTypeInfo().Assembly.Location)); // NSwag.Core
             AddAssembly(MetadataReference.CreateFromFile(typeof(NSwag.OpenApiYamlDocument).GetTypeInfo().Assembly.Location)); // NSwag.Core.Yaml
             AddAssembly(MetadataReference.CreateFromFile(typeof(NJsonSchema.JsonSchema).GetTypeInfo().Assembly.Location)); // NJsonSchema
+            AddAssembly(MetadataReference.CreateFromFile(typeof(NJsonSchema.Annotations.JsonSchemaAttribute).GetTypeInfo().Assembly.Location)); // NJsonSchema.Annotations
 
             // Newtonsoft
             _namespaces.Add("Newtonsoft.Json");
