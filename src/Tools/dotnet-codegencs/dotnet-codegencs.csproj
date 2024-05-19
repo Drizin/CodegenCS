@@ -11,7 +11,7 @@
     <Description>Command line tool to clone/build/run templates, or create dbschema models (extract schema from MSSQL/PostgreSQL database into json files)</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>3.4.0</Version>
+    <Version>3.4.1</Version>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>dotnet-codegencs</ToolCommandName>
     <PackageTags>code generation;code generator;templating;codegencs;t4;swagger;openapi;rest client;nswag generator</PackageTags>
@@ -76,8 +76,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="CodegenCS.Core" Version="3.4.0" />
-        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.4.0" />
+        <PackageReference Include="CodegenCS.Core" Version="3.4.1" />
+        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.4.1" />
       </ItemGroup>
     </Otherwise>
   </Choose>

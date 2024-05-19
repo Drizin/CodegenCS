@@ -8,7 +8,7 @@
     <Description>This is a Model Adapter that allows CodegenCS templates to read OpenAPI models (JSON or YAML format) using NSWag</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>3.4.0</Version>
+    <Version>3.4.1</Version>
     <DocumentationFile>CodegenCS.Models.NSwagAdapter.xml</DocumentationFile>
     <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -61,8 +61,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="CodegenCS.Core" Version="3.4.0" />
-		<PackageReference Include="CodegenCS.Models" Version="3.4.0" />
+        <PackageReference Include="CodegenCS.Core" Version="3.4.1" />
+		<PackageReference Include="CodegenCS.Models" Version="3.4.1" />
       </ItemGroup>
     </Otherwise>
   </Choose>

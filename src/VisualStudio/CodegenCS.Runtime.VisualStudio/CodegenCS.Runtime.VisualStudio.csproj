@@ -51,8 +51,8 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="CodegenCS.Core" Version="3.4.0" />
-        <PackageReference Include="CodegenCS.Runtime" Version="3.4.0" />
+        <PackageReference Include="CodegenCS.Core" Version="3.4.1" />
+        <PackageReference Include="CodegenCS.Runtime" Version="3.4.1" />
       </ItemGroup>
     </Otherwise>
   </Choose>
