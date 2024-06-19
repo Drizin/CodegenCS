@@ -53,7 +53,8 @@ That's first-class support for writing to multiple files.
 
 ## What's the secret?
 
-A standard `TextWriter` has methods that expect strings (like `Write(string)` or `WriteLine(string)`) and they will **dumbly** call `ToString()` to convert interpolated strings (or anything else) to a plain string. In a similar fashion `StringBuilder` methods also expect strings (like `Append(string)` or `AppendLine(string)`).  
+A standard `TextWriter` has methods that expect `string` type (`Write(string)` or `WriteLine(string)`) so they will **dumbly** convert interpolated strings (or anything else) to a plain string by calling `ToString()`.  
+The same happens for `StringBuilder` methods (like `Append(string)` or `AppendLine(string)`).  
 
 But [CodegenTextWriter](https://github.com/CodegenCS/CodegenCS/tree/master/docs/CodegenTextWriter.md) is much smarter and has methods that actually accept interpolated strings (like `Write(FormattableString)` or `WriteLine(FormattableString)`) - and those interpolated strings will be parsed and processed block by block, which enables some magic:
 - [**Supports the interpolation of MANY object types**](https://github.com/CodegenCS/CodegenCS/tree/master/docs/CodegenTextWriter.md) other than `string`/`FormattableString`, like delegates (`Action<>`/`Func<>`), lists (`IEnumerable<>` where elements are rendered one by one), and any combination of those.  
