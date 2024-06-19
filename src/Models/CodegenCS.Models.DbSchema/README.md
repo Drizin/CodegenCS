@@ -22,9 +22,9 @@ Examples:
 - `dotnet-codegencs model dbschema extract mssql "Server=(local)\SQLEXPRESS; Database=AdventureWorks; Integrated Security=True" AdventureWorks.json` (MSSQL using Windows authentication)
 - `dotnet-codegencs model dbschema extract postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json` (PostgreSQL)
 
-[**Currently**](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema.Extractor) it only supports MSSQL (Microsoft SQL Server) and PostgreSQL. Feel free to collaborate if you want to add support for a new database vendor.
+[**Currently**](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema.Extractor) it only supports MSSQL (Microsoft SQL Server) and PostgreSQL. Feel free to collaborate if you want to add support for a new database vendor.
 
-If you don't have a database and want a sample schema you can download AdventureWorks schema [here](https://raw.githubusercontent.com/CodegenCS/CodegenCS/master/src/Models/CodegenCS.DbSchema.SampleDatabases/AdventureWorksSchema.json).
+If you don't have a database and want a sample schema you can download AdventureWorks schema [here](https://raw.githubusercontent.com/Drizin/CodegenCS/master/src/Models/CodegenCS.DbSchema.SampleDatabases/AdventureWorksSchema.json).
 
 ## Download a Template
 

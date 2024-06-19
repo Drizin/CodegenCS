@@ -12,13 +12,13 @@ Before going into the features it's helpful to understand how CodegenTextWriter 
 A standard `TextWriter` has methods that expect `string` type (like `Write(string)` or `WriteLine(string)`) so they will **dumbly** convert interpolated strings (or anything else) to a plain string by calling `ToString()`.  
 The same happens for `StringBuilder` methods (like `Append(string)` or `AppendLine(string)`).  
 
-But [CodegenTextWriter](https://github.com/CodegenCS/CodegenCS/blob/master/src/Core/CodegenCS/CodegenTextWriter.cs) is much smarter and has methods that actually accept interpolated strings (like `Write(FormattableString)` or `WriteLine(FormattableString)`) - and those interpolated strings will be parsed and processed block by block, and interpolated objects are evaluated (one by one) in smart way, not using `ToString()`. All important features are described below (and in the [Main Project Documentation](https://github.com/CodegenCS/CodegenCS/)) and many of them are only possible because of this enhanced string interpolation.
+But [CodegenTextWriter](https://github.com/Drizin/CodegenCS/blob/master/src/Core/CodegenCS/CodegenTextWriter.cs) is much smarter and has methods that actually accept interpolated strings (like `Write(FormattableString)` or `WriteLine(FormattableString)`) - and those interpolated strings will be parsed and processed block by block, and interpolated objects are evaluated (one by one) in smart way, not using `ToString()`. All important features are described below (and in the [Main Project Documentation](https://github.com/Drizin/CodegenCS/)) and many of them are only possible because of this enhanced string interpolation.
 
 # Basics
 
 ## Indentation Control
 
-CodegenTextWriter has a clever [Indent Control](https://github.com/CodegenCS/CodegenCS/tree/master/docs/Indent-Control.md) that automatically captures the current indent (whatever number of spaces or tabs you have in current line) and will preserve it when you interpolate a large object (multiline) or when you interpolate a subtemplate.  
+CodegenTextWriter has a clever [Indent Control](https://github.com/Drizin/CodegenCS/tree/master/docs/Indent-Control.md) that automatically captures the current indent (whatever number of spaces or tabs you have in current line) and will preserve it when you interpolate a large object (multiline) or when you interpolate a subtemplate.  
 
 This means that methods don't need to ever know about parent indentation.
 

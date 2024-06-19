@@ -1,6 +1,6 @@
 # How does CodegenCS compare to T4 Templates?
 
-I suggest that you check the [Main Project Documentation](https://github.com/CodegenCS/CodegenCS) but I can summarize a few differences:
+I suggest that you check the [Main Project Documentation](https://github.com/Drizin/CodegenCS) but I can summarize a few differences:
 
 
 ## Indentation Control
@@ -51,7 +51,7 @@ CodegenCS templates are plain C# so they can benefit from amazing IDEs and intel
 
 ## Out-of-the-box Models
 
-CodegenCS has an out-of-the-box model that represents the schema of a relational database (with extractors for reverse engineering MSSQL and PostgreSQL), so it's "batteries included" toolkit (see [quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs#quickstart))
+CodegenCS has an out-of-the-box model that represents the schema of a relational database (with extractors for reverse engineering MSSQL and PostgreSQL), so it's "batteries included" toolkit (see [quickstart](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs#quickstart))
 
 
 ## Cross Platform

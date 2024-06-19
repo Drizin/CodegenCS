@@ -41,7 +41,7 @@ namespace CodegenCS.Tools.CliTool.Tests
                 Template entry-point: 'SimplePOCOGenerator.Render()'...
                 To generate a DatabaseSchema model use: 'dotnet-codegencs model dbschema extract <MSSQL|PostgreSQL> <connectionString> <output>'
                 For help: 'dotnet-codegencs model dbschema extract /?'
-                For a sample schema please check out: 'https://github.com/CodegenCS/CodegenCS/blob/master/src/Models/CodegenCS.Models.DbSchema.SampleDatabases/AdventureWorksSchema.json'
+                For a sample schema please check out: 'https://github.com/Drizin/CodegenCS/blob/master/src/Models/CodegenCS.Models.DbSchema.SampleDatabases/AdventureWorksSchema.json'
                 To run this template use: 'dotnet-codegencs template run SimplePocos.dll <DatabaseSchemaModel>'
                 For help: 'dotnet-codegencs template run /?'
                 """, _stdOut);
@@ -68,7 +68,7 @@ namespace CodegenCS.Tools.CliTool.Tests
                 Template entry-point: 'SimplePOCOGenerator.Render()'...
                 To generate a DatabaseSchema model use: 'dotnet-codegencs model dbschema extract <MSSQL|PostgreSQL> <connectionString> <output>'
                 For help: 'dotnet-codegencs model dbschema extract /?'
-                For a sample schema please check out: 'https://github.com/CodegenCS/CodegenCS/blob/master/src/Models/CodegenCS.Models.DbSchema.SampleDatabases/AdventureWorksSchema.json'
+                For a sample schema please check out: 'https://github.com/Drizin/CodegenCS/blob/master/src/Models/CodegenCS.Models.DbSchema.SampleDatabases/AdventureWorksSchema.json'
                 To run this template use: 'dotnet-codegencs template run SimplePocos.dll <DatabaseSchemaModel>'
                 For help: 'dotnet-codegencs template run /?'
                 """, _stdOut);
@@ -94,7 +94,7 @@ namespace CodegenCS.Tools.CliTool.Tests
                 Template entry-point: 'SimplePOCOGenerator.Render()'...
                 To generate a DatabaseSchema model use: 'dotnet-codegencs model dbschema extract <MSSQL|PostgreSQL> <connectionString> <output>'
                 For help: 'dotnet-codegencs model dbschema extract /?'
-                For a sample schema please check out: 'https://github.com/CodegenCS/CodegenCS/blob/master/src/Models/CodegenCS.Models.DbSchema.SampleDatabases/AdventureWorksSchema.json'
+                For a sample schema please check out: 'https://github.com/Drizin/CodegenCS/blob/master/src/Models/CodegenCS.Models.DbSchema.SampleDatabases/AdventureWorksSchema.json'
                 To run this template use: 'dotnet-codegencs template run SimplePocos.dll <DatabaseSchemaModel>'
                 For help: 'dotnet-codegencs template run /?'
                 """, _stdOut);
@@ -105,7 +105,7 @@ namespace CodegenCS.Tools.CliTool.Tests
 
         #region Template Build
 
-        [TestCase("https://raw.githubusercontent.com/CodegenCS/CodegenCS/master/src/Models/CodegenCS.Models.DbSchema.SampleDatabases/AdventureWorksSchema.json")]
+        [TestCase("https://raw.githubusercontent.com/Drizin/CodegenCS/master/src/Models/CodegenCS.Models.DbSchema.SampleDatabases/AdventureWorksSchema.json")]
         [TestCase("https://raw.githubusercontent.com/CodegenCS/Templates/main/OpenAPI/SampleModels/petstore-openapi3.json")]
         public async Task DownloadSampleModels(string url)
         {

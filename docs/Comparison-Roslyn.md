@@ -80,10 +80,10 @@ It can - and if you're augmenting on top of an existing C# data source (reading 
 (Roslyn doesn't provide anything to help with **indentation** or **tracking multiple files** - and **it doesn't even need to** since all output is just discarded after the build).
 
 However, if you're writing complex templates or if your output needs decent formatting/indenting), then CodegenCS might be a better tool because:
-- It has a [TextWriter on Steroids](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) that makes it easy to write clean/concise/reusable templates, with no-hassle indentation control. 
+- It has a [TextWriter on Steroids](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS) that makes it easy to write clean/concise/reusable templates, with no-hassle indentation control. 
 - Simple loops and simple template-composition can be done within an interpolated string, without using multiple statements and control blocks - avoiding a bunch of loops and mixing control-code with generated code. 
 - It uses the powerful **C# 11 Raw String Literals** (you can use it even if the target project does not use C# 11) which makes everything even cleaner and doesn't require escaping of curly braces.
-- And [much more](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS)
+- And [much more](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS)
 
 ## Can I run CodegenCS from a Roslyn Source Generator?
 

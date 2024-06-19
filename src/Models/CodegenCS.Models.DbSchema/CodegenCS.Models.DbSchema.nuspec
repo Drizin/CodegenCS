@@ -6,7 +6,7 @@
     <authors>Rick Drizin</authors>
     <owners>Rick Drizin</owners>
     <license type="expression">MIT</license>
-    <projectUrl>https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema</projectUrl>
+    <projectUrl>https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>This is a Plugin (Datasource Provider) to be used with CodegenCS code generator, which allows CodegenCS to generate code based on a Database Schema. Repository (Github) contains Code and Scripts to extract schema from SQL database into json files, and this schema can be used by any application.</description>
     <copyright>Copyright Rick Drizin 2019</copyright>

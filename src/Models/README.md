@@ -1,6 +1,6 @@
 **CodegenCS is a Toolkit for doing Code Generation using plain C#**.
 
-Before anything else, don't forget to read the [Main Project Page](https://github.com/CodegenCS/CodegenCS/) to learn the basics (basic idea, basic features, and major components).
+Before anything else, don't forget to read the [Main Project Page](https://github.com/Drizin/CodegenCS/) to learn the basics (basic idea, basic features, and major components).
 
 # Models
 
@@ -22,21 +22,21 @@ Models are expected to be a path to a file in JSON format, and dotnet-codegencs 
 
 # Templates with Custom Models
 
-See [Writing Templates with Custom Models](https://github.com/CodegenCS/CodegenCS/tree/master/docs/CustomModels.md)
+See [Writing Templates with Custom Models](https://github.com/Drizin/CodegenCS/tree/master/docs/CustomModels.md)
 
 
 # Out-of-the-box Models
 
-Common tasks like generating code based on a [Database Schema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema) or based on a [REST API specification](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter) can be achieved using our out-of-the-box models, so that you don't have to reinvent the wheel.
+Common tasks like generating code based on a [Database Schema](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema) or based on a [REST API specification](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter) can be achieved using our out-of-the-box models, so that you don't have to reinvent the wheel.
 
 
-## [DatabaseSchema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema) 
+## [DatabaseSchema](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema) 
 
 Represents the **schema of a relational database**.  
 
   The dotnet-codegencs tool has commands to **extract** a database schema (reverse engineer) creating a json model from existing **MSSQL or PostgreSQL** databases.
 
 
-## [NSwagAdapter](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter) 
+## [NSwagAdapter](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter) 
 
 Can read a REST API model using **OpenAPI (aka Swagger)** (using [RicoSuter NSwag](https://github.com/RicoSuter/NSwag)).

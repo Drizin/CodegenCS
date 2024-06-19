@@ -1,6 +1,6 @@
 # Deprecated (or Not Recommended) Features 
 
-The features below still work but are not recommended anymore. For recommended features/syntax please refer to [CodegenCS Core Library](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS).
+The features below still work but are not recommended anymore. For recommended features/syntax please refer to [CodegenCS Core Library](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS).
 
 ## Writing to ICodegenTextWriter WITHOUT Raw String Literals (Not Recommended)
 
@@ -292,7 +292,7 @@ If we want to save each POCO in a different file we could use ICodegenContext:
 
 ## <a name="EmbeddingTemplate"></a> Embedding a Template (within an Interpolated String)
 
-As explained earlier, CodegenTextWriter can render embedded `Actions<>` and `Func<>`, but in some scenarios that can get a little ugly when we need to [convert between delegates to pass parameters](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS/Deprecated.md#Action-ICodegenTextWriter-Args).  
+As explained earlier, CodegenTextWriter can render embedded `Actions<>` and `Func<>`, but in some scenarios that can get a little ugly when we need to [convert between delegates to pass parameters](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS/Deprecated.md#Action-ICodegenTextWriter-Args).  
 If you implement the templating interfaces there are helpers to load and invoke templates (arguments are strongly-typed):
 
 
@@ -339,8 +339,8 @@ static void Main()
 - Templates can be loaded and rendered directly from interpolated strings (`{{ Template.Load<T>().Render(TModel model) }}`)
 - Everything will be strongly typed, with intellisense/autocomplete and type-checking (e.g. `Render()` will expect a type depending on the template that was loaded)
 - We can embed subtemplates inside other templates, and they can receive/pass models, meaning complex templates can be well organized (instead of a single huge/ugly template)
-<!-- - Templates can rely on some **Ready to Use Input Models** like [CodegenCS.Models.DbSchema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema) - this model represents the database schema of a MSSQL database or a PostgreSQL database, and can be used by templates that generate POCOs or even complete data access layers. [dotnet-codegencs dbschema extract](https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs) is a tool that extract the schema of those databases into a JSON file.
-- Another input model (under development) is [CodegenCS.Models.OpenAPI](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSWagAdapter) - this model represents an OpenAPI (Swagger) specification, and can be used by templates that generate REST API clients or servers.
+<!-- - Templates can rely on some **Ready to Use Input Models** like [CodegenCS.Models.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema) - this model represents the database schema of a MSSQL database or a PostgreSQL database, and can be used by templates that generate POCOs or even complete data access layers. [dotnet-codegencs dbschema extract](https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs) is a tool that extract the schema of those databases into a JSON file.
+- Another input model (under development) is [CodegenCS.Models.OpenAPI](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSWagAdapter) - this model represents an OpenAPI (Swagger) specification, and can be used by templates that generate REST API clients or servers.
 - You can use any other structured data source (that can be read using C#) as an input model (so you can read from JSON, YAML, XML, schema of other database vendors, etc)
  -->
 

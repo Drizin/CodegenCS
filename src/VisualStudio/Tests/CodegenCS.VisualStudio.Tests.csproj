@@ -6,7 +6,7 @@
     <Company>Rick Drizin</Company>
     <Copyright>Rick Drizin</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/</PackageProjectUrl>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
 

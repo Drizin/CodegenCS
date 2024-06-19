@@ -1,12 +1,12 @@
 **CodegenCS is a Toolkit for doing Code Generation using plain C#**.
 
-Before anything else, don't forget to read the [Main Project Page](https://github.com/CodegenCS/CodegenCS/) to learn the basics (basic idea, basic features, and major components).
+Before anything else, don't forget to read the [Main Project Page](https://github.com/Drizin/CodegenCS/) to learn the basics (basic idea, basic features, and major components).
 
 This page is only about **CodegenCS Command-line Tool (dotnet-codegencs)**:
-- If you are **writing a template** (code generator) and want to learn more about CodegenCS features (and internals) then check out the [CodegenCS Main Project](https://github.com/CodegenCS/CodegenCS) documentation.
+- If you are **writing a template** (code generator) and want to learn more about CodegenCS features (and internals) then check out the [CodegenCS Main Project](https://github.com/Drizin/CodegenCS) documentation.
 - If you want to **compile and run templates** or **reverse-engineer a database schema** this is the right place.
 - If you want to **browse the sample templates** (POCO Generators, DAL generators, etc) check out [https://github.com/CodegenCS/Templates/](https://github.com/CodegenCS/Templates/)
-- If you just want to **download the Visual Studio Extension** check out the [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VisualStudio/)
+- If you just want to **download the Visual Studio Extension** check out the [Visual Studio Extension](https://github.com/Drizin/CodegenCS/tree/master/src/VisualStudio/)
 
 
 # <a name="dotnet-codegencs"></a>CodegenCS Command-Line Tool (dotnet-codegencs)
@@ -137,7 +137,7 @@ For any template that [define their own arguments/options](https://github.com/Co
 
 ## Using third-party libraries
 
-Currently dotnet-codegencs will automatically [add some libraries](https://github.com/CodegenCS/CodegenCS/blob/master/src/Tools/TemplateBuilder/RoslynCompiler.cs) including Generics, System.Net.Http, System.IO, and Newtonsoft JSON. In the future dotnet-codegencs should allow dynamic nuget references, for for now if you want to use other libraries please use [CodegenCS Core Library](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) directly.
+Currently dotnet-codegencs will automatically [add some libraries](https://github.com/Drizin/CodegenCS/blob/master/src/Tools/TemplateBuilder/RoslynCompiler.cs) including Generics, System.Net.Http, System.IO, and Newtonsoft JSON. In the future dotnet-codegencs should allow dynamic nuget references, for for now if you want to use other libraries please use [CodegenCS Core Library](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS) directly.
 
 
 <br/>

@@ -6,8 +6,8 @@
 
 ## Install Command-line Tool (dotnet-codegencs) or Visual Studio Extension
 
-- [Install Command-line tool (dotnet-codegencs)]((https://github.com/CodegenCS/CodegenCS/tree/master/src/dotnet-codegencs#quickstart)) by running this command: ```dotnet tool install -g dotnet-codegencs```  
-- [Install Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VSExtensions#quickstart) by downloading it [here](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS)
+- [Install Command-line tool (dotnet-codegencs)]((https://github.com/Drizin/CodegenCS/tree/master/src/dotnet-codegencs#quickstart)) by running this command: ```dotnet tool install -g dotnet-codegencs```  
+- [Install Visual Studio Extension](https://github.com/Drizin/CodegenCS/tree/master/src/VSExtensions#quickstart) by downloading it [here](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS)
 - Create a template file (e.g. Template.csx). See some sample templates below.  
 - To run your template in Visual Studio Extension right-click the template in Solution Explorer and select "Run Template".  
   Or to get the template running automatically after each save, select the template in Solution Explorer and in the Properties Window set the "Custom Tool" to be "CodegenCS"

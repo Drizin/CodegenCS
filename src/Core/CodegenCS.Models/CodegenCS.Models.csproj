@@ -5,7 +5,7 @@
     <TargetFrameworks>netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/blob/master/src/Core/CodegenCS.Models/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/blob/master/src/Core/CodegenCS.Models/</PackageProjectUrl>
     <Description>Class Library and Toolkit for Code Generation using plain C#</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>

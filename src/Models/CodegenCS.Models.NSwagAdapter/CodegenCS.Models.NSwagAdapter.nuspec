@@ -6,7 +6,7 @@
     <authors>Rick Drizin</authors>
     <owners>Rick Drizin</owners>
     <license type="expression">MIT</license>
-    <projectUrl>https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter</projectUrl>
+    <projectUrl>https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>This is a Model Adapter that allow CodegenCS templates to read OpenAPI models (JSON or YAML format) using NSWag</description>
     <copyright>Copyright Rick Drizin 2019</copyright>

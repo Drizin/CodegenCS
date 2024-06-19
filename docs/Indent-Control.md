@@ -95,7 +95,7 @@ If you're curious about how it works, let's reveal the magic - this is how Impli
 To sum, CodegenTextWriter will **preserve indent / keep cursor position** for any objects that are embedded in interpolated strings (even for complex objects like Actions/Funcs delegates, explained later in this document).
 
 
-Implicitly controlling indentation using string interpolation is very elegant, works like magic and it's the preferred method. But if for any reason you think you need more control you might prefer to use [Explicit Indent Control](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS/Deprecated.md#ExplicitIndent) (e.g. manually calling `IncreaseIndent()`, `DecreaseIndent()`, etc.)
+Implicitly controlling indentation using string interpolation is very elegant, works like magic and it's the preferred method. But if for any reason you think you need more control you might prefer to use [Explicit Indent Control](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS/Deprecated.md#ExplicitIndent) (e.g. manually calling `IncreaseIndent()`, `DecreaseIndent()`, etc.)
 
 ## Non-whitespace indent
 

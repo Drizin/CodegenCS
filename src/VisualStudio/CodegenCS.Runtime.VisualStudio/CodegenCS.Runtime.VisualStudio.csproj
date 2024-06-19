@@ -5,7 +5,7 @@
     <TargetFramework>net472</TargetFramework>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/CodegenCS/CodegenCS/blob/master/src/VisualStudio/CodegenCS.Runtime.VisualStudio/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/blob/master/src/VisualStudio/CodegenCS.Runtime.VisualStudio/</PackageProjectUrl>
     <Description>Class Library and Toolkit for Code Generation using plain C#</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>

@@ -6,7 +6,7 @@
     <authors>Rick Drizin</authors>
     <owners>Rick Drizin</owners>
     <license type="expression">MIT</license>
-    <projectUrl>https://github.com/CodegenCS/CodegenCS</projectUrl>
+    <projectUrl>https://github.com/Drizin/CodegenCS</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>C# Library for Code Generation - .NET and Visual Studio utilities</description>
     <copyright>Copyright Rick Drizin 2019</copyright>

@@ -22,7 +22,7 @@ The major objective of the toolkit is to make code-generation as easy as possibl
 
 ## Templates can be Markup-based or Programmatic
 
-Our templates use a [Hybrid model](https://github.com/CodegenCS/CodegenCS/tree/master/docs/Hybrid-Templates.md) where they can be written **programmatically** or using a **markup-language**, and you can mix both approaches (switch between them at any moment). This provides the **best balance between simplicity/maintenability and power** (templates can be concise/maintenable and you can still have complex logic when needed).
+Our templates use a [Hybrid model](https://github.com/Drizin/CodegenCS/tree/master/docs/Hybrid-Templates.md) where they can be written **programmatically** or using a **markup-language**, and you can mix both approaches (switch between them at any moment). This provides the **best balance between simplicity/maintenability and power** (templates can be concise/maintenable and you can still have complex logic when needed).
 
 - **Programmatic approach** is based on C# methods that explicitly write to output streams.  
   It provides more control and is the best choice when you have complex logic that would be too confusing to be written as markup.
@@ -89,7 +89,7 @@ class MyTemplate
 
 ## Indentation Control
 
-Our clever [Indent Control](https://github.com/CodegenCS/CodegenCS/tree/master/docs/Indent-Control.md) automatically captures the current indent (whatever number of spaces or tabs you have in current line) and will preserve it when you interpolate a large object (multiline) or when you interpolate a subtemplate.  
+Our clever [Indent Control](https://github.com/Drizin/CodegenCS/tree/master/docs/Indent-Control.md) automatically captures the current indent (whatever number of spaces or tabs you have in current line) and will preserve it when you interpolate a large object (multiline) or when you interpolate a subtemplate.  
 
 Generating code with the correct indentation (even if there are multiple nested levels) has never been so easy, and it works for both curly-bracket languages (C#/Javascript/Java/Golang/etc) and also for indentation-based languages (like Python).  
 
@@ -97,14 +97,14 @@ Explicit indent control is also supported.
 
 ## Command-line Tool (dotnet-codegencs)
 
-[dotnet-codegencs](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/dotnet-codegencs/) is a cross-platform .NET tool (command-line tool) that can be used to download, **build**, and **run templates**.  
+[dotnet-codegencs](https://github.com/Drizin/CodegenCS/tree/master/src/Tools/dotnet-codegencs/) is a cross-platform .NET tool (command-line tool) that can be used to download, **build**, and **run templates**.  
 It can also be used to extract models (reverse engineer schema) from existing databases.  
 In other words this is our **"batteries-included"** tool, and probably the best place to get started.  
 It's available for Windows/Linux/MacOS.
 
 ## Visual Studio Extension
 
-Our [Visual Studio Extension](https://github.com/CodegenCS/CodegenCS/tree/master/src/VisualStudio/) allows **building and running templates** directly from Visual Studio.  
+Our [Visual Studio Extension](https://github.com/Drizin/CodegenCS/tree/master/src/VisualStudio/) allows **building and running templates** directly from Visual Studio.  
 Output files are automatically added to the project (nested under the template item), so it's easy to use (but it doesn't have all features available in `dotnet-codegencs`).  
 It's available for [Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS) or [Visual Studio 2019/2017](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS-Compatibility).
 
@@ -114,20 +114,20 @@ Before explaining more features it's important to first learn about 3 important 
 
 ### 1. CodegenTextWriter
 
-[CodegenTextWriter](https://github.com/CodegenCS/CodegenCS/tree/master/docs/CodegenTextWriter.md) is the **heart of CodegenCS toolkit**.  
+[CodegenTextWriter](https://github.com/Drizin/CodegenCS/tree/master/docs/CodegenTextWriter.md) is the **heart of CodegenCS toolkit**.  
 
 We like to say it's a **TextWriter on Steroids** or a **Magic TextWriter** - but if you don't believe in magic you can say it's just a custom TextWriter that leverages string interpolation to automatically control indentation, and enriches string interpolation to allow interpolation of many types (like `Action<>` / `Func<>` delegates, `IEnumerable<>` lists) and special symbols (like `IF`/`ELSE`/`ENDIF`).  
 This enriched string interpolation is what allows pure C# string interpolation to be used as a markup-language.
 
 `CodegenTextWriter` is just a text writer - it does not have any information about file path, and by default it writes to an in-memory `StringBuilder` (until output files are all saved at once).
 
-Check out [CodegenTextWriter documentation](https://github.com/CodegenCS/CodegenCS/tree/master/docs/CodegenTextWriter.md) to learn more about it, about how indenting is magically controlled, learn how to write clean and reusable templates using String Interpolation, Raw String Literals, delegates and IEnumerables, and learn all object types can be interpolated.
+Check out [CodegenTextWriter documentation](https://github.com/Drizin/CodegenCS/tree/master/docs/CodegenTextWriter.md) to learn more about it, about how indenting is magically controlled, learn how to write clean and reusable templates using String Interpolation, Raw String Literals, delegates and IEnumerables, and learn all object types can be interpolated.
 
 ### 2. CodegenOutputFile
 Since `CodegenTextWriter` does not have any info about file paths, there is a subtype `CodegenOutputFile` which extends `CodegenTextWriter` by adding a relative path (where the file should be saved). Most tools use `(I)CodegenOutputFile` but actually the important logic is all in the base class `CodegenTextWriter`.
 
 ### 3. CodegenContext
-[`CodegenContext`](https://github.com/CodegenCS/CodegenCS/blob/master/src/Core/CodegenCS/CodegenContext.cs) is a container that can hold multiple instances of `CodegenOutputFile` (multiple output), and for simplicity it contains a default `DefaultOutputFile`.  
+[`CodegenContext`](https://github.com/Drizin/CodegenCS/blob/master/src/Core/CodegenCS/CodegenContext.cs) is a container that can hold multiple instances of `CodegenOutputFile` (multiple output), and for simplicity it contains a default `DefaultOutputFile`.  
 
 
 When a template is executed it gets an empty context and it can write either to the default file or it can create multiple files.
@@ -137,8 +137,8 @@ When a template is executed it gets an empty context and it can write either to 
 
 When a template is invoked there are many types that can be automatically injected into it:
 - `ICodegenTextWriter`: represents the "standard output stream" (for templates that write to a single output file).  
-  Check [CodegenTextWriter docs](https://github.com/CodegenCS/CodegenCS/tree/master/docs/CodegenTextWriter.md).
-- `ICodegenContext`: [CodegenContext](https://github.com/CodegenCS/CodegenCS/blob/master/src/Core/CodegenCS/CodegenContext.cs) is a container class that can hold multiple `ICodegenOutputFile` where each one will output to an individual file.  
+  Check [CodegenTextWriter docs](https://github.com/Drizin/CodegenCS/tree/master/docs/CodegenTextWriter.md).
+- `ICodegenContext`: [CodegenContext](https://github.com/Drizin/CodegenCS/blob/master/src/Core/CodegenCS/CodegenContext.cs) is a container class that can hold multiple `ICodegenOutputFile` where each one will output to an individual file.  
   (`CodegenOutputFile` is basically a `CodegenTextWriter` but extended to include the target file name).  
   To write multiple files you can do like `context["Class1.js"].Write("something")`.  
 - `ExecutionContext`: provides info about the template being executed (full path of `.cs` or `.dll`)
@@ -156,21 +156,21 @@ Dependency injection is also available for interpolated delegates.
 
 ## Models
 
-Templates are just C# so obviously they can read from any source (`.json`, `.txt`, `.yaml`, other files, databases, roslyn syntax tree, or anything else) - but [**models**](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models) are our built-in mechanism for easily providing inputs to templates.
+Templates are just C# so obviously they can read from any source (`.json`, `.txt`, `.yaml`, other files, databases, roslyn syntax tree, or anything else) - but [**models**](https://github.com/Drizin/CodegenCS/tree/master/src/Models) are our built-in mechanism for easily providing inputs to templates.
 
 `IModelFactory` can be injected into your templates and can be used to load (deserialize) any models from JSON files.
 
-Besides your own models you can use our [**ready-to-use models**](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models) for common tasks (no need to reinvent the wheel):
+Besides your own models you can use our [**ready-to-use models**](https://github.com/Drizin/CodegenCS/tree/master/src/Models) for common tasks (no need to reinvent the wheel):
 
 
-- [`DatabaseSchema`](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema/DbSchema) represents the schema of a relational database.  
+- [`DatabaseSchema`](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema/DbSchema) represents the schema of a relational database.  
 Your template can loop through tables, columns, indexes, etc.  
 Our command-line tool (dotnet-codegencs) has a command to reverse engineer from existing MSSQL/PostgreSQL databases into a JSON model.
 - [`NSwag OpenApiDocument`](https://github.com/RicoSuter/NSwag/blob/master/src/NSwag.Core/OpenApiDocument.cs) represents an OpenAPI (Swagger) model.  
-This is the standard model that everyone use - we just have a [factory](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter) to load it from file.
+This is the standard model that everyone use - we just have a [factory](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter) to load it from file.
 
 
-Click [**here**](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models) to learn more about our **Out-of-the-box Models** or learn [**How to Write a Custom Model**](https://github.com/CodegenCS/CodegenCS/blob/master/docs/CustomModels.md).
+Click [**here**](https://github.com/Drizin/CodegenCS/tree/master/src/Models) to learn more about our **Out-of-the-box Models** or learn [**How to Write a Custom Model**](https://github.com/Drizin/CodegenCS/blob/master/docs/CustomModels.md).
 
 ## Smart Compilation / Execution
 
@@ -197,7 +197,7 @@ CodegenCS templates support [Raw String Literals](https://learn.microsoft.com/en
 ## No Mixed Indentation
 
 [Raw String Literals](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/strings/#raw-string-literals) have another cool feature for multi-line blocks: "_In multi-line raw string literals, any whitespace to the left of the closing quotes is removed from all lines of the raw string literal_". This means that you can indent your multi-line raw string literals wherever they look better, and all whitespace to the left will be removed (the whole block is "docked to the left").  
-(If by now you're thinking that this leading whitespace is important for manually controlling the indentation of your templates it's probably because you haven't learned about how our [Indent Control](https://github.com/CodegenCS/CodegenCS/tree/master/docs/Indent-Control.md) works and makes manual indenting obsolete.)
+(If by now you're thinking that this leading whitespace is important for manually controlling the indentation of your templates it's probably because you haven't learned about how our [Indent Control](https://github.com/Drizin/CodegenCS/tree/master/docs/Indent-Control.md) works and makes manual indenting obsolete.)
 
 
 ## Templates Arguments and Options
@@ -441,7 +441,7 @@ namespace CodegenCS.Sample {
 
 Most other templating engines suffer from the same problem - an indented "partial" does not indent the whole output of the partial. So usually getting whitespace correct requires a lot of trial-and-error, and usually what you get is ugly and counterintuitive (mixed indentation).
 
-Check out [Indent Control](https://github.com/CodegenCS/CodegenCS/tree/master/docs/Indent-Control.md) to learn more about internals and to see examples for Python (which does not use curly braces but is still based on indentation).
+Check out [Indent Control](https://github.com/Drizin/CodegenCS/tree/master/docs/Indent-Control.md) to learn more about internals and to see examples for Python (which does not use curly braces but is still based on indentation).
 
 
 ## Subtemplates as Method Delegates (`void`, `Action`, `Func`)
@@ -574,7 +574,7 @@ For `Func` you'll usually want it returning a `FormattableString` or `IEnumerabl
 
 A previous example showed `IModelFactory` loading a `DatabaseSchema` model, and looping through all tables and columns.
 
-[DatabaseSchema Model](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema) is one of the out-of-the-box models that our toolkit provides. Basically it represents the schema of a relational database.
+[DatabaseSchema Model](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema) is one of the out-of-the-box models that our toolkit provides. Basically it represents the schema of a relational database.
 
 The following command can be used to reverse engineer (extract the DbSchema from) an existing MSSQL or PostgreSQL database:  
 `dotnet-codegencs model dbschema extract MSSQL "Server=<myHost>;initial catalog=<myDatabase>;persist security info=True;user id=<username>;password=<password>;MultipleActiveResultSets=True;TrustServerCertificate=True" AdventureWorks.json`
@@ -598,7 +598,7 @@ class MyTemplate
 }
 ```
 
-Templates can use `IModelFactory` to load any JSON model (or they can read from any other data source, it doesn't have to be a JSON file), but for simplicity many examples in the documentation are based on `DatabaseSchema`. For more information about models please check out [**Models documentation**](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models).
+Templates can use `IModelFactory` to load any JSON model (or they can read from any other data source, it doesn't have to be a JSON file), but for simplicity many examples in the documentation are based on `DatabaseSchema`. For more information about models please check out [**Models documentation**](https://github.com/Drizin/CodegenCS/tree/master/src/Models).
 
 
 
@@ -1059,17 +1059,17 @@ It's possible to debug templates using Visual Studio.
 To break into the debugger inside markup mode (interpolated string) you just have to interpolate `BREAKIF(true)`.  
 To break into the debugger inside programmatic mode (method) you just have to call `System.Diagnostics.Debugger.Break()` and disable `Tools - Debugging - General - Enable Just My Code`.  
 See example in
-[Debugging.cs Unit Test](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/Tests/Templates/0090-Debugging.cs).
+[Debugging.cs Unit Test](https://github.com/Drizin/CodegenCS/tree/master/src/Tools/Tests/Templates/0090-Debugging.cs).
 
 
 
 # Learn More
 
-- [CodegenTextWriter documentation](https://github.com/CodegenCS/CodegenCS/tree/master/docs/CodegenTextWriter.md)
-- To start using the command-line tool, check out [dotnet-codegencs Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/dotnet-codegencs#quickstart)
-- To start using the Visual Studio Extension, check out [Visual Studio Extension Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/VisualStudio#quickstart)
-- To generate code based on a database, check out [DbSchema Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema#quickstart)
-- To generate code based on a REST API, check out [NSwagAdapter Quickstart](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter#quickstart)
+- [CodegenTextWriter documentation](https://github.com/Drizin/CodegenCS/tree/master/docs/CodegenTextWriter.md)
+- To start using the command-line tool, check out [dotnet-codegencs Quickstart](https://github.com/Drizin/CodegenCS/tree/master/src/Tools/dotnet-codegencs#quickstart)
+- To start using the Visual Studio Extension, check out [Visual Studio Extension Quickstart](https://github.com/Drizin/CodegenCS/tree/master/src/VisualStudio#quickstart)
+- To generate code based on a database, check out [DbSchema Quickstart](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema#quickstart)
+- To generate code based on a REST API, check out [NSwagAdapter Quickstart](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter#quickstart)
 - Our [Templates repository (https://github.com/CodegenCS/Templates)](https://github.com/CodegenCS/Templates) contains some **sample fully-functional templates** that you can use, customize, or use as a reference for building your own templates.
 
 
@@ -1082,15 +1082,15 @@ Most users won't ever need to download or interact directly with CodegenCS libra
 
 But if you need to use our libraries in your own projects most libraries are available as nuget packages - cross-platform and available for `netstandard2.0`/`net472`/`net5.0`/`net6.0`/`net7.0`/`net8.0`.
 
-- [CodegenCS.Core](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS) is the backbone of the toolkit.  
+- [CodegenCS.Core](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS) is the backbone of the toolkit.  
   Contains `CodegenTextWriter`, `CodegenContext`, `CodegenOutputFile`, all indent control, string interpolation parsing, delegates evaluation/reflection, etc.  
   [![Nuget](https://img.shields.io/nuget/v/CodegenCS.Core?label=CodegenCS.Core)](https://www.nuget.org/packages/CodegenCS.Core)
   [![Downloads](https://img.shields.io/nuget/dt/CodegenCS.Core.svg)](https://www.nuget.org/packages/CodegenCS.Core)  
-- [CodegenCS.Models](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS.Models): interfaces for models, factories for loading models
-- [CodegenCS.Runtime](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS.Runtime): utilities for runtime, like logging, command-line arguments, and template execution context
-- [CodegenCS.DotNet](https://github.com/CodegenCS/CodegenCS/tree/master/src/Core/CodegenCS.DotNet): special classes for generating .NET code and for manipulating CSPROJ/VBPROJ files.
-- [CodegenCS.Tools.TemplateBuilder](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/TemplateBuilder/): builds templates using Roslyn and C# 11
-- [CodegenCS.Tools.TemplateLauncher](https://github.com/CodegenCS/CodegenCS/tree/master/src/Tools/TemplateLauncher/): launches templates (finds entrypoint, injects dependencies, etc) and saves output.
+- [CodegenCS.Models](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS.Models): interfaces for models, factories for loading models
+- [CodegenCS.Runtime](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS.Runtime): utilities for runtime, like logging, command-line arguments, and template execution context
+- [CodegenCS.DotNet](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS.DotNet): special classes for generating .NET code and for manipulating CSPROJ/VBPROJ files.
+- [CodegenCS.Tools.TemplateBuilder](https://github.com/Drizin/CodegenCS/tree/master/src/Tools/TemplateBuilder/): builds templates using Roslyn and C# 11
+- [CodegenCS.Tools.TemplateLauncher](https://github.com/Drizin/CodegenCS/tree/master/src/Tools/TemplateLauncher/): launches templates (finds entrypoint, injects dependencies, etc) and saves output.
 
 In order to use CodegenCS classes directly you don't have dependency injection and auto-saving, so you'll need a few extra commands like
 
@@ -1122,12 +1122,12 @@ ctx.SaveToFolder(@"C:\MyProject\");
 
 ## How does CodegenCS compare to T4?
 
-Check out [CodegenCS vs T4 Templates](https://github.com/CodegenCS/CodegenCS/tree/master/docs/Comparison-T4.md)  
+Check out [CodegenCS vs T4 Templates](https://github.com/Drizin/CodegenCS/tree/master/docs/Comparison-T4.md)  
 (Spoiler: CodegenCS is much much better)
 
 ## How does CodegenCS compare to Roslyn?
 
-Check out [CodegenCS vs Roslyn](https://github.com/CodegenCS/CodegenCS/tree/master/docs/Comparison-Roslyn.md)  
+Check out [CodegenCS vs Roslyn](https://github.com/Drizin/CodegenCS/tree/master/docs/Comparison-Roslyn.md)  
 (Spoiler: That's not an apples-to-apples comparison. Roslyn should be used to analyze compilation syntax-trees and eventually generate code based on that syntax tree - CodegenCS was not created for that)
 
 ## Why yet another Code Generator? Why not T4, Liquid, Razor, etc?
@@ -1139,12 +1139,12 @@ Besides that, I've always had some bad experiences with T4 templates (including 
 <!-- 
 
 ## History
-- 2020-07-19: New project/scripts [Simple POCO Generator](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/) to create POCOs (Dapper or other ORM) based on a Database Schema in JSON file
+- 2020-07-19: New project/scripts [Simple POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema.Templates/SimplePOCOGenerator/) to create POCOs (Dapper or other ORM) based on a Database Schema in JSON file
 - 2020-07-12: Fluent API and other major changes
-- 2020-07-05: New projects/utilities [CodegenCS.DbSchema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema) and [CodegenCS.DbSchema.Extractor](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema.Extractor) to reverse engineer MSSQL/PostgreSQL databases into JSON schema
+- 2020-07-05: New projects/utilities [CodegenCS.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema) and [CodegenCS.DbSchema.Extractor](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.DbSchema.Extractor) to reverse engineer MSSQL/PostgreSQL databases into JSON schema
 - 2020-07-05: [Blog post](https://rickdrizin.com/code-generation-in-c-csx-extracting-sql-server-schema/) (and [this](https://rickdrizin.com/code-generation-csx-scripts-part1/)) about extracting the schema using Powershell -> CSX (Roslyn) -> CodegenCS
-- 2019-10-30: Published Sample Template [EF 6 POCO Generator](https://github.com/CodegenCS/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator)
-- 2019-09-22: Initial public version. See [blog post here](http://rickdrizin.com/yet-another-code-generator/)
+- 2019-10-30: Published Sample Template [EF 6 POCO Generator](https://github.com/Drizin/CodegenCS/tree/master/src/Templates/EF6-POCO-Generator)
+- 2019-09-22: Initial public version. See [blog post here](https://rickdrizin.com/yet-another-code-generator/)
  -->
 <br/><hr>
 

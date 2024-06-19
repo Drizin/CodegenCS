@@ -33,7 +33,7 @@ It can also be used to clone templates from our online catalog (https://github.c
 
 ```dotnet-codegencs model dbschema extract postgresql "Host=localhost; Database=Adventureworks; Username=postgres; Password=MyPassword" AdventureWorks.json```
 
-For more templates or for more information check out the [main project](https://github.com/CodegenCS/CodegenCS) documentation.
+For more templates or for more information check out the [main project](https://github.com/Drizin/CodegenCS) documentation.
 
 ## License
 MIT License

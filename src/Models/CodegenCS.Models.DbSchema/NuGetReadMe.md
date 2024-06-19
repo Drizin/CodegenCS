@@ -4,10 +4,10 @@ This is an InputModel (Schema) to be used with CodegenCS code generator, which a
 
 Basically it contains classes to represent the Database Schema, and there's another project with Schema Reader classes (MSSQL and PostgreSQL) to extract the Schema from those databases. 
 
-Check out the [main project](https://github.com/CodegenCS/CodegenCS) to see more information.
+Check out the [main project](https://github.com/Drizin/CodegenCS) to see more information.
 
 ## Code
-[https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema](https://github.com/CodegenCS/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema)
+[https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema)
 
 ## License
 MIT License
