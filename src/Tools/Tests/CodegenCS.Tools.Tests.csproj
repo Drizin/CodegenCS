@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net6.0;net7.0;net8.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <Company>Rick Drizin</Company>
     <Copyright>Rick Drizin</Copyright>
@@ -13,12 +12,14 @@
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <PropertyGroup>
+        <TargetFrameworks>net472;net8.0</TargetFrameworks>
         <SignAssembly>True</SignAssembly>
         <AssemblyOriginatorKeyFile>..\..\debug.snk</AssemblyOriginatorKeyFile>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
+        <TargetFrameworks>net472;net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
         <SignAssembly>True</SignAssembly>
         <AssemblyOriginatorKeyFile>..\..\release.snk</AssemblyOriginatorKeyFile>
       </PropertyGroup>

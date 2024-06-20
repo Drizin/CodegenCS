@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Drizin/CodegenCS/tree/master/src/Tools/TemplateDownloader</PackageProjectUrl>
@@ -18,6 +17,7 @@
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;net472;net8.0</TargetFrameworks>
         <SignAssembly>True</SignAssembly>
         <AssemblyOriginatorKeyFile>..\..\debug.snk</AssemblyOriginatorKeyFile>
         <!-- PublicKeyToken=f75721f2e3128173 -->
@@ -31,6 +31,7 @@
     </When>
     <Otherwise>
       <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
         <SignAssembly>True</SignAssembly>
         <AssemblyOriginatorKeyFile>..\..\release.snk</AssemblyOriginatorKeyFile>
         <!-- PublicKeyToken=602c64961bdc076c -->

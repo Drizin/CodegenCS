@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
     <AssemblyName>dotnet-codegencs</AssemblyName>
     <RootNamespace>CodegenCS.DotNetTool</RootNamespace>
     <Authors>Rick Drizin</Authors>
@@ -25,6 +24,7 @@
   <Choose>
     <When Condition="'$(Configuration)' == 'Debug'">
       <PropertyGroup>
+        <TargetFrameworks>net8.0</TargetFrameworks>
         <SignAssembly>True</SignAssembly>
         <AssemblyOriginatorKeyFile>..\..\debug.snk</AssemblyOriginatorKeyFile>
       </PropertyGroup>
@@ -36,6 +36,7 @@
     </When>
     <Otherwise>
       <PropertyGroup>
+        <TargetFrameworks>net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
         <SignAssembly>True</SignAssembly>
         <AssemblyOriginatorKeyFile>..\..\release.snk</AssemblyOriginatorKeyFile>
       </PropertyGroup>
