@@ -77,7 +77,7 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
             string customTitle = "CodegenCS Template";
             outWindow.CreatePane(ref codegenCSOutputPane, customTitle, 1, 1);
             IVsOutputWindowPane customPane;
-            outWindow.GetPane(ref codegenCSOutputPane, out customPane);            
+            outWindow.GetPane(ref codegenCSOutputPane, out customPane);
             return customPane;
         }
 
@@ -156,7 +156,7 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
         void ClearPreviousErrors(ErrorListProvider errorListProvider)
         {
             // For VS2022 edition (libraries version >=17.x) the tasks (even ErrorTask) all inherit from Microsoft.VisualStudio.Shell.TaskListItem
-            foreach (var task in errorListProvider.Tasks.OfType<TaskListItem>())
+            foreach (var task in errorListProvider.Tasks.OfType<TaskListItem>().ToList())
             {
                 if (task.Document == _templateItemPath || !File.Exists(task.Document))
                     errorListProvider.Tasks.Remove(task);
@@ -350,14 +350,41 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
                             outputItem = parentItem.ProjectItems.AddFromFile(fullPath);
                             await Task.Delay(1); // let UI refresh
                         }
-                        if (outputItem.Properties.Item("DependentUpon").Value.ToString() != parentItem.Name)
-                            outputItem.Properties.Item("DependentUpon").Value = parentItem.Name; // TODO: check if DependentUpon works for old non-sdk-style. If needed check https://github.com/madskristensen/FileNesting 
-                        if (outputItem.Properties.Item("ItemType").Value.ToString() != o.FileType.ToString())
-                            outputItem.Properties.Item("ItemType").Value = o.FileType.ToString();
+                        if (await ContainsPropertyAsync(outputItem, "DependentUpon") && outputItem.Properties.Item("DependentUpon").Value.ToString() != parentItem.Name)
+                            await SetItemPropertyAsync(outputItem, "DependentUpon", parentItem.Name); // for non-sdk projects this property doesn't exist but the item is just nested automatically?!
+                        if (await ContainsPropertyAsync(outputItem, "ItemType") && outputItem.Properties.Item("ItemType").Value.ToString() != o.FileType.ToString())
+                            await SetItemPropertyAsync(outputItem, "ItemType", o.FileType.ToString());
                         break;
                 }
             }
         }
+
+        public static async Task<bool> ContainsPropertyAsync(ProjectItem projectItem, string propertyName)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            if (projectItem.Properties != null)
+            {
+                foreach (Property item in projectItem.Properties)
+                {
+                    if (item != null && item.Name == propertyName)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private static async Task<bool> SetItemPropertyAsync(ProjectItem item, string propertyName, string value)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            if (await ContainsPropertyAsync(item, propertyName))
+            {
+                item.Properties.Item(propertyName).Value = value;
+                return true;
+            }
+
+            return false;
+        }
+
 
         void AddError(string errorMessage, TaskCategory category, int line, int column)
         {
