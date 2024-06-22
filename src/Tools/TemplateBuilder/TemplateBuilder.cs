@@ -95,7 +95,8 @@ namespace CodegenCS.TemplateBuilder
             if (_args.VerboseMode)
                 await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Cyan}Microsoft.CodeAnalysis.CSharp.dll{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{typeof(CSharpParseOptions).Assembly.GetName().Version}{PREVIOUS_COLOR}");
 
-            var compiler = new RoslynCompiler(this, _logger, _args.ExtraReferences, _args.ExtraNamespaces);
+            var compiler = new RoslynCompiler(this, _logger, _args.VerboseMode);
+            compiler.AddReferences(_args.ExtraReferences, _args.ExtraNamespaces);
 
             var sources = inputFiles.Select(inp => inp.FullName).ToArray();
 
@@ -111,7 +112,6 @@ namespace CodegenCS.TemplateBuilder
 
             await _logger.WriteLineAsync(ConsoleColor.Green, $"\nSuccessfully built template into {ConsoleColor.White}'{targetFile}'{PREVIOUS_COLOR}.");
             return new TemplateBuilderResponse() { ReturnCode = 0, TargetFile = targetFile };
-
         }
 
 
