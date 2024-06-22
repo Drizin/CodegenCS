@@ -181,7 +181,16 @@ namespace CodegenCS.TemplateBuilder
             if (extraNamespaces != null)
                 extraNamespaces.ForEach(ns => _namespaces.Add(ns, null));
             if (extraReferences != null)
-                extraReferences.ForEach(rfc => AddAssembly(MetadataReference.CreateFromFile(rfc)));
+            {
+                extraReferences.ForEach(rfc =>
+                {
+                    if (!File.Exists(rfc) && File.Exists(Path.Combine(_dotNetCoreDir, rfc)))
+                        rfc = Path.Combine(_dotNetCoreDir, rfc);
+                    if (!File.Exists(rfc))
+                        throw new FileNotFoundException("Can't find " + rfc, rfc);
+                    AddAssembly(MetadataReference.CreateFromFile(rfc));
+                });
+            }
         }
 
 

@@ -76,8 +76,9 @@ namespace CodegenCS.DotNetTool
                     if (context.ParseResult.CommandResult.Command == _runTemplateCommand && !context.ParseResult.Errors.Any())
                     {
                         var template = context.ParseResult.GetValueForArgument(_runTemplateCommandWrapper._templateArg);
+                        var references = context.ParseResult.GetValueForOption(_runTemplateCommandWrapper._referencesArg);
 
-                        var buildResult = await _runTemplateCommandWrapper.BuildScriptAsync(template);
+                        var buildResult = await _runTemplateCommandWrapper.BuildScriptAsync(template, references);
                         if (buildResult != 0)
                         {
                             context.InvocationResult = new ErrorResult("Could not load or build template: " + template);

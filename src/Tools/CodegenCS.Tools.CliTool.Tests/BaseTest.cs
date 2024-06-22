@@ -30,11 +30,12 @@ internal class BaseTest
     [SetUp]
     public async Task Setup()
     {
-        _stdOutBuffer = new StringBuilder();
-        _stdErrBuffer = new StringBuilder();
     }
     protected async Task<CliWrap.CommandResult> Run(string arguments)
     {
+        _stdOutBuffer = new StringBuilder();
+        _stdErrBuffer = new StringBuilder();
+
         var result = await Cli.Wrap(Path.Combine(Directory.GetCurrentDirectory(), "dotnet-codegencs.exe"))
             .WithArguments(arguments)
             .WithWorkingDirectory(Directory.GetCurrentDirectory())

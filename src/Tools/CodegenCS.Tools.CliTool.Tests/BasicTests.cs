@@ -129,6 +129,42 @@ namespace CodegenCS.Tools.CliTool.Tests
             StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
             FileAssert.Exists("SimplePocos.dll");
         }
+
+        [Test]
+        public async Task BuildTemplateWithCliReferences()
+        {
+            if (File.Exists("TemplateWithReferences.cs"))
+                File.Delete("TemplateWithReferences.cs");
+            File.WriteAllText("TemplateWithReferences.cs", """
+                using System.IO;
+                using System.Xml;
+                using System;
+
+                class MyTemplate
+                {
+                    async Task<FormattableString> Main(ILogger logger) 
+                    {
+                        XmlDocument doc = new XmlDocument();
+                        await logger.WriteLineAsync($"Generating MyTemplate...");
+                        return $"My first template";
+                    }
+                }
+                """);
+            var result = await Run("template build TemplateWithReferences.cs -r:System.Xml.dll -r:System.Xml.ReaderWriter.dll -r:System.Private.Xml.dll");
+            Assert.AreEqual(0, result.ExitCode);
+            StringAssert.Contains("Building 'TemplateWithReferences.cs'...", _stdOut);
+            StringAssert.Contains("Successfully built template into 'TemplateWithReferences.dll'.", _stdOut);
+            StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
+            FileAssert.Exists("TemplateWithReferences.dll");
+            File.Delete("TemplateWithReferences.cs");
+
+            //TODO: will template run work with third-party (non-framework) references?
+            string cmd = $"template run TemplateWithReferences.dll";
+            result = await Run(cmd);
+            Assert.AreEqual(0, result.ExitCode);
+            FileAssert.Exists("TemplateWithReferences.generated.cs");
+            StringAssert.Contains("My first template", File.ReadAllText(("TemplateWithReferences.generated.cs")));
+        }
         #endregion
 
         #region Template Run
@@ -200,6 +236,37 @@ namespace CodegenCS.Tools.CliTool.Tests
             StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(("Person.Address.generated.cs")));
         }
 
+        [Test]
+        public async Task RunTemplateWithCliReferences()
+        {
+            if (File.Exists("TemplateWithReferences.cs"))
+                File.Delete("TemplateWithReferences.cs");
+            File.WriteAllText("TemplateWithReferences.cs", """
+                using System.IO;
+                using System.Xml;
+                using System;
+
+                class MyTemplate
+                {
+                    async Task<FormattableString> Main(ILogger logger) 
+                    {
+                        XmlDocument doc = new XmlDocument();
+                        await logger.WriteLineAsync($"Generating MyTemplate...");
+                        return $"My first template";
+                    }
+                }
+                """);
+            var result = await Run("template run TemplateWithReferences.cs -r:System.Xml.dll -r:System.Xml.ReaderWriter.dll -r:System.Private.Xml.dll");
+            Assert.AreEqual(0, result.ExitCode);
+            StringAssert.Contains("Building 'TemplateWithReferences.cs'...", _stdOut);
+            StringAssert.Contains("Successfully built template into", _stdOut); // ... 'TemplateWithReferences.dll'
+            StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
+            FileAssert.Exists("TemplateWithReferences.dll");
+            FileAssert.Exists("TemplateWithReferences.generated.cs");
+            StringAssert.Contains("My first template", File.ReadAllText(("TemplateWithReferences.generated.cs")));
+            File.Delete("TemplateWithReferences.cs");
+            File.Delete("TemplateWithReferences.generated.cs");
+        }
 
         #endregion
 

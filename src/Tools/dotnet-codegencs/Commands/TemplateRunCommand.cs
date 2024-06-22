@@ -12,6 +12,7 @@ using DependencyContainer = CodegenCS.Utils.DependencyContainer;
 using System.Reflection;
 using CodegenCS.Runtime;
 using ExecutionContext = CodegenCS.Runtime.ExecutionContext;
+using System.Collections.Generic;
 
 namespace CodegenCS.DotNetTool.Commands
 {
@@ -20,6 +21,7 @@ namespace CodegenCS.DotNetTool.Commands
         internal readonly Argument<string> _templateArg;
         internal readonly Argument<string[]> _modelsArg;
         internal readonly Argument<string[]> _templateSpecificArguments;
+        internal readonly Option<string[]> _referencesArg;
 
         internal bool _verboseMode = false;
         private bool _showTemplateHelp = false;
@@ -55,6 +57,20 @@ namespace CodegenCS.DotNetTool.Commands
                 //Arity = ArgumentArity.ZeroOrMore,
                 HelpName ="template_args"
             };
+
+            _referencesArg = new Option<string[]>(new[] { "--reference", "-r" }, parseArgument: ParseAssemblyReferences, description:
+                """
+                Add dll references
+                Can use full path or relative path.
+                Relative paths will first search relative to current location,
+                and if not found will look relative to dotnet core libraries location
+                (e.g. C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.5)
+                Examples: -r:System.Xml.dll
+                Examples: -r:\"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.5\System.Xml.dll\"
+                """
+            )
+            { Arity = ArgumentArity.ZeroOrMore, ArgumentHelpName = "dll_reference" };
+
             _logger = new ColoredConsoleLogger();
             
             if (fakeTemplateCommand == null)
@@ -78,6 +94,8 @@ namespace CodegenCS.DotNetTool.Commands
             command.AddArgument(_modelsArg);
 
             command.AddArgument(_templateSpecificArguments);
+
+            command.AddOption(_referencesArg);
 
             command.Handler = CommandHandler.Create<InvocationContext, ParseResult, CommandArgs>(HandleCommand);
             // a Custom Binder (inheriting from BinderBase<CommandArgs>) could be used to create CommandArgs (defining which arguments are Models and which ones are TemplateArgs):
@@ -138,12 +156,19 @@ namespace CodegenCS.DotNetTool.Commands
                 Console.WriteLine(ConsoleColor.DarkGray, $"[DEBUG] TemplateArgs: <none>");
             return arr;
         }
+        string[] ParseAssemblyReferences(ArgumentResult result)
+        {
+            var references = result.Tokens.Select(t => t.Value).ToArray();
+            if (_verboseMode)
+                Console.WriteLine(ConsoleColor.DarkGray, $"[DEBUG] AssemblyReferences: {ConsoleColor.Yellow}'{String.Join("', '", references)}'{PREVIOUS_COLOR}");
+            return references;
+        }
 
 
         /// <summary>
         /// If template is not yet built (DLL), builds CS or CSX into a DLL
         /// </summary>
-        public async Task<int> BuildScriptAsync(string template)
+        public async Task<int> BuildScriptAsync(string template, string[] references)
         {
             string currentCommand = "dotnet-codegencs template run";
             using (var consoleContext = Console.WithColor(ConsoleColor.Cyan))
@@ -190,6 +215,7 @@ namespace CodegenCS.DotNetTool.Commands
                     //TODO define folder+filename by hash of template name+contents, to cache results.
                     Output = Path.Combine(tmpFolder, Path.GetFileNameWithoutExtension(_templateFile.FullName)) + ".dll",
                     VerboseMode = _verboseMode,
+                    ExtraReferences = references.ToList(),
                 };
                 var builder = new TemplateBuilder.TemplateBuilder(_logger, builderArgs);
 
@@ -258,6 +284,7 @@ namespace CodegenCS.DotNetTool.Commands
                     ExecutionFolder = Directory.GetCurrentDirectory(),
                     DefaultOutputFile = cliArgs.File,
                     TemplateSpecificArguments = cliArgs.TemplateArgs,
+                    //TODO: do we have to pass third-party (non-framework) references here so they can be loaded?
                 };
 
                 statusCode = await _launcher.ExecuteAsync(launcherArgs, parseResult);

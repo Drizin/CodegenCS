@@ -96,7 +96,15 @@ namespace CodegenCS.TemplateBuilder
                 await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Cyan}Microsoft.CodeAnalysis.CSharp.dll{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{typeof(CSharpParseOptions).Assembly.GetName().Version}{PREVIOUS_COLOR}");
 
             var compiler = new RoslynCompiler(this, _logger, _args.VerboseMode);
-            compiler.AddReferences(_args.ExtraReferences, _args.ExtraNamespaces);
+
+            try
+            {
+                compiler.AddReferences(_args.ExtraReferences, _args.ExtraNamespaces);
+            }
+            catch (FileNotFoundException ex)
+            {
+                return new TemplateBuilderResponse() { ReturnCode = -1, CompilationErrors = new List<CompilationError>() { new CompilationError() { Message = "Assembly reference not found: " + ex.FileName} } };
+            }
 
             var sources = inputFiles.Select(inp => inp.FullName).ToArray();
 
