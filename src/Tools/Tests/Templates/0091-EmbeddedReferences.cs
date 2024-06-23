@@ -2,7 +2,7 @@
 // Those assemblies can be absolute paths, can be relative to the template, or (most common) can just be looked up inside dotnet assemblies folder
 #r "System.Xml.dll"
 #r "System.Xml.ReaderWriter.dll"
-#r "System.Private.Xml.dll"
+#r "System.Private.Xml.dll" // only for net5+ (for old .net framework <=net472 comment-out this line)
 using System.IO;
 using System.Xml;
 using System;
@@ -13,6 +13,6 @@ class MyTemplate
     {
         XmlDocument doc = new XmlDocument();
         await logger.WriteLineAsync($"Generating MyTemplate...");
-        return $"My first template";
+        return $"My template worked";
     }
 }

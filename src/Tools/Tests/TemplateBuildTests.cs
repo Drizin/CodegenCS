@@ -19,6 +19,11 @@ namespace CodegenCS.Tools.Tests
         [Test, TestCaseSource("GetTemplates")]
         public async Task TestTemplate(string templateFile)
         {
+#if NETFRAMEWORK
+            // #r "System.Private.Xml.dll" is only for NET5+ .. and CLI tool is also NET5+ so maybe we should just remove net472 target for unit tests
+            if (templateFile.EndsWith(@"\0091-EmbeddedReferences.cs"))
+                return;
+#endif
             _tmpFolder = Path.Combine(Path.GetTempPath() ?? Directory.GetCurrentDirectory(), Guid.NewGuid().ToString());
             new DirectoryInfo(_tmpFolder).Create();
             _tmpDll = Path.Combine(_tmpFolder, Guid.NewGuid().ToString() + ".dll");

@@ -1074,13 +1074,37 @@ class MyTemplate
 {
     async Task<FormattableString> Main()
     {
-        XmlDocument doc = new XmlDocument(); // etc
-        return $"My first template";
+        XmlDocument doc = new XmlDocument();
+        // etc
+        return $"My template worked";
     }
 }
 ```
 
 In both cases references can be absolute path, can be relative to the template source, or will be looked up in dotnet core assemblies folder.
+
+## MS SQL
+
+```cs
+#r "System.Data.dll"
+#r "System.Data.SqlClient.dll"
+#r "System.Data.Common.dll"
+using System.Data.SqlClient;
+
+class MyTemplate
+{
+    string CONNECTION_STRING = "Data Source=(local);Initial Catalog=AdventureWorks2019;Integrated Security=True;";
+    async Task<FormattableString> Main()
+    {
+        using (SqlConnection sqlConnection = new SqlConnection(CONNECTION_STRING))
+        {
+            sqlConnection.Open();
+            //etc
+        }
+        return $"My template worked";
+    }
+}
+```
 
 ## Debugging Support
 
