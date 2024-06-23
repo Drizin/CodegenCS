@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="CodegenCS.VisualStudio2019.70de5ea2-c6df-43a8-ac56-64c7a051c278y" Version="3.7.1" Language="en-US" Publisher="Rick Drizin" />
+        <Identity Id="CodegenCS.VisualStudio2019.70de5ea2-c6df-43a8-ac56-64c7a051c278y" Version="3.7.2" Language="en-US" Publisher="Rick Drizin" />
         <DisplayName>CodegenCS Code Generator (Compatibility Edition)</DisplayName>
         <Description xml:space="preserve">Run CodegenCS Templates from Visual Studio (Compatibility Edition - for Visual Studio 2019 or older).</Description>
     </Metadata>
