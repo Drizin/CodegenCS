@@ -1053,6 +1053,35 @@ class MyTemplate
 }
 ```
 
+## Referencing Assemblies
+
+Our compiler will automatically include a lot of common assembly references (and their respective namespaces) to keep templates as simple as possible.  
+
+If you need to reference other assemblies you can do it in the CLI tool using `-r` (or `--reference`):
+```
+dotnet-codegencs template build TemplateWithReferences.cs -r:System.Xml.dll -r:System.Xml.ReaderWriter.dll -r:System.Private.Xml.dll
+```
+
+Or you can just embed it inside template:
+
+```cs
+#r "System.Xml.dll"
+#r "System.Xml.ReaderWriter.dll"
+#r "System.Private.Xml.dll"
+using System.Xml;
+
+class MyTemplate
+{
+    async Task<FormattableString> Main()
+    {
+        XmlDocument doc = new XmlDocument(); // etc
+        return $"My first template";
+    }
+}
+```
+
+In both cases references can be absolute path, can be relative to the template source, or will be looked up in dotnet core assemblies folder.
+
 ## Debugging Support
 
 It's possible to debug templates using Visual Studio.  
@@ -1151,7 +1180,7 @@ Besides that, I've always had some bad experiences with T4 templates (including 
 
 # Stargazers over time
 
-[![Star History Chart](https://api.star-history.com/svg?repos=CodegenCS/CodegenCS&type=Date)](https://star-history.com/#CodegenCS/CodegenCS&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Drizin/CodegenCS&type=Date)](https://star-history.com/#Drizin/CodegenCS&Date)
 
 # License
 MIT License

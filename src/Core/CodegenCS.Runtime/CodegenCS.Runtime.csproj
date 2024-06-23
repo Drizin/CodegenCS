@@ -8,7 +8,7 @@
     <Description>Class Library and Toolkit for Code Generation using plain C#</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
-    <Version>3.4.1</Version>
+    <Version>3.5.0</Version>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
@@ -53,7 +53,7 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="CodegenCS.Core" Version="3.4.1" />
+        <PackageReference Include="CodegenCS.Core" Version="3.5.0" />
       </ItemGroup>
     </Otherwise>
   </Choose>

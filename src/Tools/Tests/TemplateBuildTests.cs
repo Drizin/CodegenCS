@@ -1,14 +1,8 @@
-﻿using DependencyContainer = CodegenCS.Utils.DependencyContainer;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using TemplateLauncherArgs = CodegenCS.TemplateLauncher.TemplateLauncher.TemplateLauncherArgs;
-using TemplateBuilderArgs = CodegenCS.TemplateBuilder.TemplateBuilder.TemplateBuilderArgs;
 using System.Linq;
-using System.CommandLine;
-using System.CommandLine.Parsing;
-using CodegenCS.Runtime;
 using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 namespace CodegenCS.Tools.Tests
