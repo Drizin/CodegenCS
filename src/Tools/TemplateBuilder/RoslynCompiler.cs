@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CompilationError = CodegenCS.TemplateBuilder.TemplateBuilder.CompilationError;
@@ -256,11 +257,39 @@ namespace CodegenCS.TemplateBuilder
         }
 
         #region Compile
+        protected static readonly Regex _lineBreaksRegex = new Regex(@"(\r\n|\n|\r)", RegexOptions.Compiled);
         public async Task<CompileResult> CompileAsync(string[] sources, string targetFile)
         {
-            var syntaxTrees = sources.Select(source => CSharpSyntaxTree.ParseText(File.ReadAllText(source), _parseOptions)).ToList();
-            // ParseText really better? https://stackoverflow.com/questions/16338131/using-roslyn-to-parse-transform-generate-code-am-i-aiming-too-high-or-too-low
-            //SyntaxFactory.ParseSyntaxTree(SourceText.From(text, Encoding.UTF8), options, filename);
+            var sourcesContents = sources.Select(s => new StringBuilder(File.ReadAllText(s)));
+            List<SyntaxTree> syntaxTrees = new List<SyntaxTree>();
+            foreach (var source in sourcesContents) 
+            {
+                // ParseText really better? https://stackoverflow.com/questions/16338131/using-roslyn-to-parse-transform-generate-code-am-i-aiming-too-high-or-too-low
+                //SyntaxFactory.ParseSyntaxTree(SourceText.From(text, Encoding.UTF8), options, filename);
+                var syntaxTree = CSharpSyntaxTree.ParseText(source.ToString(), _parseOptions);
+
+                var references = syntaxTree.GetRoot().DescendantNodes(s => true, true).Where(c => c.Kind() == SyntaxKind.ReferenceDirectiveTrivia);
+                if (references.Any())
+                {
+                    foreach (var reference in references)
+                    {
+                        var file = ((ReferenceDirectiveTriviaSyntax)reference).File.ValueText;
+                        if (!File.Exists(file) && File.Exists(Path.Combine(_dotNetCoreDir, file)))
+                            file = Path.Combine(_dotNetCoreDir, file);
+                        if (!File.Exists(file))
+                            throw new FileNotFoundException("Can't find " + file, file);
+                        AddAssembly(MetadataReference.CreateFromFile(file));
+                        // can I just remove nodes from SyntaxTree without creating a CSharpSyntaxRewriter?
+                        // I guess it's just easier to strip the #r directives and reparse the modified source
+                        // (replacing the stripped tokens with whitespace to preserve same line numbers and same token offsets)
+                        var text = source.ToString().Substring(reference.SpanStart, reference.Span.Length);
+                        var replace = new string(' ', reference.Span.Length);
+                        var x = source.Replace(text, replace, reference.SpanStart, reference.Span.Length);
+                    }
+                    syntaxTree = CSharpSyntaxTree.ParseText(source.ToString(), _parseOptions);
+                }
+                syntaxTrees.Add(syntaxTree);
+            }
 
             await AddMissingUsings(syntaxTrees);
 
