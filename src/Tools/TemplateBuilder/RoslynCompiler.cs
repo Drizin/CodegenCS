@@ -158,7 +158,7 @@ namespace CodegenCS.TemplateBuilder
             AddAssembly(MetadataReference.CreateFromFile(typeof(NSwag.OpenApiDocument).GetTypeInfo().Assembly.Location)); // NSwag.Core
             AddAssembly(MetadataReference.CreateFromFile(typeof(NSwag.OpenApiYamlDocument).GetTypeInfo().Assembly.Location)); // NSwag.Core.Yaml
             AddAssembly(MetadataReference.CreateFromFile(typeof(NJsonSchema.JsonSchema).GetTypeInfo().Assembly.Location)); // NJsonSchema
-            AddAssembly(MetadataReference.CreateFromFile(typeof(NJsonSchema.Annotations.JsonSchemaAttribute).GetTypeInfo().Assembly.Location)); // NJsonSchema.Annotations
+            AddAssembly(MetadataReference.CreateFromFile(typeof(NJsonSchema.Annotations.JsonSchemaAttribute).GetTypeInfo().Assembly.Location)); // NJsonSchema.Annotations //TODO: probably we can remove this dependency and add it only to NSwagClient.cs?
             _namespaces.Add("NSwag", templateSource => Regex.IsMatch(templateSource, @"(?<!\.)\bOpenApiDocument\b"));
 
             // Newtonsoft
@@ -268,7 +268,7 @@ namespace CodegenCS.TemplateBuilder
                 //SyntaxFactory.ParseSyntaxTree(SourceText.From(text, Encoding.UTF8), options, filename);
                 var syntaxTree = CSharpSyntaxTree.ParseText(source.ToString(), _parseOptions);
 
-                var references = syntaxTree.GetRoot().DescendantNodes(s => true, true).Where(c => c.Kind() == SyntaxKind.ReferenceDirectiveTrivia);
+                var references = syntaxTree.GetRoot().DescendantNodes(s => true, true).Where(c => c.IsKind(SyntaxKind.ReferenceDirectiveTrivia));
                 if (references.Any())
                 {
                     foreach (var reference in references)
@@ -310,13 +310,13 @@ namespace CodegenCS.TemplateBuilder
                 {
                     var lineStart = diag.Location.GetLineSpan().StartLinePosition.Line;
                     var lineEnd = diag.Location.GetLineSpan().EndLinePosition.Line;
-                    await _logger.WriteLineErrorAsync(color, $"  {diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
+                    await _logger?.WriteLineErrorAsync(color, $"  {diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
                     compilationErrors.Add(new CompilationError() { Message = diag.GetMessage(), Line = lineStart, Column = diag.Location.GetLineSpan().StartLinePosition.Character });
                 };
                 var errors = emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
                 if (errors.Any())
                 {
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Errors: ");
+                    await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"Errors: ");
                     foreach (var error in errors)
                         await writeErrorAsync(ConsoleColor.Red, error);
                 }
@@ -325,13 +325,13 @@ namespace CodegenCS.TemplateBuilder
                 {
                     var lineStart = diag.Location.GetLineSpan().StartLinePosition.Line;
                     var lineEnd = diag.Location.GetLineSpan().EndLinePosition.Line;
-                    await _logger.WriteLineAsync(color, $"  {diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
+                    await _logger?.WriteLineAsync(color, $"  {diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
                 };
 
                 var warnings = emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Warning);
                 if (warnings.Any())
                 {
-                    await _logger.WriteLineAsync(ConsoleColor.Yellow, $"Warnings: ");
+                    await _logger?.WriteLineAsync(ConsoleColor.Yellow, $"Warnings: ");
                     foreach (var warning in warnings)
                         await writeWarningAsync(ConsoleColor.Yellow, warning);
                 }
@@ -375,13 +375,13 @@ namespace CodegenCS.TemplateBuilder
                     if (ns.Value == null)
                     {
                         if (_verboseMode)
-                            await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"Automatically adding namespace \"{ns.Key}\"");
+                            await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"Automatically adding namespace \"{ns.Key}\"");
                         AddMissingUsing(ref rootNode, ns.Key);
                     }
                     else if (ns.Value(templateSource))
                     {
                         if (_verboseMode)
-                            await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"Automatically adding namespace \"{ns.Key}\" (due to matching regex)");
+                            await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"Automatically adding namespace \"{ns.Key}\" (due to matching regex)");
                         AddMissingUsing(ref rootNode, ns.Key);
                     }
                 }

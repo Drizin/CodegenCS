@@ -13,7 +13,7 @@
     // Subtemplates should ideally be a METHOD that returns the type you need.
     // (in this case the method returns another interpolated string)
     FormattableString GenerateClass(string className, string name) => $$"""
-        public class {{className}}()
+        public class {{className}}
         {
             public {{className}}()
             {

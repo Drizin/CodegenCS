@@ -1,6 +1,6 @@
 namespace MyNamespace
 {
-    public class MyFirstClass()
+    public class MyFirstClass
     {
         public MyFirstClass()
         {

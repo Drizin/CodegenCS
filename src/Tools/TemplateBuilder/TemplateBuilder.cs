@@ -72,7 +72,7 @@ namespace CodegenCS.TemplateBuilder
             {
                 if (!((inputFiles[i] = new FileInfo(_args.Template[i])).Exists || (inputFiles[i] = new FileInfo(_args.Template[i] + ".cs")).Exists || (inputFiles[i] = new FileInfo(_args.Template[i] + ".csx")).Exists))
                 {
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Cannot find Template Script {ConsoleColor.Yellow}'{_args.Template[i]}'{PREVIOUS_COLOR}");
+                    await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"Cannot find Template Script {ConsoleColor.Yellow}'{_args.Template[i]}'{PREVIOUS_COLOR}");
                     return new TemplateBuilderResponse() { ReturnCode = -1 };
                 }
             }
@@ -89,11 +89,11 @@ namespace CodegenCS.TemplateBuilder
                     outputFileName = Path.GetFileNameWithoutExtension(_args.Output) + ".dll";
             }
 
-            await _logger.WriteLineAsync(ConsoleColor.Green, $"Building {ConsoleColor.Yellow}'{string.Join(", ", inputFiles.Select(inp => inp.Name))}'{PREVIOUS_COLOR}...");
+            await _logger?.WriteLineAsync(ConsoleColor.Green, $"Building {ConsoleColor.Yellow}'{string.Join(", ", inputFiles.Select(inp => inp.Name))}'{PREVIOUS_COLOR}...");
 
 
             if (_args.VerboseMode)
-                await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Cyan}Microsoft.CodeAnalysis.CSharp.dll{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{typeof(CSharpParseOptions).Assembly.GetName().Version}{PREVIOUS_COLOR}");
+                await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Cyan}Microsoft.CodeAnalysis.CSharp.dll{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{typeof(CSharpParseOptions).Assembly.GetName().Version}{PREVIOUS_COLOR}");
 
             var compiler = new RoslynCompiler(this, _logger, _args.VerboseMode);
 
@@ -114,11 +114,11 @@ namespace CodegenCS.TemplateBuilder
 
             if (!compilationResult.Success)
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Error while building '{string.Join(", ", inputFiles.Select(inp => inp.Name))}'.");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"Error while building '{string.Join(", ", inputFiles.Select(inp => inp.Name))}'.");
                 return new TemplateBuilderResponse() { ReturnCode = -1, CompilationErrors = compilationResult.Errors };
             }
 
-            await _logger.WriteLineAsync(ConsoleColor.Green, $"\nSuccessfully built template into {ConsoleColor.White}'{targetFile}'{PREVIOUS_COLOR}.");
+            await _logger?.WriteLineAsync(ConsoleColor.Green, $"\nSuccessfully built template into {ConsoleColor.White}'{targetFile}'{PREVIOUS_COLOR}.");
             return new TemplateBuilderResponse() { ReturnCode = 0, TargetFile = targetFile };
         }
 

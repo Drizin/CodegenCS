@@ -1136,7 +1136,7 @@ Most users won't ever need to download or interact directly with CodegenCS libra
 But if you need to use our libraries in your own projects most libraries are available as nuget packages - cross-platform and available for `netstandard2.0`/`net472`/`net5.0`/`net6.0`/`net7.0`/`net8.0`.
 
 - [CodegenCS.Core](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS) is the backbone of the toolkit.  
-  Contains `CodegenTextWriter`, `CodegenContext`, `CodegenOutputFile`, all indent control, string interpolation parsing, delegates evaluation/reflection, etc.  
+  It contains `CodegenTextWriter`, `CodegenContext`, `CodegenOutputFile`, all indent control, string interpolation parsing, delegates evaluation/reflection, etc.  
   [![Nuget](https://img.shields.io/nuget/v/CodegenCS.Core?label=CodegenCS.Core)](https://www.nuget.org/packages/CodegenCS.Core)
   [![Downloads](https://img.shields.io/nuget/dt/CodegenCS.Core.svg)](https://www.nuget.org/packages/CodegenCS.Core)  
 - [CodegenCS.Models](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS.Models): interfaces for models, factories for loading models
@@ -1181,13 +1181,13 @@ Check out [CodegenCS vs T4 Templates](https://github.com/Drizin/CodegenCS/tree/m
 ## How does CodegenCS compare to Roslyn?
 
 Check out [CodegenCS vs Roslyn](https://github.com/Drizin/CodegenCS/tree/master/docs/Comparison-Roslyn.md)  
-(Spoiler: That's not an apples-to-apples comparison. Roslyn should be used to analyze compilation syntax-trees and eventually generate code based on that syntax tree - CodegenCS was not created for that)
+(Spoiler: That's not an apples-to-apples comparison. Roslyn should be used to analyze compilation syntax-trees and eventually generate code **based** on that syntax tree - but generating code using syntax-trees is painful and nonsense. CodegenCS was created for generating human-readable code and let the hard-work of syntax trees be done by a compiler).
 
 ## Why yet another Code Generator? Why not T4, Liquid, Razor, etc?
 
 In this [blog post](https://rickdrizin.com/yet-another-code-generator) I explain how I've started this project: basically I was searching for a code generator and I had some simple requirements: I wanted debugging support, subtemplates support, and subtemplates should respect the indentation of the parent block (I wanted to avoid mixed-indentation which causes unmaintainable code). I tried many tools and libraries but couldn't find anything meeting those requirements, that's why I've created this project.
 
-Besides that, I've always had some bad experiences with T4 templates (including code difficult to read and maintain, and backward-compatibility issues every time I upgrade my Visual Studio). Last, I believe that templating engines are great for some things (like creating Email templates) due to their sandboxed model, but I think there's nothing better for developers than a full-featured language (and IDE support). 
+Besides that, I've always had some bad experiences with T4 templates (including code difficult to read and maintain, and backward-compatibility issues every time I upgrade my Visual Studio). Last, I believe that templating engines are great for some things (like creating e-mail templates) due to their sandboxed model, but I think there's nothing better for developers than a full-featured language (and IDE support). 
 
 <!-- 
 
@@ -1208,4 +1208,6 @@ Besides that, I've always had some bad experiences with T4 templates (including 
 
 # License
 MIT License
+
+That means you're free to do what you want - but consider [buying me a coffee](https://github.com/sponsors/Drizin) or [hiring me](https://rickdrizin.com/pages/Contact/) for customizations or for building a template for your company.
 

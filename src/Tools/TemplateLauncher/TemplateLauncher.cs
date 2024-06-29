@@ -60,9 +60,9 @@ namespace CodegenCS.TemplateLauncher
                 var exCtx = parentDependencyContainer.Resolve<ExecutionContext>();
                 searchPaths = new string[] { new FileInfo(exCtx.TemplatePath).Directory.FullName, exCtx.CurrentDirectory };
             }
-            catch (Exception ex) 
+            catch (InvalidOperationException ex) when (ex.Message.Contains("is not registered"))
             {
-                _logger.WriteLineErrorAsync("Can't resolve ExecutionContext");
+                _logger?.WriteLineErrorAsync("Can't resolve ExecutionContext");
             }
             _dependencyContainer.AddModelFactory(searchPaths);
             _modelFactory = _dependencyContainer.Resolve<IModelFactory>();
@@ -130,22 +130,22 @@ namespace CodegenCS.TemplateLauncher
         {
             if (!((_templateFile = new FileInfo(templateDll)).Exists || (_templateFile = new FileInfo(templateDll + ".dll")).Exists))
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Cannot find Template DLL {templateDll}");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Cannot find Template DLL {templateDll}");
                 return new TemplateLoadResponse() { ReturnCode = -1 };
             }
 
-            await _logger.WriteLineAsync(ConsoleColor.Green, $"Loading {ConsoleColor.Yellow}'{_templateFile.Name}'{PREVIOUS_COLOR}...");
+            await _logger?.WriteLineAsync(ConsoleColor.Green, $"Loading {ConsoleColor.Yellow}'{_templateFile.Name}'{PREVIOUS_COLOR}...");
 
             bool success = await FindEntryPoint(providedModels);
 
             if (!success || _entryPointClass == null || _entryPointMethod == null)
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find template entry-point in '{(_originallyInvokedTemplateFile ?? _templateFile).Name}'.");
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Template should have a method called TemplateMain().");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find template entry-point in '{(_originallyInvokedTemplateFile ?? _templateFile).Name}'.");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"Template should have a method called TemplateMain().");
                 return new TemplateLoadResponse() { ReturnCode = -1 };
             }
 
-            await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Template entry-point: {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR}...");
+            await _logger?.WriteLineAsync(ConsoleColor.Cyan, $"Template entry-point: {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR}...");
 
             if (_templatingInterface != null) // old interfaces already define _expectedModels/_model1Type/_model2Type
             {                
@@ -160,7 +160,7 @@ namespace CodegenCS.TemplateLauncher
 
             if (bestCtor == null)
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find a possible constructor in '{_entryPointMethod.Name}'.");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Could not find a possible constructor in '{_entryPointMethod.Name}'.");
                 return new TemplateLoadResponse() { ReturnCode = -1 };
             }
 
@@ -174,7 +174,7 @@ namespace CodegenCS.TemplateLauncher
 
             if (ctorModels.Any() && entrypointModels.Any())
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with {_entryPointMethod.Name}() entry-point may receive models in the entry-point or in the constructor, but not in both.");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates with {_entryPointMethod.Name}() entry-point may receive models in the entry-point or in the constructor, but not in both.");
                 return new TemplateLoadResponse() { ReturnCode = -1 };
             }
 
@@ -187,7 +187,7 @@ namespace CodegenCS.TemplateLauncher
                 _model1Type = expectedModels[1];
             if (_expectedModels >= 3)
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates invoked from dotnet-codegencs can expect up to 2 models - but this one expects {ConsoleColor.Yellow}'{string.Join("', '", entrypointModels.Select(t => t.Name))}'{PREVIOUS_COLOR}");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Templates invoked from dotnet-codegencs can expect up to 2 models - but this one expects {ConsoleColor.Yellow}'{string.Join("', '", entrypointModels.Select(t => t.Name))}'{PREVIOUS_COLOR}");
                 return new TemplateLoadResponse() { ReturnCode = -1 };
             }
 
@@ -203,7 +203,7 @@ namespace CodegenCS.TemplateLauncher
             var asm = Assembly.LoadFile(_templateFile.FullName);
 
             if (asm.GetName().Version?.ToString() != "0.0.0.0")
-                await _logger.WriteLineAsync($"{ConsoleColor.Cyan}{_templateFile.Name}{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{asm.GetName().Version}{PREVIOUS_COLOR}");
+                await _logger?.WriteLineAsync($"{ConsoleColor.Cyan}{_templateFile.Name}{PREVIOUS_COLOR} version {ConsoleColor.Cyan}{asm.GetName().Version}{PREVIOUS_COLOR}");
 
             List<MethodInfo> candidates;
 
@@ -342,7 +342,7 @@ namespace CodegenCS.TemplateLauncher
 
                 if (_entryPointMethod == null)
                     _entryPointMethod = _templatingInterface.GetMethod("Render", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public);
-                await _logger.WriteLineAsync(ConsoleColor.Yellow, $"WARNING: Templating interfaces ICodegenTemplate/ICodegenMultifileTemplate/ICodegenStringTemplate are deprecated and should be replaced by TemplateMain() entrypoint.");
+                await _logger?.WriteLineAsync(ConsoleColor.Yellow, $"WARNING: Templating interfaces ICodegenTemplate/ICodegenMultifileTemplate/ICodegenStringTemplate are deprecated and should be replaced by TemplateMain() entrypoint.");
                 await Task.Delay(2000);
                 return true;
             }
@@ -434,7 +434,7 @@ namespace CodegenCS.TemplateLauncher
                 {
                     if (!((_modelFiles[i] = new FileInfo(model)).Exists || (_modelFiles[i] = new FileInfo(model + ".json")).Exists || (_modelFiles[i] = new FileInfo(model + ".yaml")).Exists))
                     {
-                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Cannot find find model {model}");
+                        await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Cannot find find model {model}");
                         return -1;
                     }
                 }
@@ -479,15 +479,15 @@ namespace CodegenCS.TemplateLauncher
             {
                 if (VerboseMode)
                 {
-                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Yellow}ConfigureCommand(Command){PREVIOUS_COLOR} method was found.");
-                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"The following args will be forwarded to the template: {ConsoleColor.Yellow}'{string.Join("', '", _args.TemplateSpecificArguments)}'{PREVIOUS_COLOR}...");
-                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"These args can be injected into your template using {ConsoleColor.Yellow}CommandLineArgs{PREVIOUS_COLOR} class");
-                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"or using any custom class that implements {ConsoleColor.Yellow}IAutoBindCommandLineArgs{PREVIOUS_COLOR}");
+                    await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Yellow}ConfigureCommand(Command){PREVIOUS_COLOR} method was found.");
+                    await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"The following args will be forwarded to the template: {ConsoleColor.Yellow}'{string.Join("', '", _args.TemplateSpecificArguments)}'{PREVIOUS_COLOR}...");
+                    await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"These args can be injected into your template using {ConsoleColor.Yellow}CommandLineArgs{PREVIOUS_COLOR} class");
+                    await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"or using any custom class that implements {ConsoleColor.Yellow}IAutoBindCommandLineArgs{PREVIOUS_COLOR}");
                 }
                 if (ParseCliUsingCustomCommand != null)
                 {
                     if (VerboseMode)
-                        await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"Parsing command-line arguments to check if they match the options/args defined in ConfigureCommand()...");
+                        await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"Parsing command-line arguments to check if they match the options/args defined in ConfigureCommand()...");
                     parseResult = ParseCliUsingCustomCommand(providedTemplateName, _model1Type, _model2Type, _ctx.DependencyContainer, configureCommand, parseResult);
                 }
             }
@@ -495,9 +495,9 @@ namespace CodegenCS.TemplateLauncher
             {
                 if (VerboseMode)
                 {
-                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Yellow}ConfigureCommand(Command){PREVIOUS_COLOR} method was not found.");
-                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"The following args will be forwarded to the template: {ConsoleColor.Yellow}'{string.Join("', '", _args.TemplateSpecificArguments)}'{PREVIOUS_COLOR}...");
-                    await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"These args can be injected into your template using {ConsoleColor.Yellow}CommandLineArgs{PREVIOUS_COLOR} class.");
+                    await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"{ConsoleColor.Yellow}ConfigureCommand(Command){PREVIOUS_COLOR} method was not found.");
+                    await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"The following args will be forwarded to the template: {ConsoleColor.Yellow}'{string.Join("', '", _args.TemplateSpecificArguments)}'{PREVIOUS_COLOR}...");
+                    await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"These args can be injected into your template using {ConsoleColor.Yellow}CommandLineArgs{PREVIOUS_COLOR} class.");
                 }
             }
 
@@ -517,7 +517,7 @@ namespace CodegenCS.TemplateLauncher
 
             if (_expectedModels > _modelFiles.Count())
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Template entry-point {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR} requires {ConsoleColor.White}{_expectedModels}{PREVIOUS_COLOR} model(s) but got only {ConsoleColor.White}{_modelFiles.Count()}{PREVIOUS_COLOR}.");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Template entry-point {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR} requires {ConsoleColor.White}{_expectedModels}{PREVIOUS_COLOR} model(s) but got only {ConsoleColor.White}{_modelFiles.Count()}{PREVIOUS_COLOR}.");
 
                 if (parseResult != null)
                     ShowParseResults(bindingContext, parseResult);
@@ -525,8 +525,8 @@ namespace CodegenCS.TemplateLauncher
             }
             if (_expectedModels < _modelFiles.Count())
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Template entry-point {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR} requires {ConsoleColor.White}{_expectedModels}{PREVIOUS_COLOR} model(s) and got {ConsoleColor.White}{_modelFiles.Count()}{PREVIOUS_COLOR}.");
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Maybe your template expects a model class and you forgot to use IInputModel interface? Or maybe you have provided an extra arg which is not expected?");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: Template entry-point {ConsoleColor.White}'{_entryPointClass.Name}.{_entryPointMethod.Name}()'{PREVIOUS_COLOR} requires {ConsoleColor.White}{_expectedModels}{PREVIOUS_COLOR} model(s) and got {ConsoleColor.White}{_modelFiles.Count()}{PREVIOUS_COLOR}.");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"Maybe your template expects a model class and you forgot to use IInputModel interface? Or maybe you have provided an extra arg which is not expected?");
 
                 if (parseResult != null)
                     ShowParseResults(bindingContext, parseResult);
@@ -536,7 +536,7 @@ namespace CodegenCS.TemplateLauncher
             if (parseResult != null && parseResult.Errors.Any())
             {
                 foreach (var error in parseResult.Errors)
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: {error.Message}");
+                    await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"ERROR: {error.Message}");
                 ShowParseResults(bindingContext, parseResult);
                 return -2;
             }
@@ -564,11 +564,11 @@ namespace CodegenCS.TemplateLauncher
                     modelType = modelType ?? _entryPointClass.GetInterfaces().Where(itf => itf.IsGenericType
                         && (itf.GetGenericTypeDefinition() == typeof(IBase1ModelTemplate<>) || itf.GetGenericTypeDefinition() == typeof(IBase2ModelTemplate<,>)))
                         .Select(interf => interf.GetGenericArguments().Skip(i).First()).Distinct().Single();
-                    await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} type is {ConsoleColor.White}'{modelType.FullName}'{PREVIOUS_COLOR}...");
+                    await _logger?.WriteLineAsync(ConsoleColor.Cyan, $"Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} type is {ConsoleColor.White}'{modelType.FullName}'{PREVIOUS_COLOR}...");
                 }
                 catch (Exception ex)
                 {
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not get type for Model{(_expectedModels > 1 ? (i + 1).ToString() : "")}: {ex.Message}");
+                    await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"Could not get type for Model{(_expectedModels > 1 ? (i + 1).ToString() : "")}: {ex.Message}");
                     return -1;
                 }
                 try
@@ -582,16 +582,16 @@ namespace CodegenCS.TemplateLauncher
                     }
                     else
                     {
-                        await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not load Model{(_expectedModels > 1 ? (i + 1).ToString() : "")}: Unknown type. Maybe your model should implement IJsonInputModel?");
+                        await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"Could not load Model{(_expectedModels > 1 ? (i + 1).ToString() : "")}: Unknown type. Maybe your model should implement IJsonInputModel?");
                         return -1;
                     }
-                    await _logger.WriteLineAsync(ConsoleColor.Cyan, $"Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} successfuly loaded from {ConsoleColor.White}'{_modelFiles[i].Name}'{PREVIOUS_COLOR}...");
+                    await _logger?.WriteLineAsync(ConsoleColor.Cyan, $"Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} successfuly loaded from {ConsoleColor.White}'{_modelFiles[i].Name}'{PREVIOUS_COLOR}...");
                     modelArgs.Add(model);
                     _dependencyContainer.RegisterSingleton(modelType, model); // might be injected both in _entryPointClass ctor or _entryPointMethod args
                 }
                 catch (Exception ex)
                 {
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"Could not load Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} (type {ConsoleColor.White}'{modelType.FullName}'{PREVIOUS_COLOR}): {ex.Message}");
+                    await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"Could not load Model{(_expectedModels > 1 ? (i + 1).ToString() : "")} (type {ConsoleColor.White}'{modelType.FullName}'{PREVIOUS_COLOR}): {ex.Message}");
                     return -1;
                 }
             }
@@ -610,17 +610,17 @@ namespace CodegenCS.TemplateLauncher
             }
             catch (CommandLineArgsException ex)
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.Message}");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.Message}");
                 if (VerboseMode)
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.ToString()}");
+                    await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.ToString()}");
                 ex.ShowHelp(_logger);
                 return -1;
             }
             catch (ArgumentException ex)
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.Message}");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.Message}");
                 if (VerboseMode)
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.ToString()}");
+                    await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"{ex.ToString()}");
                 return -1;
             }
 
@@ -707,7 +707,7 @@ namespace CodegenCS.TemplateLauncher
                     {
                     	if (((int)result) != 0)
                     	{
-                            await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"\nExiting with non-zero result code from template ({(int)result}). Nothing saved.");
+                            await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"\nExiting with non-zero result code from template ({(int)result}). Nothing saved.");
                             return (int)result;
                         }
                     }
@@ -731,7 +731,7 @@ namespace CodegenCS.TemplateLauncher
             {
                 await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"\nError while building '{providedTemplateName}':");
                 foreach (var error in _ctx.Errors)
-                    await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"{error}");
+                    await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"{error}");
                 return -1;
             }
 
@@ -739,24 +739,24 @@ namespace CodegenCS.TemplateLauncher
 
             if (savedFiles.Count == 0)
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Yellow, $"No files were generated");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Yellow, $"No files were generated");
             }
             else if (savedFiles.Count == 1)
             {
-                await _logger.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles.Count}{PREVIOUS_COLOR} file: {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\{_ctx.OutputFilesPaths.Single()}'{PREVIOUS_COLOR}");
+                await _logger?.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles.Count}{PREVIOUS_COLOR} file: {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\{_ctx.OutputFilesPaths.Single()}'{PREVIOUS_COLOR}");
             }
             else
             {
-                await _logger.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles.Count}{PREVIOUS_COLOR} files at folder {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\'{PREVIOUS_COLOR}{(VerboseMode ? ":" : "")}");
+                await _logger?.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles.Count}{PREVIOUS_COLOR} files at folder {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\'{PREVIOUS_COLOR}{(VerboseMode ? ":" : "")}");
                 if (VerboseMode)
                 {
                     foreach (var f in savedFiles)
-                        await _logger.WriteLineAsync(ConsoleColor.DarkGray, $"    {f}");
-                    await _logger.WriteLineAsync();
+                        await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"    {f}");
+                    await _logger?.WriteLineAsync();
                 }
             }
 
-            await _logger.WriteLineAsync(ConsoleColor.Green, $"Successfully executed template {ConsoleColor.Yellow}'{providedTemplateName}'{PREVIOUS_COLOR}.");
+            await _logger?.WriteLineAsync(ConsoleColor.Green, $"Successfully executed template {ConsoleColor.Yellow}'{providedTemplateName}'{PREVIOUS_COLOR}.");
 
             return 0;
         }

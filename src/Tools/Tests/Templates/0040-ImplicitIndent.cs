@@ -12,7 +12,7 @@
         """;
 
     FormattableString myClass() => $$"""
-        public class {{className}}()
+        public class {{className}}
         {
             {{myMethod}}
         }

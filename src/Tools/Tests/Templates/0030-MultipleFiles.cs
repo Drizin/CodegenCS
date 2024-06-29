@@ -9,7 +9,7 @@
     }
 
     FormattableString GenerateClass(string className) => $$"""
-        public class {{className}}()
+        public class {{className}}
         {
             public {{className}}()
             {
