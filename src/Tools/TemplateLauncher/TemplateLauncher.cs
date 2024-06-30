@@ -102,6 +102,8 @@ namespace CodegenCS.TemplateLauncher
             public string DefaultOutputFile { get; set; }
 
             public string[] TemplateSpecificArguments { get; set; } = new string[0];
+            public string[] ThirdPartyReferences { get; set; } = new string[0];
+            public bool SaveOutput { get; set; } = true;
         }
 
 
@@ -597,7 +599,20 @@ namespace CodegenCS.TemplateLauncher
             }
             #endregion
 
-
+            if (_args.ThirdPartyReferences != null && _args.ThirdPartyReferences.Any())
+            {
+                foreach (var reference in _args.ThirdPartyReferences)
+                {
+                    try
+                    {
+                        Assembly.LoadFrom(reference);
+                    }
+                    catch (Exception ex) 
+                    {
+                        System.Diagnostics.Debug.WriteLine(ex.ToString());
+                    }
+                }
+            }
 
             object instance = null;
             try
@@ -729,30 +744,33 @@ namespace CodegenCS.TemplateLauncher
 
             if (_ctx.Errors.Any())
             {
-                await _logger.WriteLineErrorAsync(ConsoleColor.Red, $"\nError while building '{providedTemplateName}':");
+                await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"\nError while building '{providedTemplateName}':");
                 foreach (var error in _ctx.Errors)
                     await _logger?.WriteLineErrorAsync(ConsoleColor.Red, $"{error}");
                 return -1;
             }
 
-            var savedFiles = _ctx.SaveToFolder(_outputFolder).SavedFiles;
+            if (_args.SaveOutput)
+            {
+                var savedFiles = _ctx.SaveToFolder(_outputFolder).SavedFiles;
 
-            if (savedFiles.Count == 0)
-            {
-                await _logger?.WriteLineErrorAsync(ConsoleColor.Yellow, $"No files were generated");
-            }
-            else if (savedFiles.Count == 1)
-            {
-                await _logger?.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles.Count}{PREVIOUS_COLOR} file: {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\{_ctx.OutputFilesPaths.Single()}'{PREVIOUS_COLOR}");
-            }
-            else
-            {
-                await _logger?.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles.Count}{PREVIOUS_COLOR} files at folder {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\'{PREVIOUS_COLOR}{(VerboseMode ? ":" : "")}");
-                if (VerboseMode)
+                if (savedFiles.Count == 0)
                 {
-                    foreach (var f in savedFiles)
-                        await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"    {f}");
-                    await _logger?.WriteLineAsync();
+                    await _logger?.WriteLineErrorAsync(ConsoleColor.Yellow, $"No files were generated");
+                }
+                else if (savedFiles.Count == 1)
+                {
+                    await _logger?.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles.Count}{PREVIOUS_COLOR} file: {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\{_ctx.OutputFilesPaths.Single()}'{PREVIOUS_COLOR}");
+                }
+                else
+                {
+                    await _logger?.WriteLineAsync($"Generated {ConsoleColor.White}{savedFiles.Count}{PREVIOUS_COLOR} files at folder {ConsoleColor.Yellow}'{_outputFolder.TrimEnd('\\')}\\'{PREVIOUS_COLOR}{(VerboseMode ? ":" : "")}");
+                    if (VerboseMode)
+                    {
+                        foreach (var f in savedFiles)
+                            await _logger?.WriteLineAsync(ConsoleColor.DarkGray, $"    {f}");
+                        await _logger?.WriteLineAsync();
+                    }
                 }
             }
 
@@ -768,22 +786,5 @@ namespace CodegenCS.TemplateLauncher
             helpBuilder.Write(parseResult.CommandResult.Command, writer);
         }
 
-
-        #region Utils
-        private static int GetConsoleWidth()
-        {
-            int windowWidth;
-            try
-            {
-                windowWidth = System.Console.WindowWidth;
-            }
-            catch
-            {
-                windowWidth = int.MaxValue;
-            }
-            return windowWidth;
-        }
-
-        #endregion
     }
 }

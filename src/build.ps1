@@ -31,6 +31,7 @@ if ($configuration -eq "Release")
 
 . .\build-tools.ps1 $configuration
 
+. .\build-sourcegenerator.ps1 $configuration
 
 # Unit tests # TODO: break this into CORE tests, MODEL tests, CLITESTS 
 dotnet build -c $configuration .\Core\CodegenCS.Tests\CodegenCS.Tests.csproj

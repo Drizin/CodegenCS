@@ -15,6 +15,7 @@
     <!-- Include symbol files (*.pdb) in the main .nupkg -->
     <PackageReadmeFile>NuGetReadMe.md</PackageReadmeFile>
     <RootNamespace>CodegenCS</RootNamespace>
+    <PackageOutputPath>..\..\packages-local\</PackageOutputPath>
   </PropertyGroup>
 
   <Choose>

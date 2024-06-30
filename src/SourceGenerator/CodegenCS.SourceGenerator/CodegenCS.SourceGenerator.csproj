@@ -1,0 +1,195 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Rick Drizin</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
+    <PackageId>CodegenCS.SourceGenerator</PackageId>
+    <Description>CodegenCS Source Generator can be used to augment code (generating more code) during compilation.</Description>
+    <Copyright>Rick Drizin</Copyright>
+    <Company>Rick Drizin</Company>
+    <Version>3.5.0</Version>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    
+    <!--
+    <PackBuildOutput>true</PackBuildOutput>
+    <PackOnBuild>true</PackOnBuild>
+    <PackFolder>analyzers\cs</PackFolder>-->
+    <LangVersion>preview</LangVersion>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    
+
+    <!-- Projects adding this nuget will have this source generator project included only as an analyzer (not as a library dependency) -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+
+    <DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>
+
+
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    
+    <!-- in regular nuget packages it's recommended to have symbols isolated in snupkg, but for analyzers looks like it doesn't work well, so embedding pdbs/symbols in dlls works better? -->
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <IncludeSource>True</IncludeSource>
+    <IncludeSymbols>True</IncludeSymbols>
+    
+    <!-- The following options are helpful for debugging -->
+    <!--https://github.com/JoanComasFdz/dotnet-how-to-debug-source-generator-vs2022-->
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <!--<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>-->
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+    All dependencies of this Source Generator are private dependencies (PrivateAssets=all)
+    this means that consumers of the generator will NOT get those transitive dependencies, so no conflicts
+    Packing those dependencies with our analyzer is tricky, though.
+    -->
+    <!-- 
+      GeneratePathProperty=true allows us to use PKGNewtonsoft_Json property, but for some reason it only works for Newtonsoft
+      Additionally it doesn't work in TargetPathWithTargetPlatformMoniker, so I'm not using - instead I get Nuget packages path using $(USERPROFILE)
+    -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="InterpolatedColorConsole" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="NSwag.Core" Version="14.0.7" PrivateAssets="all" />
+    <PackageReference Include="NSwag.Core.Yaml" Version="14.0.7" PrivateAssets="all" />
+    <PackageReference Include="NJsonSchema" Version="11.0.0" PrivateAssets="all" />
+    <PackageReference Include="NJsonSchema.Annotations" Version="11.0.0" PrivateAssets="all" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-codegencs" PrivateAssets="all" />
+    <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-codegencs" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- This is getting too ugly, I should probably just pack these as nugets instead of fighting against dependencies -->
+  <!-- looks like this doesnt work in Release mode ... if client project makes a ProjectReference (instead of PackageReference) to CodegenCS.SourceGenerator.csproj .. then TemplateBuilder/TemplateLauncher fail to build! -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <ItemGroup>
+        <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj" PrivateAssets="all" />
+        <ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj" PrivateAssets="all" />
+        <ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj" PrivateAssets="all" />
+        <ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.Dotnet.csproj" PrivateAssets="all" />
+        <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj" PrivateAssets="all" />
+        <ProjectReference Include="..\..\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj" PrivateAssets="all" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="CodegenCS.Core" Version="3.5.0" PrivateAssets="all" />
+        <PackageReference Include="CodegenCS.Runtime" Version="3.5.0" PrivateAssets="all" />
+        <PackageReference Include="CodegenCS.Models" Version="3.5.0" PrivateAssets="all" />
+        <PackageReference Include="CodegenCS.DotNet" Version="3.5.0" PrivateAssets="all" />
+        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.5.0" PrivateAssets="all" />
+        <PackageReference Include="CodegenCS.Models.NSwagAdapter" Version="3.5.0" PrivateAssets="all" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  
+  <!-- Package the generator in the analyzer directory of the nuget package -->
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+  <!-- Package the dependencies alongside the generator assembly -->
+  <!-- 
+      Packing dependencies within an analyzer is unsupported, and requires ugly hacks that are all difficult/troublesome
+      https://github.com/dotnet/roslyn/issues/43903
+      https://stackoverflow.com/questions/66944569/how-to-fix-c-sharp-source-generators-issue-of-not-found-references
+      https://github.com/dotnet/roslyn-sdk/blob/main/samples/CSharp/SourceGenerators/SourceGeneratorSamples/CSharpSourceGeneratorSamples.csproj
+      https://stackoverflow.com/questions/67071355/source-generators-dependencies-not-loaded-in-visual-studio
+    -->
+  <ItemGroup>
+    <!--We can't add all because some should be from debug build-->
+    <!--<None Include="$(OutputPath)*.dll"  Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />-->
+    <None Include="$(PkgNewtonsoft_Json)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\InterpolatedColorConsole\1.0.3\lib\netstandard2.0\InterpolatedColorConsole.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\nswag.core\14.0.7\lib\netstandard2.0\NSwag.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\nswag.core.yaml\14.0.7\lib\netstandard2.0\NSwag.Core.Yaml.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\njsonschema\11.0.0\lib\netstandard2.0\NJsonSchema.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\njsonschema.annotations\11.0.0\lib\netstandard2.0\NJsonSchema.Annotations.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\system.commandline\2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\system.commandline.namingconventionbinder\2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.NamingConventionBinder.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)CodegenCS.Tools.TemplateBuilder.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)CodegenCS.Tools.TemplateLauncher.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <ItemGroup>
+        <None Include="$(OutputPath)CodegenCS.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Runtime.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Models.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.DotNet.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Models.DbSchema.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Models.NSwagAdapter.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.runtime\3.5.0\lib\netstandard2.0\CodegenCS.Runtime.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models.dbschema\3.5.0\lib\netstandard2.0\CodegenCS.Models.DbSchema.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models.nswagadapter\3.5.0\lib\netstandard2.0\CodegenCS.Models.NSwagAdapter.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+
+  <!-- Looks like this solution is important for .\build-sourcegenerator.ps1 -configuration Release -->
+  <!-- While the previous blocks (Packing directly into "analyzers/dotnet/cs") is what makes Debug build (and debugging through VS) work -->
+  <PropertyGroup>
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GetDependencyTargetPaths">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\newtonsoft.json\13.0.3\lib\netstandard2.0\Newtonsoft.Json.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\interpolatedcolorconsole\1.0.3\lib\netstandard2.0\InterpolatedColorConsole.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\nswag.core\14.0.7\lib\netstandard2.0\NSwag.Core.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\nswag.core.yaml\14.0.7\lib\netstandard2.0\NSwag.Core.Yaml.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\njsonschema\11.0.0\lib\netstandard2.0\NJsonSchema.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\njsonschema.annotations\11.0.0\lib\netstandard2.0\NJsonSchema.Annotations.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\system.commandline\2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\system.commandline.namingconventionbinder\2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.NamingConventionBinder.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="..\..\Tools\TemplateBuilder\bin\$(Configuration)\netstandard2.0\CodegenCS.Tools.TemplateBuilder.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="..\..\Tools\TemplateLauncher\bin\$(Configuration)\netstandard2.0\CodegenCS.Tools.TemplateLauncher.dll" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+      <None Include="$(OutputPath)CodegenCS.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Runtime.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Models.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.DotNet.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Models.DbSchema.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Models.NSwagAdapter.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(Configuration)' == 'Release'">
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.runtime\3.5.0\lib\netstandard2.0\CodegenCS.Runtime.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.models.dbschema\3.5.0\lib\netstandard2.0\CodegenCS.Models.DbSchema.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.models.nswagadapter\3.5.0\lib\netstandard2.0\CodegenCS.Models.NSwagAdapter.dll" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+
+  </Target>
+
+</Project>
+ 

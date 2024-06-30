@@ -108,6 +108,24 @@ Our [Visual Studio Extension](https://github.com/Drizin/CodegenCS/tree/master/sr
 Output files are automatically added to the project (nested under the template item), so it's easy to use (but it doesn't have all features available in `dotnet-codegencs`).  
 It's available for [Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS) or [Visual Studio 2019/2017](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS-Compatibility).
 
+## Roslyn Source Generator
+
+Our [Source Generator](https://nuget.org/packages/CodegenCS.SourceGenerator) allows running templates on-the-fly during compilation.  
+It's possible to render physical files on disk or just render in-memory (no need to add to source-control or put into ignore lists).
+
+How to use: 
+1. Install nuget CodegenCS.SourceGenerator to your project
+2. Add this to your project
+   ```
+    <ItemGroup>
+      <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="CodegenCSOutput" />
+      <AdditionalFiles Include="Template.csx" CodegenCSOutput="Memory" />
+      <!-- Use "Memory" or "File", where "File" will save the output files to disk -->
+      <!-- you can include as many templates as you want -->
+    </ItemGroup>
+   ```
+3. If you want to augment on existing classes (using Roslyn Syntax Tree), just inject GeneratorExecutionContext (see [Template3.csx](/src/SourceGenerator/SampleProjectWithSourceGenerator/Template3.csx) example).
+
 ## Important Classes
 
 Before explaining more features it's important to first learn about 3 important classes:
