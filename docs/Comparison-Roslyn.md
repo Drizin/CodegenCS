@@ -1,37 +1,59 @@
-# How does CodegenCS compare to Roslyn?
-
-Roslyn has a **totally** different purpose, so this is like comparing Apples to Oranges.
+# How does CodegenCS compare to Roslyn Source Generators?
 
 ## What is Roslyn?
 
-- Roslyn **can only read from C# or** **VB.NET** **sources**. It loads one or more source files, builds a compilation **Syntax Tree**, and then it can **analyze** the syntax tree.  
-- **Roslyn Analyzers** run during solution build and will analyze this **Syntax Tree** to check for errors (they can show errors or warnings). Creating an Analyzer is not easy and reading the Syntax Tree is not easy either.  
- - **Roslyn Source Generators** are almost identical Roslyn Analyzers (they also run **during build** and also require you to inspect the **Syntax Tree**), with the difference that they are used to generate **temporary files** that are **added to the compilation**.  
- 
- To sum, Roslyn Source Generators will augment a .NET project during compilation by reading the source code and generating more source code on-the-fly.
+**Roslyn** is just the codename for the .NET Compiler Platform, which includes compilers (CodegenCS actually uses Roslyn to compile templates) and code analysis APIs.
 
-## CodegenCS is totally different:
+## What are Roslyn Analyzers?
 
-- It can read from any input model (like a database schema or anything else).
-  It doesn't even have a provider to read from C# sources because it's **NOT** for analyzing/augmenting .NET programs
-- It can be executed anytime (in your build pipeline like prebuild/postbuild, or just anytime you want)
-- It generates static files (that may or may not be part of your compilation, may or may not be in source control).   
-- It can be invoked directly with it's CLI tool, no need to be plugged into your build (but you can do it if you want)
+**Roslyn Analyzers** are basically plugins that run during compilation (and also during real time typing), read source files, build a compilation **Syntax Tree**, and then custom code can be used to analyze the syntax tree to provide suggestions/warnings/errors.
 
-To sum, the right comparison (Apples to Apples) would be [comparing CodegenCS vs T4 Templates](Comparison-T4.md).
+## What are Roslyn Source Generators?
 
-## "But Roslyn is the right tool to generate code"
+**Roslyn Source Generators** are almost identical to Roslyn Analyzers but they can generate **temporary files** that are **added to the compilation**:
 
-Is it? Let's see...
+**Usually the new generated code is based on the Compilation Syntax Trees** (because if you don't need to read the Syntax Tree then you don't need a Source Generator - you can just generate your code during a prebuild event).
 
-One way of using Roslyn Code Generation is to **generate code programmatically using Syntax Trees**. This is so "cool" and totally [nonsense](https://www.reddit.com/r/dotnet/comments/t3ds4m/why_is_noone_using_roslyn_tokenbased_code/).
+[Most source generators render code using plain text](https://www.reddit.com/r/dotnet/comments/t3ds4m/why_is_noone_using_roslyn_tokenbased_code/) (e.g. using StringBuilders) because it's just **much much easier** than manually building roslyn tokens.  
+Generating code using roslyn tokens and syntax trees is both painful and nonsense. Writing human-readable code and letting compilers transform that into syntax trees is the exact reason why compilers exist.  
+Yet, some developers love hard challenges so instead of getting the job done and writing maintainable code they prefer spending weeks learning how syntax trees work generating code as if they were a compiler.
+
+To sum, Roslyn Source Generators will augment a .NET project during compilation by reading the source code and generating more source code on-the-fly. But again: the fact that you have to **read** existing code using syntax trees does not imply that you have to **write** the new code using syntax trees.
+
+## Do I need a Source Generator? Or is it better to use script/prebuild/dotnet-codegencs?
+
+If you don't need to generate code based on existing code then you don't need syntax trees or Source Generators - you can just use prebuild events to invoke our command-line tool `dotnet-codegencs`: see [this example](/Samples/PrebuildEvent/RunTemplates.ps1) of a prebuild script that will install dotnet-codegencs, refresh a database schema, and run a template that generates POCOs. 
+
+Frequent claims people do when they think they need a Source Generator:
+- "I need it to run during my build" -> you can use prebuild events
+- "I don't want to add to source control" -> you can just ignore patterns like `*.generated.cs` or `*.g.cs`
+- "I need to read the Syntax Tree" -> now you can with [**CodegenCS.SourceGenerator**](https://www.nuget.org/packages/CodegenCS.SourceGenerator)
+
+Other advantages of using scripts instead of source generators:
+- Templates can be executed anytime (no need to rebuild the project). 
+- You can easily see the generated files (and even save into source control if you want)
+
+## CodegenCS Source Generator
+
+CodegenCS now has a [**Source Generator plugin**](https://www.nuget.org/packages/CodegenCS.SourceGenerator) that you can just add to your project and use it to run templates.
+
+So if you need to generate code based on existing code (or if you have any other reason to use source generators),  now you don't need to learn how source generators work, you don't need to write your own (which is hard) - you can just use our generator and build friendly CodegenCS templates, and leverage our sample templates.
+
+By injecting `GeneratorExecutionContext` in your templates you can get access to the full syntax tree (exactly like you were writing your own source generator) so you can augment on existing classes - see [Template3.csx](/Samples/SourceGenerator1/Template3.csx) for an example.
+  
+Check out [this Sample](https://github.com/CodegenCS/tree/main/Samples/SourceGenerator1) and [this Sample](https://github.com/CodegenCS/tree/main/Samples/SourceGenerator2)
+
+
+## "Roslyn is obviously the correct way of generating code"
+
+Using Roslyn to **generate code programmatically using Syntax Trees** is so "cool" (is it?) but totally [nonsense](https://www.reddit.com/r/dotnet/comments/t3ds4m/why_is_noone_using_roslyn_tokenbased_code/). 
 
 If you were to create a simple POCO like this:
 
 ```cs
 public class MyPOCO  
 {  
-    public int Name {get;set;}  
+    public int Name { get; set; }
 }
 ```
 
@@ -72,25 +94,9 @@ I'm sure that's not the best way to generate a POCO class and not the best use o
 
 To sum: why would we have to worry about valid Syntax Trees if all we want to do is to render some simple output code?   
 
-**The idea of CodegenCS is to just "generate text" - it doesn't care about the output syntax/language that you're generating**.
+**The idea of CodegenCS is to just "generate text" - it doesn't care about the output syntax/language that you're generating**. And most developers writing their own source generators also prefer this method (generate text).
 
 ## "But Roslyn can also generate code by concatenating strings..."
 
-It can - and if you're augmenting on top of an existing C# data source (reading a complex Syntax Tree and generating temporary code that doesn't need to be versioned or even well formatted) then Roslyn might be the right tool.  
-(Roslyn doesn't provide anything to help with **indentation** or **tracking multiple files** - and **it doesn't even need to** since all output is just discarded after the build).
+It can, but it doesn't provide many nice features that we do: Smart **indentation**, **concise syntax** (subtemplates), **tracking multiple active files**, decent debugging support, and [much more](https://github.com/Drizin/CodegenCS/)
 
-However, if you're writing complex templates or if your output needs decent formatting/indenting), then CodegenCS might be a better tool because:
-- It has a [TextWriter on Steroids](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS) that makes it easy to write clean/concise/reusable templates, with no-hassle indentation control. 
-- Simple loops and simple template-composition can be done within an interpolated string, without using multiple statements and control blocks - avoiding a bunch of loops and mixing control-code with generated code. 
-- It uses the powerful **C# 11 Raw String Literals** (you can use it even if the target project does not use C# 11) which makes everything even cleaner and doesn't require escaping of curly braces.
-- And [much more](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS)
-
-## Can I run CodegenCS from a Roslyn Source Generator?
-
-You can, but probably that's not the best way of using CodegenCS:  
-CodegenCS main purpose is to generate static sources: it's great at generating well formatted code, managing multiple files, running from command-line tool or from Visual Studio Extension.  
-But if you're running from Roslyn you probably don't need any of that...
-
-You could still rely on our models (e.g. generate from database schema), but why would you need Roslyn Source Generator for that? Just use dotnet-codegencs in your build pipeline...
-
-Yet, if you want to run CodegenCS from a Roslyn Source Generator, check out [this Sample](https://github.com/CodegenCS/Samples/tree/main/src/SampleSourceGenerator.SimplePocos)

@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+  </PropertyGroup>
+
+  <!-- You can run any number of templates in PreBuild or PostBuild events. -->
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="powershell $(ProjectDir)RunTemplates.ps1" />
+  </Target>
+
+  <!-- Our Template output requires Dapper -->
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
+  </ItemGroup>
+
+  <!-- Hides some files and/or avoid project trying to compile the cs template. Renaming to CSX also would work. -->
+  <ItemGroup>
+    <Compile Remove="DapperExtensionPocos.cs" />
+    <None Include="DapperExtensionPocos.cs" />
+    <None Remove="DapperExtensionPocos.dll" />
+    <None Remove="DapperExtensionPocos.pdb" />
+  </ItemGroup>
+
+</Project>

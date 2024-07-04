@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+	</PropertyGroup>
+
+	<!-- Code generator will look for context.AdditionalFiles -->
+	<ItemGroup>
+		<AdditionalFiles Include="AdventureWorksSchema.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+
+
+		<!-- This compiler can help if VS is giving this error:
+			  CSC : warning CS8032: An instance of analyzer SampleSourceGenerator.MyGenerator cannot be created from 
+			  ...\.nuget\packages\samplesourcegenerator\1.0.0\analyzers\dotnet\cs\SampleSourceGenerator.dll : 
+			  Could not load file or assembly 'Microsoft.CodeAnalysis, Version=4.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' or one of its dependencies. 
+			  The system cannot find the file specified.. 
+		-->
+		<PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="4.1.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<!--
+			<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.1.0" PrivateAssets="all" GeneratePathProperty="true" />
+		-->
+
+		<PackageReference Include="Dapper" Version="2.0.78" />
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+
+		<!-- This nuget will be found in .\packages-local\ - and Nuget.config is what points to that folder -->
+		<PackageReference Include="SampleSourceGenerator.SimplePocos" Version="1.0.0" />
+
+	</ItemGroup>
+
+
+</Project>

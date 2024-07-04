@@ -32,11 +32,11 @@ Our templates use a [Hybrid model](https://github.com/Drizin/CodegenCS/tree/mast
 
 To sum our hybrid model provides the best of both worlds: you can write templates using your favorite language (C#), in your favorite IDE (Visual Studio) with full **debugging** capabilities - and you can **leverage the power of .NET** and any **.NET library**  (think LINQ, Dapper, Newtonsoft, Swashbuckle, RestSharp, Humanizer, etc.)
 
-## Entrypoint and subtemplates
+## Template Entrypoint
 
-Templates are C# programs so they need an entrypoint (`Main()` or `TemplateMain()`).
+Templates are C# programs so they should have an entrypoint method (named `Main()` or `TemplateMain()`).
 
-Entry-points can be markup-based (they just have to return an interpolated string):
+Methods can be "markup-based" which means that they just return an interpolated string:
 
 ```cs
 class MyTemplate
@@ -44,21 +44,23 @@ class MyTemplate
     FormattableString Main() => $"My first template";
 }
 ```
-... or they can be programmatic:
+Or they can be programmatic:
 
 ```cs
 class MyTemplate
 {
     void Main(ICodegenOutputFile writer)
     {
-        writer.WriteLine($"My first template");
+        writer.Write($"My first template");
     }
 }
 ```
 
 ## Subtemplates (aka "partials")
 
-In regular C# string interpolation you can only interpolate types that can be directly converted to string (`string`, `FormattableString`, `int`, `DateTime`, etc.). In our hybrid model you can interpolate many other types including delegates (methods) so it's very easy to "embed" a subtemplate (a different method) right within an interpolated string.
+In a programmatic method it's pretty obvious that you can just invoke other methods to break down a template into smaller (and more organized blocks), but when you have a markup-based block (i.e. a large string) it's not so obvious how you can include a "subtemplate":
+
+In regular C# string interpolation we can only interpolate types that can be directly converted to string (`string`, `FormattableString`, `int`, `DateTime`, etc.), but in our magic TextWriter allows interpolating many other types including delegates (methods) so it's very easy to "embed" a subtemplate (a different method) right within an interpolated string.
 
 In the example below template starts with a markup entry-point and then it "escapes" from the markup and switches to a programmatic subtemplate (another method that might have more complex logic):
 
@@ -87,6 +89,10 @@ class MyTemplate
 }
 ```
 
+(`WriteClass` method will get the `ICodegenOutputFile` parameter automatically injected, as explained later).
+
+Switching back and forth between programmatic-mode (C# methods) or markup mode (large C# strings) is what enables our hybrid model.
+
 ## Indentation Control
 
 Our clever [Indent Control](https://github.com/Drizin/CodegenCS/tree/master/docs/Indent-Control.md) automatically captures the current indent (whatever number of spaces or tabs you have in current line) and will preserve it when you interpolate a large object (multiline) or when you interpolate a subtemplate.  
@@ -95,36 +101,28 @@ Generating code with the correct indentation (even if there are multiple nested 
 
 Explicit indent control is also supported.
 
+
 ## Command-line Tool (dotnet-codegencs)
 
-[dotnet-codegencs](https://github.com/Drizin/CodegenCS/tree/master/src/Tools/dotnet-codegencs/) is a cross-platform .NET tool (command-line tool) that can be used to download, **build**, and **run templates**.  
-It can also be used to extract models (reverse engineer schema) from existing databases.  
-In other words this is our **"batteries-included"** tool, and probably the best place to get started.  
-It's available for Windows/Linux/MacOS.
+[dotnet-codegencs](https://github.com/Drizin/CodegenCS/tree/master/src/Tools/dotnet-codegencs/) is a cross-platform .NET tool (command-line tool).  
+It's available for Windows/Linux/MacOS.  
+
+Besides running templates, it can also be used to extract models from existing databases (**reverse engineer db schema**), or download our our [sample templates](https://github.com/CodegenCS/Templates).
+So if you want to quickly start generating code (e.g. based on your database) this is our **"batteries-included"** tool.
+
+You can run it manually or you can automate into your build pipeline. See [this example](/Samples/PrebuildEvent/RunTemplates.ps1) of a prebuild script that will install dotnet-codegencs, refresh a database schema, and run a template that generates POCOs.
 
 ## Visual Studio Extension
 
-Our [Visual Studio Extension](https://github.com/Drizin/CodegenCS/tree/master/src/VisualStudio/) allows **building and running templates** directly from Visual Studio.  
-Output files are automatically added to the project (nested under the template item), so it's easy to use (but it doesn't have all features available in `dotnet-codegencs`).  
+Our [Visual Studio Extension](https://github.com/Drizin/CodegenCS/tree/master/src/VisualStudio/) allows running templates directly from Visual Studio.  
 It's available for [Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS) or [Visual Studio 2019/2017](https://marketplace.visualstudio.com/items?itemName=Drizin.CodegenCS-Compatibility).
+
+Output files are automatically added to the project (nested under the template item), so it's easy to use (but it doesn't have all features available in `dotnet-codegencs`).  
 
 ## Roslyn Source Generator
 
-Our [Source Generator](https://nuget.org/packages/CodegenCS.SourceGenerator) allows running templates on-the-fly during compilation.  
+Our [Source Generator](https://github.com/Drizin/CodegenCS/tree/master/src/SourceGenerator/) (nuget [here](https://nuget.org/packages/CodegenCS.SourceGenerator)) allows running templates on-the-fly during compilation.  
 It's possible to render physical files on disk or just render in-memory (no need to add to source-control or put into ignore lists).
-
-How to use: 
-1. Install nuget CodegenCS.SourceGenerator to your project
-2. Add this to your project
-   ```
-    <ItemGroup>
-      <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="CodegenCSOutput" />
-      <AdditionalFiles Include="Template.csx" CodegenCSOutput="Memory" />
-      <!-- Use "Memory" or "File", where "File" will save the output files to disk -->
-      <!-- you can include as many templates as you want -->
-    </ItemGroup>
-   ```
-3. If you want to augment on existing classes (using Roslyn Syntax Tree), just inject GeneratorExecutionContext (see [Template3.csx](/src/SourceGenerator/SampleProjectWithSourceGenerator/Template3.csx) example).
 
 ## Important Classes
 
@@ -1139,6 +1137,7 @@ See example in
 - [CodegenTextWriter documentation](https://github.com/Drizin/CodegenCS/tree/master/docs/CodegenTextWriter.md)
 - To start using the command-line tool, check out [dotnet-codegencs Quickstart](https://github.com/Drizin/CodegenCS/tree/master/src/Tools/dotnet-codegencs#quickstart)
 - To start using the Visual Studio Extension, check out [Visual Studio Extension Quickstart](https://github.com/Drizin/CodegenCS/tree/master/src/VisualStudio#quickstart)
+- To start using the Source Generator, check out [Roslyn Source Generator Quickstart](https://github.com/Drizin/CodegenCS/tree/master/src/SourceGenerator#quickstart)
 - To generate code based on a database, check out [DbSchema Quickstart](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.DbSchema#quickstart)
 - To generate code based on a REST API, check out [NSwagAdapter Quickstart](https://github.com/Drizin/CodegenCS/tree/master/src/Models/CodegenCS.Models.NSwagAdapter#quickstart)
 - Our [Templates repository (https://github.com/CodegenCS/Templates)](https://github.com/CodegenCS/Templates) contains some **sample fully-functional templates** that you can use, customize, or use as a reference for building your own templates.
@@ -1196,10 +1195,15 @@ ctx.SaveToFolder(@"C:\MyProject\");
 Check out [CodegenCS vs T4 Templates](https://github.com/Drizin/CodegenCS/tree/master/docs/Comparison-T4.md)  
 (Spoiler: CodegenCS is much much better)
 
-## How does CodegenCS compare to Roslyn?
+## How does CodegenCS compare to Roslyn Source Generators?
 
-Check out [CodegenCS vs Roslyn](https://github.com/Drizin/CodegenCS/tree/master/docs/Comparison-Roslyn.md)  
-(Spoiler: That's not an apples-to-apples comparison. Roslyn should be used to analyze compilation syntax-trees and eventually generate code **based** on that syntax tree - but generating code using syntax-trees is painful and nonsense. CodegenCS was created for generating human-readable code and let the hard-work of syntax trees be done by a compiler).
+Source Generators are only required when you're building code based on existing code.  
+CodegenCS has a Source Generator plugin that can be used to invoke templates, and those templates will also have access to `GeneratorExecutionContext` (to read the syntax trees) - so you don't have to write your own Source Generator (which is not an easy task).
+
+But if you're not building code based on existing code (e.g. if you're generating based on a database or a json file) then you don't need a Source Generator - you can just use our command-line tool `dotnet-codegencs` to run our templates from your prebuild scripts.
+
+For more details check out [CodegenCS vs Roslyn Source Generators](https://github.com/Drizin/CodegenCS/tree/master/docs/Comparison-Roslyn.md)
+
 
 ## Why yet another Code Generator? Why not T4, Liquid, Razor, etc?
 

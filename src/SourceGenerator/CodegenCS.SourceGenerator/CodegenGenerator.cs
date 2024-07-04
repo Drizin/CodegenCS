@@ -92,6 +92,8 @@ namespace CodegenCS.CodeGenerator
 
                     try
                     {
+                        if (executionContext.CancellationToken.IsCancellationRequested) //TODO: pass cancellationToken down the rabbit hole
+                            return;
                         var builderResult = BuildTemplateAsync(template.Path).ConfigureAwait(false).GetAwaiter().GetResult();
 
                         if (builderResult.ReturnCode != 0)
@@ -109,6 +111,8 @@ namespace CodegenCS.CodeGenerator
                         //TODO: this class should RegisterForSyntaxNotifications and then forward events to any templates that implements ISyntaxReceiver
                         // (is CodeGenerator singleton? or else we would have to keep a single list of templates)
 
+                        if (executionContext.CancellationToken.IsCancellationRequested)
+                            return;
                         string defaultOutputFile = Path.GetFileNameWithoutExtension((string)template.Path) + ".generated.cs";
                         string templateDll = builderResult.TargetFile;
                         var runResult = RunTemplateAsync(template.Path, templateDll, defaultOutputFile, outputType).ConfigureAwait(false).GetAwaiter().GetResult(); // TODO: incremental generators have async support
@@ -119,6 +123,9 @@ namespace CodegenCS.CodeGenerator
                             continue;
                         }
                         // TODO: Info "CodegenCS - run template successfully finished. Files generated: etc..
+
+                        if (executionContext.CancellationToken.IsCancellationRequested)
+                            return;
 
                         // Adds auto-generated sources to the compilation output (adds in-memory, doesn't save to disk!)
                         if (outputType.Equals("Memory", StringComparison.InvariantCultureIgnoreCase))

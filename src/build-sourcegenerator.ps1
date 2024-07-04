@@ -48,17 +48,17 @@ Write-Host "------------" -ForegroundColor Yellow
 (&"C:\Program Files\7-Zip\7z.exe" l -ba -slt .\packages-local\CodegenCS.SourceGenerator.3.5.0.nupkg)|Select-String Path
 sleep 2
 
-#dotnet clean .\SourceGenerator\SampleProjectWithSourceGenerator\SampleProjectWithSourceGenerator.csproj
-dotnet restore .\SourceGenerator\SampleProjectWithSourceGenerator\SampleProjectWithSourceGenerator.csproj
-& $msbuild ".\SourceGenerator\SampleProjectWithSourceGenerator\SampleProjectWithSourceGenerator.csproj" `
+#dotnet clean ..\Samples\SourceGenerator1\SourceGenerator1.csproj
+dotnet restore ..\Samples\SourceGenerator1\SourceGenerator1.csproj
+& $msbuild "..\Samples\SourceGenerator1\SourceGenerator1.csproj" `
            /t:Restore /t:Rebuild                                           `
            /p:Configuration=$configuration                                      `
            /verbosity:normal                                                   
 if (! $?) { throw "msbuild failed" }
 
 Write-Host "------------" -ForegroundColor Yellow
-C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe .\SourceGenerator\SampleProjectWithSourceGenerator\bin\$configuration\netstandard2.0\SampleProjectWithSourceGenerator.dll -t MyFirstClass
-C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe .\SourceGenerator\SampleProjectWithSourceGenerator\bin\$configuration\netstandard2.0\SampleProjectWithSourceGenerator.dll -t AnotherSampleClass # should show some methods that were generated on the fly
+C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe ..\Samples\SourceGenerator1\bin\$configuration\netstandard2.0\SourceGenerator1.dll -t MyFirstClass
+C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe ..\Samples\SourceGenerator1\bin\$configuration\netstandard2.0\SourceGenerator1.dll -t AnotherSampleClass # should show some methods that were generated on the fly
 if (! $?) { throw "Template failed (classed were not added to the compilation)" }
 
 Pop-Location

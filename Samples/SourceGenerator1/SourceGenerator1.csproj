@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CodegenCS.SourceGenerator" Version="3.5.0" />
+  </ItemGroup>
+
+  <!-- 
+  CodegenCS.SourceGenerator will look for context.AdditionalFiles, but you should expose (and use) the custom property CodegenCSOutput
+  If CodegenCSOutput="Memory" then the generated files (added to the compilation) are NOT saved to disk
+  If CodegenCSOutput="File" then the generated files are saved to disk
+  -->
+  <ItemGroup>
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="CodegenCSOutput" />
+    <AdditionalFiles Include="Template1.csx" CodegenCSOutput="File" />
+    <AdditionalFiles Include="Template2.csx" CodegenCSOutput="Memory" />
+    <AdditionalFiles Include="Template3.csx" CodegenCSOutput="Memory" />
+  </ItemGroup>
+
+</Project>
