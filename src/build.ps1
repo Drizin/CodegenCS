@@ -31,14 +31,16 @@ if ($configuration -eq "Release")
 
 . .\build-tools.ps1 $configuration
 
-. .\build-sourcegenerator.ps1 $configuration
-
+if ($configuration -eq "Debug") {
+  . .\build-sourcegenerator.ps1
+}
 # Unit tests # TODO: break this into CORE tests, MODEL tests, CLITESTS 
 dotnet build -c $configuration .\Core\CodegenCS.Tests\CodegenCS.Tests.csproj
 #dotnet test  Core\CodegenCS.Tests\CodegenCS.Tests.csproj
 
 # VSExtension (not working with Release yet - error NU1106: Unable to satisfy conflicting requests)
-#. .\build-visualstudio.ps1 $configuration
-.\build-visualstudio.ps1 "Debug"
+if ($configuration -eq "Debug") {
+. .\build-visualstudio.ps1 $configuration
+}
 
 

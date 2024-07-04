@@ -1,13 +1,13 @@
 [cmdletbinding()]
 param(
-    [Parameter(Mandatory=$False)]
-    [ValidateSet('Release','Debug')]
-    [string]$configuration
 )
 
-# CLI tool (dotnet-codegencs)
-# How to run: .\build.ps1   or   .\build.ps1 -configuration Debug
+$version = "3.5.1"
+$nugetPE = "C:\ProgramData\chocolatey\bin\NuGetPackageExplorer.exe"
+$7z = "C:\Program Files\7-Zip\7z.exe"
 
+# Source Generator(CodegenCS.SourceGenerator)
+# How to run: .\build-sourcegenerator.ps1
 
 . $PSScriptRoot\build-include.ps1
 
@@ -21,10 +21,7 @@ Remove-Item -Recurse -Force -ErrorAction Ignore "$env:HOMEDRIVE$env:HOMEPATH\.nu
 gci $env:TEMP -r -filter CodegenCS.SourceGenerator.dll -ErrorAction Ignore | Remove-Item -Force -Recurse -ErrorAction Ignore
 gci "$($env:TEMP)\VBCSCompiler\AnalyzerAssemblyLoader" -r -ErrorAction Ignore | Remove-Item -Force -Recurse -ErrorAction Ignore
 
-if (-not $PSBoundParameters.ContainsKey('configuration'))
-{
-	if (Test-Path Release.snk) { $configuration = "Release" } else { $configuration = "Debug" }
-}
+$configuration = "Debug"
 Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 
 
@@ -34,19 +31,25 @@ dotnet restore .\SourceGenerator\CodegenCS.SourceGenerator\CodegenCS.SourceGener
            /p:PackageOutputPath="..\..\packages-local\"      `
            '/p:targetFrameworks="netstandard2.0;"'                 `
            /p:Configuration=$configuration                                      `
-           /p:IncludeSymbols=true                                  `
-          /verbosity:minimal                                                   `
-           /p:IncludeSymbols=true                         `
+           /verbosity:minimal                                                   `
            /p:ContinuousIntegrationBuild=true `
 
 #/t:GetTargetPath /t:GetDependencyTargetPaths 
 
 if (! $?) { throw "msbuild failed" }
 
-#C:\ProgramData\chocolatey\bin\NuGetPackageExplorer.exe D:\Repositories\CodegenCS\src\packages-local\CodegenCS.SourceGenerator.3.5.0.nupkg
-Write-Host "------------" -ForegroundColor Yellow
-(&"C:\Program Files\7-Zip\7z.exe" l -ba -slt .\packages-local\CodegenCS.SourceGenerator.3.5.0.nupkg)|Select-String Path
-sleep 2
+if (Test-Path $nugetPE) { & $nugetPE ".\packages-local\CodegenCS.SourceGenerator.$version.nupkg" }
+if (Test-Path $7z) {
+    $zipContents = (& $7z l -ba -slt .\packages-local\CodegenCS.SourceGenerator.$version.nupkg | Out-String) -split"`r`n"
+    Write-Host "------------" -ForegroundColor Yellow
+    $zipContents|Select-String "Path ="
+    sleep 2
+
+    # sanity check: nupkg should have debug-build dlls, pdb files, source files, etc.
+    if (-not ($zipContents|Select-String "Path = "|Select-String "CodegenCS.Core.dll")) { throw "msbuild failed" } 
+    if (-not ($zipContents|Select-String "Path = "|Select-String "CodegenCS.Core.pdb")) { throw "msbuild failed" } 
+}
+
 
 #dotnet clean ..\Samples\SourceGenerator1\SourceGenerator1.csproj
 dotnet restore ..\Samples\SourceGenerator1\SourceGenerator1.csproj

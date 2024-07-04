@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +35,9 @@ namespace CodegenCS.TemplateBuilder
 
             _compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
                     .WithOverflowChecks(true)
-                    .WithOptimizationLevel(OptimizationLevel.Release)
+                    .WithOptimizationLevel(OptimizationLevel.Debug)
+                    .WithDeterministic(true)
+                    //.WithPlatform(Platform.AnyCpu) //TODO: allow changing this through args
                     //.WithUsings(_namespaces) // TODO: review why adding namespaces here doesn't make any difference - only AddMissingUsing (applied directly to tree) matters
                     .WithWarningLevel(0);
 
@@ -291,10 +294,21 @@ namespace CodegenCS.TemplateBuilder
                 syntaxTrees.Add(syntaxTree);
             }
 
+            string txt = $$"""
+                using System.Reflection;
+
+                [assembly: AssemblyTitle("{{Path.GetFileNameWithoutExtension(targetFile)}}")]
+                [assembly: AssemblyProduct("{{Path.GetFileNameWithoutExtension(targetFile)}}")]
+                [assembly: AssemblyCompany("Rick Drizin - CodegenCS")]
+                [assembly: AssemblyVersion("{{DateTime.Now.ToString("yyyy.MM.dd.HHmm")}}")]
+                """;
+            syntaxTrees.Add(CSharpSyntaxTree.ParseText(txt, _parseOptions));
+
+
             await AddMissingUsings(syntaxTrees);
 
             //TODO: support for top-level statements?
-            CSharpCompilation compilation = CSharpCompilation.Create("assemblyName", syntaxTrees,
+            CSharpCompilation compilation = CSharpCompilation.Create(Path.GetFileNameWithoutExtension(targetFile), syntaxTrees,
                 _references,
                 _compilationOptions);
 
@@ -302,16 +316,19 @@ namespace CodegenCS.TemplateBuilder
             using (var dllStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
             {
-                var emitResult = compilation.Emit(dllStream, pdbStream); // roslyn throws a lot of exceptions, so "break on all exceptions" is not nice at this line
+                var emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb); //TODO: maybe just use embedded?
+                var emitResult = compilation.Emit(dllStream, pdbStream, options: emitOptions); // roslyn throws a lot of exceptions, so "break on all exceptions" is not nice at this line
 
                 //TODO: combine all errors into a single statement, 
                 // since Powershell ISE stops at first stderr message when $ErrorActionPreference = "Stop"
                 Func<ConsoleColor, Diagnostic, Task> writeErrorAsync = async (color, diag) =>
                 {
-                    var lineStart = diag.Location.GetLineSpan().StartLinePosition.Line;
-                    var lineEnd = diag.Location.GetLineSpan().EndLinePosition.Line;
+                    // looks like cols and lines are 0-based
+                    var lineStart = diag.Location.GetLineSpan().StartLinePosition.Line + 1;
+                    var colStart = diag.Location.GetLineSpan().StartLinePosition.Character + 1;
+                    var lineEnd = diag.Location.GetLineSpan().EndLinePosition.Line + 1;
                     await _logger?.WriteLineErrorAsync(color, $"  {diag.Id}: Line {lineStart}{(lineStart != lineEnd ? "-" + lineEnd : "")} {diag.GetMessage()}");
-                    compilationErrors.Add(new CompilationError() { Message = diag.GetMessage(), Line = lineStart, Column = diag.Location.GetLineSpan().StartLinePosition.Character });
+                    compilationErrors.Add(new CompilationError() { Message = diag.GetMessage(), Line = lineStart, Column = colStart });
                 };
                 var errors = emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
                 if (errors.Any())

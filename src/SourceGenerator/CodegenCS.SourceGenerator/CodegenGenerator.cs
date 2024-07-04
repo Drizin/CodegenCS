@@ -180,10 +180,6 @@ namespace CodegenCS.CodeGenerator
 
             builderResult = await builder.ExecuteAsync();
 
-            if (builderResult.ReturnCode != 0)
-            {
-                _executionContext.ReportDiagnostic(Diagnostic.Create(ExecutionFailure, Location.None, itemFullPath, $"CodegenCS - error running template"));
-            }
             return builderResult;
         }
 
