@@ -28,7 +28,6 @@ dotnet restore .\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj
            '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
-           /p:SymbolPackageFormat=snupkg                                        `
            /verbosity:minimal                                                   `
            /p:ContinuousIntegrationBuild=true
 if (! $?) { throw "msbuild failed" }
@@ -39,7 +38,6 @@ dotnet restore .\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj
            '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
-           /p:SymbolPackageFormat=snupkg                                        `
            /verbosity:minimal                                                   `
            /p:ContinuousIntegrationBuild=true
 if (! $?) { throw "msbuild failed" }
@@ -50,7 +48,6 @@ dotnet restore .\Tools\TemplateDownloader\CodegenCS.Tools.TemplateDownloader.csp
            '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
-           /p:SymbolPackageFormat=snupkg                                        `
            /verbosity:minimal                                                   `
            /p:ContinuousIntegrationBuild=true
 if (! $?) { throw "msbuild failed" }
@@ -64,7 +61,6 @@ if (! $?) { throw "msbuild failed" }
            '/p:targetFrameworks="net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                `
            /p:IncludeSymbols=true                         `
-           /p:SymbolPackageFormat=snupkg                  `
            /verbosity:minimal                             `
            /p:ContinuousIntegrationBuild=true
 if (! $?) { throw "msbuild failed" }

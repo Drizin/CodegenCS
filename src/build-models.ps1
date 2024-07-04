@@ -28,7 +28,6 @@ Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
            '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'    `
            /p:Configuration=$configuration                         `
            /p:IncludeSymbols=true                                  `
-           /p:SymbolPackageFormat=snupkg                           `
            /verbosity:minimal                                      `
            /p:ContinuousIntegrationBuild=true
 if (! $?) { throw "msbuild failed" }
@@ -38,7 +37,6 @@ if (! $?) { throw "msbuild failed" }
            '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
-           /p:SymbolPackageFormat=snupkg                                        `
            /verbosity:minimal                                                   `
            /p:ContinuousIntegrationBuild=true
 if (! $?) { throw "msbuild failed" }
@@ -51,7 +49,6 @@ if (! $?) { throw "msbuild failed" }
            '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'    `
            /p:Configuration=$configuration                         `
            /p:IncludeSymbols=true                                  `
-           /p:SymbolPackageFormat=snupkg                           `
            /verbosity:minimal                                      `
            /p:ContinuousIntegrationBuild=true
 if (! $?) { throw "msbuild failed" }

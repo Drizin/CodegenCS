@@ -9,6 +9,8 @@
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
     <Version>3.5.0</Version>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageOutputPath>..\..\packages-local\</PackageOutputPath>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 

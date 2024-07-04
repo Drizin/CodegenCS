@@ -11,6 +11,8 @@
     <DocumentationFile>CodegenCS.Models.NSwagAdapter.xml</DocumentationFile>
     <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageOutputPath>..\..\packages-local\</PackageOutputPath>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <!-- Include symbol files (*.pdb) in the main .nupkg -->
     <!--<PackageReadmeFile>NuGetReadMe.md</PackageReadmeFile>-->
