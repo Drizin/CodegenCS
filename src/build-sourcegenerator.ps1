@@ -2,6 +2,8 @@
 param(
 )
 
+$ErrorActionPreference="Stop"
+
 $version = "3.5.1"
 $nugetPE = "C:\ProgramData\chocolatey\bin\NuGetPackageExplorer.exe"
 $7z = "C:\Program Files\7-Zip\7z.exe"
@@ -25,6 +27,39 @@ $configuration = "Debug"
 Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 
 
+# Unfortunately Roslyn Analyzers, Source Generators, and MS Build Tasks they all have terrible support for referencing other assemblies without having those added (and conflicting) to the client project
+# To get a Nupkg with SourceLink/Deterministic PDB we have to embed the extract the PDBs from their symbol packages so we can embed them into our published package
+
+mkdir .\ExternalSymbolsToEmbed -EA Ignore | Out-Null
+$snupkgs = @(
+    "interpolatedcolorconsole.1.0.3.snupkg",
+    "newtonsoft.json.13.0.3.snupkg",
+    "nswag.core.14.0.7.snupkg",
+    "nswag.core.yaml.14.0.7.snupkg",
+    "njsonschema.11.0.0.snupkg",
+    "njsonschema.annotations.11.0.0.snupkg"
+)
+
+foreach ($snupkg in $snupkgs){
+    Write-Host $snupkg
+    if (-not (Test-Path ".\ExternalSymbolsToEmbed\$snupkg")) {
+        curl "https://globalcdn.nuget.org/symbol-packages/$snupkg" -o ".\ExternalSymbolsToEmbed\$snupkg"
+    }
+}
+copy .\packages-local\System.CommandLine.2.0.0-codegencs.snupkg .\ExternalSymbolsToEmbed\
+copy .\packages-local\System.CommandLine.NamingConventionBinder.2.0.0-codegencs.snupkg .\ExternalSymbolsToEmbed\
+$snupkgs = gci .\ExternalSymbolsToEmbed\*.snupkg
+foreach ($snupkg in $snupkgs){
+    $name = $snupkg.Name
+    $name = $name.Substring(0, $name.Length-7)
+    $zipContents = (& $7z l -ba -slt "ExternalSymbolsToEmbed\$name.snupkg" | Out-String) -split"`r`n"
+    $zipContents | Select-String "Path = " 
+    mkdir "ExternalSymbolsToEmbed\$name\" -ea Ignore | out-null
+    & $7z x "ExternalSymbolsToEmbed\$name.snupkg" "-oExternalSymbolsToEmbed\$name\" *.pdb -r -aoa
+}
+
+
+
 dotnet restore .\SourceGenerator\CodegenCS.SourceGenerator\CodegenCS.SourceGenerator.csproj
 & $msbuild ".\SourceGenerator\CodegenCS.SourceGenerator\CodegenCS.SourceGenerator.csproj" `
            /t:Restore /t:Build /t:Pack                                          `
@@ -32,9 +67,8 @@ dotnet restore .\SourceGenerator\CodegenCS.SourceGenerator\CodegenCS.SourceGener
            '/p:targetFrameworks="netstandard2.0;"'                 `
            /p:Configuration=$configuration                                      `
            /verbosity:minimal                                                   `
+           /p:IncludeSymbols=true                                  `
            /p:ContinuousIntegrationBuild=true `
-
-#/t:GetTargetPath /t:GetDependencyTargetPaths 
 
 if (! $?) { throw "msbuild failed" }
 

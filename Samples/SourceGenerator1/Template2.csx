@@ -1,4 +1,4 @@
-﻿// Sample template that starts with markup (Main method returns an interpolated string)
+﻿// Sample template that writes programmatically
 
 // If you look in CSPROJ you'll see this file described as:
 // <AdditionalFiles Include="Template2.csx" CodegenCSOutput="Memory" />

@@ -5,12 +5,16 @@
     <Authors>Rick Drizin</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/blob/master/src/SourceGenerator/CodegenCS.SourceGenerator/</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
     <PackageId>CodegenCS.SourceGenerator</PackageId>
     <Description>CodegenCS Source Generator can be used to augment code (generating more code) during compilation.</Description>
     <Copyright>Rick Drizin</Copyright>
     <Company>Rick Drizin</Company>
     <Version>3.5.1</Version>
+    <DocumentationFile>CodegenCS.SourceGenerator.xml</DocumentationFile>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <!--<SymbolPackageFormat>snupkg</SymbolPackageFormat>-->
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -26,17 +30,20 @@
     <!-- Projects adding this nuget will have this source generator project included only as an analyzer (not as a library dependency) -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
 
-    <DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>
+    <!--<DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>-->
+    <DeterministicSourcePaths>true</DeterministicSourcePaths>
 
 
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <!-- Copies all assemblies (like Microsoft.CodeAnalysis.dll) to be in output folder, so we can easily pack them together -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     
-    <!-- in regular nuget packages it's recommended to have symbols isolated in snupkg, but for analyzers looks like it doesn't work well, so embedding pdbs/symbols in dlls works better? -->
-    <DebugType>embedded</DebugType>
+    <DebugType>portable</DebugType>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
 
     <!--Embeds the sources together with the PDB (which might be embedded within the DLL if DebugType=embedded)-->
-    <EmbedAllSources>true</EmbedAllSources>
+    <!--<EmbedAllSources>true</EmbedAllSources>-->
 
     <!--This embeds csproj/*.cs in symbols package (requires creating symbols package), but hopefully DeterministicSourcePaths/Github can do the same and load the right source?-->
     <!--<IncludeSource>True</IncludeSource>-->
@@ -98,6 +105,7 @@
   <!-- Package the generator in the analyzer directory of the nuget package -->
   <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
   <!-- Package the dependencies alongside the generator assembly -->
@@ -108,9 +116,8 @@
       https://github.com/dotnet/roslyn-sdk/blob/main/samples/CSharp/SourceGenerators/SourceGeneratorSamples/CSharpSourceGeneratorSamples.csproj
       https://stackoverflow.com/questions/67071355/source-generators-dependencies-not-loaded-in-visual-studio
     -->
+  <!--DLLs copied from the location where PackageReference was automatically extracted -->
   <ItemGroup>
-    <!--We can't add all because some should be from debug build-->
-    <!--<None Include="$(OutputPath)*.dll"  Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />-->
     <None Include="$(PkgNewtonsoft_Json)\lib\netstandard2.0\Newtonsoft.Json.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(PkgNewtonsoft_Json)\..\..\InterpolatedColorConsole\1.0.3\lib\netstandard2.0\InterpolatedColorConsole.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(PkgNewtonsoft_Json)\..\..\nswag.core\14.0.7\lib\netstandard2.0\NSwag.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
@@ -119,6 +126,23 @@
     <None Include="$(PkgNewtonsoft_Json)\..\..\njsonschema.annotations\11.0.0\lib\netstandard2.0\NJsonSchema.Annotations.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(PkgNewtonsoft_Json)\..\..\system.commandline\2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(PkgNewtonsoft_Json)\..\..\system.commandline.namingconventionbinder\2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.NamingConventionBinder.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+  <!--PDBs copied from the location where we explicitly extract SNUPKG symbol packages -->
+  <!--TODO: unify both in same logic by explicitly downloading NUPKG too-->
+  <ItemGroup>
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\newtonsoft.json.13.0.3\lib\netstandard2.0\Newtonsoft.Json.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\interpolatedcolorconsole.1.0.3\lib\netstandard2.0\InterpolatedColorConsole.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\nswag.core.14.0.7\lib\netstandard2.0\NSwag.Core.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\nswag.core.yaml.14.0.7\lib\netstandard2.0\NSwag.Core.Yaml.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\njsonschema.11.0.0\lib\netstandard2.0\NJsonSchema.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\njsonschema.annotations.11.0.0\lib\netstandard2.0\NJsonSchema.Annotations.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\system.commandline.2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\system.commandline.namingconventionbinder.2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.NamingConventionBinder.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+  
+  <!-- No nuget for these, always build output from project references -->
+  <ItemGroup>
     <None Include="$(OutputPath)CodegenCS.Tools.TemplateBuilder.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)CodegenCS.Tools.TemplateBuilder.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="$(OutputPath)CodegenCS.Tools.TemplateLauncher.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
