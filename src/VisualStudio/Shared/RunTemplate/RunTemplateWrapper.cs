@@ -123,7 +123,7 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
                         return builderResult.ReturnCode;
                     }
 
-                    string defaultOutputFile = Path.GetFileNameWithoutExtension(_templateItemPath) + ".generated.cs";
+                    string defaultOutputFile = Path.GetFileNameWithoutExtension(_templateItemPath) + ".g.cs";
                     string templateDll = builderResult.TargetFile;
                     var runResult = await RunTemplateAsync(templateDll, defaultOutputFile);
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();

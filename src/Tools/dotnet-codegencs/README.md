@@ -45,7 +45,7 @@ When you run `dotnet-codegencs template run`:
 - `Main()` return type can also be `FormattableString` or `string` - it's a more "functional" approach - in this case that return is automatically written to the default output file (`ICodegenTextWriter`) - no need to call `writer.WriteLine()`
 - If multiple files were written (into a `ICodegenContext`) then they are all saved under current folder  
   Different folder can be specified using option `--OutputFolder [OutputFolder]`
-- If a single file was written (into a `ICodegenTextWriter`) then it's saved under current folder as `<TemplateName>.generated.cs`  
+- If a single file was written (into a `ICodegenTextWriter`) then it's saved under current folder as `<TemplateName>.g.cs`  
   Different file can be specified using option `--File [DefaultOutputFile]`
 - Using statements are automatically added to the script (if not there) to let templates be as simple as possible
  
@@ -128,7 +128,7 @@ SimplePocos template is a good example of how to use custom arguments and option
 
 In the command above, `--File` is an option of `template run` and defines the default output file, while `-p:SingleFile` is a template-specific option (SimplePocos option) and defines that all POCOs should be generated into that single file.  
 If we don't specify `-p:SingleFile` then SimplePocos will generate each file on it's own [`<TableName>.generated.poco`](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L314).  
-If we specify `-p:SingleFile` but don't specify a `--File` then the default output file would be `SimplePocos.generated.cs` (since we're running `dotnet-codegencs template run SimplePocos ...`).  
+If we specify `-p:SingleFile` but don't specify a `--File` then the default output file would be `SimplePocos.g.cs` (since we're running `dotnet-codegencs template run SimplePocos ...`).  
 (P.S. we suggest this `-p:` as an [alternative prefix](https://github.com/CodegenCS/command-line-api/commit/b78690b47a68e9a9aca419c0c053df1acb9317b5) to avoid conflicting options with the main tool, but it's also possible to use  standard formats like `--youroption` or `/youroption`)
 
 For any template that [define their own arguments/options](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L52) using [`ConfigureCommand()`](https://github.com/CodegenCS/Templates/blob/main/DatabaseSchema/SimplePocos/SimplePocos.cs#L47) and [.NET System.CommandLine syntax](https://docs.microsoft.com/en-us/dotnet/standard/commandline/define-commands#define-options) we can also get help (see template usage and options):

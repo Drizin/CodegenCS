@@ -97,7 +97,7 @@ namespace CodegenCS.TemplateLauncher
 
             /// <summary>
             /// DefaultOutputFile. If not defined will be based on the Template DLL path, adding CS extension.
-            /// e.g. for "Template.dll" the default output file will be "Template.generated.cs".
+            /// e.g. for "Template.dll" the default output file will be "Template.g.cs".
             /// </summary>
             public string DefaultOutputFile { get; set; }
 
@@ -445,7 +445,7 @@ namespace CodegenCS.TemplateLauncher
             string providedTemplateName = _originallyInvokedTemplateFile?.Name ?? _templateFile?.Name ?? _args.Template;
 
             _outputFolder = _executionFolder = Directory.GetCurrentDirectory();
-            _defaultOutputFile = Path.GetFileNameWithoutExtension(providedTemplateName) + ".generated.cs"; //TODO: attribute to define default Suffix/Extension (while keeping names auto-inferred)
+            _defaultOutputFile = Path.GetFileNameWithoutExtension(providedTemplateName) + ".g.cs"; //TODO: attribute to define default Suffix/Extension (while keeping names auto-inferred)
             if (!string.IsNullOrWhiteSpace(_args.OutputFolder))
                 _outputFolder = Path.GetFullPath(_args.OutputFolder);
             if (!string.IsNullOrWhiteSpace(_args.ExecutionFolder))

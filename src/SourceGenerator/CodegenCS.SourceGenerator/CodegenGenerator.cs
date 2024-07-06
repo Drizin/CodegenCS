@@ -113,7 +113,7 @@ namespace CodegenCS.CodeGenerator
 
                         if (executionContext.CancellationToken.IsCancellationRequested)
                             return;
-                        string defaultOutputFile = Path.GetFileNameWithoutExtension((string)template.Path) + ".generated.cs";
+                        string defaultOutputFile = Path.GetFileNameWithoutExtension((string)template.Path) + ".g.cs";
                         string templateDll = builderResult.TargetFile;
                         var runResult = RunTemplateAsync(template.Path, templateDll, defaultOutputFile, outputType).ConfigureAwait(false).GetAwaiter().GetResult(); // TODO: incremental generators have async support
 

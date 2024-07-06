@@ -205,7 +205,7 @@ Entry-point method can follow C/Java/C# convention of being `void` or returning 
 ## Automatic Save
 
 By default the template outputs (`ICodegenContext`/ `ICodegenTextWriter`) are only in-memory, then after template execution the output file(s) are automatically saved (unless there were unhandled exceptions or non-zero return code). There are some smart defaults so that you can just focus on your template logic instead of writing boilerplate code:
-- Default output filename (unless specified in CLI with `--file <file>`) is based on the template name (e.g. `Template.cs` will generate `Template.generated.cs`)
+- Default output filename (unless specified in CLI with `--file <file>`) is based on the template name (e.g. `Template.cs` will generate `Template.g.cs`)
 - Default folder (unless specified in CLI with `--folder <folder>`) is based on current folder (or based in template location if running from VS Extension). Relative paths are supported everywhere.
 
 ## Raw String Literals & Hassle-free Characters Escaping
@@ -257,7 +257,7 @@ class MyTemplate
         """;
 }
 ```
-This can be executed using `dotnet-codegencs`: just run `dotnet-codegencs template run MyTemplate.cs` and the template will be compiled, executed, and you will get the output in a file `MyTemplate.generated.cs`.  
+This can be executed using `dotnet-codegencs`: just run `dotnet-codegencs template run MyTemplate.cs` and the template will be compiled, executed, and you will get the output in a file `MyTemplate.g.cs`.  
 
 Or if you want to run with `Visual Studio Extension` all you have to do is right-click the file and select "Run CodegenCS Template".
 
@@ -285,7 +285,7 @@ class MyTemplate
 }
 ```
 
-Default output file has its name automatically inferred from the template name (`MyTemplate.cs` generates a `MyTemplate.generated.cs`), but you can modify it either in the code (`writer.RelativePath = "MyOutput.java"`) or in the command-line (`dotnet-codegencs template run MyTemplate.cs -f MyOutput.java`).
+Default output file has its name automatically inferred from the template name (`MyTemplate.cs` generates a `MyTemplate.g.cs`), but you can modify it either in the code (`writer.RelativePath = "MyOutput.java"`) or in the command-line (`dotnet-codegencs template run MyTemplate.cs -f MyOutput.java`).
 
 ## The powerful Raw String Literal
 
@@ -415,7 +415,7 @@ class MyTemplate
       context["Class1.cs"].WriteLine(GenerateClass("Class1"));
       context["Class2.cs"].WriteLine(GenerateClass("Class2"));
       context["Class3.cs"].WriteLine("public class Class3 {}");
-      context.DefaultOutputFile.WriteLine("this goes to standard output"); // e.g. "MyTemplate.generated.cs"
+      context.DefaultOutputFile.WriteLine("this goes to standard output"); // e.g. "MyTemplate.g.cs"
     }
 
     FormattableString GenerateClass(string className) => $$"""
@@ -1099,7 +1099,7 @@ Generating JobCandidate...
 Generating Shift...
 ... etc etc.
 Generating vStoreWithDemographics...
-Generated 1 file: 'C:\Users\drizin\MyTemplate.generated.cs'
+Generated 1 file: 'C:\Users\drizin\MyTemplate.g.cs'
 Successfully executed template 'MyTemplate.cs'.
 ```
 

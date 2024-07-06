@@ -96,7 +96,7 @@ public class BaseTest
             Template = _builderArgs.Output,
             Models = models,
             OutputFolder = _tmpFolder,
-            DefaultOutputFile = Path.GetFileNameWithoutExtension(_templateFileName  ?? _tmpTemplateFile) + ".generated.cs",
+            DefaultOutputFile = Path.GetFileNameWithoutExtension(_templateFileName  ?? _tmpTemplateFile) + ".g.cs",
             TemplateSpecificArguments = templateArgs
         };
         var launcher = new TemplateLauncher.TemplateLauncher(_logger, _context, dependencyContainer, true);

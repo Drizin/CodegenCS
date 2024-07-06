@@ -130,7 +130,7 @@ internal class BaseTest
             Template = templateDll,
             Models = models,
             OutputFolder = _tmpFolder,
-            DefaultOutputFile = Path.GetFileNameWithoutExtension(_tmpTemplateFile ?? _builderArgs.Template[0]) + ".generated.cs", // should be same rule everywhere (VisualStudio RunTemplateWrapper, dotnet-codegencs TemplateRunCommand, and here) // just in-memory, doesn't matter
+            DefaultOutputFile = Path.GetFileNameWithoutExtension(_tmpTemplateFile ?? _builderArgs.Template[0]) + ".g.cs", // should be same rule everywhere (VisualStudio RunTemplateWrapper, dotnet-codegencs TemplateRunCommand, and here) // just in-memory, doesn't matter
             TemplateSpecificArguments = templateArgs
         };
         var launcher = new TemplateLauncher.TemplateLauncher(_logger, _context, dependencyContainer, true);

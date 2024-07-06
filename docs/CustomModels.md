@@ -58,7 +58,7 @@ public class MyTemplate
 
 `dotnet-codegencs template run MyTemplate.cs MyModel.json`
 
-Now open `MyTemplate.generated.cs` and you'll see the generated code:
+Now open `MyTemplate.g.cs` and you'll see the generated code:
 
 ```cs
 namespace MyNamespace

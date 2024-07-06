@@ -390,12 +390,12 @@ public class DapperPOCOGenerator : ICodegenMultifileTemplate<DatabaseSchema>
 
     private string GetFileNameForTable(Table table)
     {
-        //return $"{table.TableName}.generated.cs";
+        //return $"{table.TableName}.g.cs";
         // if default schema or all tables under a single schema then just omit the schema:
         if (table.TableSchema == "dbo" || _allTablesInSameSchema)
-            return $"{table.TableName}.generated.cs";
+            return $"{table.TableName}.g.cs";
         else
-            return $"{table.TableSchema}.{table.TableName}.generated.cs";
+            return $"{table.TableSchema}.{table.TableName}.g.cs";
     }
     private static string GetClassNameForTable(Table table)
     {

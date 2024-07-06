@@ -12,7 +12,7 @@ namespace CodegenCS.Tools.Tests
         private static string[] GetTemplates()
         {
             var files = Directory.GetFiles(TemplatesFolder);
-            files = files.Where(f => !f.EndsWith(".generated.cs") && !f.EndsWith(".json")).ToArray();
+            files = files.Where(f => !f.EndsWith(".g.cs") && !f.EndsWith(".generated.cs") && !f.EndsWith(".json")).ToArray();
             return files;
         }
 

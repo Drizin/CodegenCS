@@ -28,7 +28,7 @@ If you don't need to generate code based on existing code then you don't need sy
 
 Frequent claims people do when they think they need a Source Generator:
 - "I need it to run during my build" -> you can use prebuild events
-- "I don't want to add to source control" -> you can just ignore patterns like `*.generated.cs` or `*.g.cs`
+- "I don't want to add to source control" -> you can just ignore patterns like `*.g.cs` or `*.generated.cs`
 - "I need to read the Syntax Tree" -> now you can with [**CodegenCS.SourceGenerator**](https://www.nuget.org/packages/CodegenCS.SourceGenerator)
 
 Other advantages of using scripts instead of source generators:

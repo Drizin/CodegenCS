@@ -151,7 +151,7 @@ public class NSwagClient
     void Init(ICodegenContext context, OpenApiDocument model, NSwagClientOptions options)
     {
         if (string.IsNullOrEmpty(context.DefaultOutputFile.RelativePath))
-            context.DefaultOutputFile.RelativePath = $"{this.GetType().Name}.generated.cs";
+            context.DefaultOutputFile.RelativePath = $"{this.GetType().Name}.g.cs";
 
         // Allow the following types to be injected into delegates
         context.DependencyContainer.RegisterSingleton(this);

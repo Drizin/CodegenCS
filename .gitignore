@@ -338,8 +338,11 @@ ASALocalRun/
 /src/packages-local
 /src/release.snk
 
+*.g.cs
 *.generated.cs
+!src/Tools/Tests/Templates/*.g.cs
 !src/Tools/Tests/Templates/*.generated.cs
+!**/Snapshots/*.cs
 
 /src/Models/CodegenCS.Models.NSwagAdapter/CodegenCS.Models.NSwagAdapter.xml
 dotnet-tools.json

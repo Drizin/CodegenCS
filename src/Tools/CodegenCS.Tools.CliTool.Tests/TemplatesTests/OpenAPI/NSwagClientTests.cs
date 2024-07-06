@@ -69,9 +69,9 @@ namespace CodegenCS.Tools.CliTool.Tests
             StringAssert.Contains($"Model successfuly loaded from '{model}'...", _stdOut);
             StringAssert.Contains($"Successfully executed template '{templateAlias}.dll'.", _stdOut);
             StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
-            FileAssert.Exists($"{templateAlias}.generated.cs");
-            string snapshot = Path.Combine(GetSourceFileFolder(), "Snapshots", "petstore-openapi3.generated.cs");
-            FileAssert.AreEqual(snapshot, $"{templateAlias}.generated.cs");
+            FileAssert.Exists($"{templateAlias}.g.cs");
+            string snapshot = Path.Combine(GetSourceFileFolder(), "Snapshots", "petstore-openapi3.g.cs");
+            FileAssert.AreEqual(snapshot, $"{templateAlias}.g.cs");
         }
         #endregion
 

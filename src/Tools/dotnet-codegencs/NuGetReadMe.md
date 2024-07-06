@@ -15,14 +15,14 @@ It can also be used to clone templates from our online catalog (https://github.c
 
 ```dotnet-codegencs template run --OutputFolder=.\OutputFolder\ SimplePocos.dll AdventureWorks.json MyProject.POCOs```
 
-```dotnet-codegencs template run --OutputFolder=.\Somefolder\ --File POCOs.generated.cs SimplePocos.dll AdventureWorks.json MyProject.POCOs --p:SingleFile```
+```dotnet-codegencs template run --OutputFolder=.\Somefolder\ --File POCOs.g.cs SimplePocos.dll AdventureWorks.json MyProject.POCOs --p:SingleFile```
 
 **Downloading and running sample template to generate based on a Swagger specification (OpenAPI)**
 
 ```dotnet-codegencs template clone https://github.com/CodegenCS/Templates/OpenAPI/NSwagClient/NSwagClient.cs```
 
 ```dotnet-codegencs template run NSwagClient.dll petstore-openapi3.json MyProject.RestClients```
-```dotnet-codegencs template run --OutputFolder=.\Somefolder\ --File PetstoreClient.generated.cs NSwagClient.dll petstore-openapi3.json MyProject.RestClients```
+```dotnet-codegencs template run --OutputFolder=.\Somefolder\ --File PetstoreClient.g.cs NSwagClient.dll petstore-openapi3.json MyProject.RestClients```
 
 
 **Extracting schema of a MSSQL or PostgreSQL database**

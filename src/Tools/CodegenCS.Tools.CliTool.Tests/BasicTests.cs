@@ -162,8 +162,8 @@ namespace CodegenCS.Tools.CliTool.Tests
             string cmd = $"template run TemplateWithReferences.dll";
             result = await Run(cmd);
             Assert.AreEqual(0, result.ExitCode);
-            FileAssert.Exists("TemplateWithReferences.generated.cs");
-            StringAssert.Contains("My first template", File.ReadAllText(("TemplateWithReferences.generated.cs")));
+            FileAssert.Exists("TemplateWithReferences.g.cs");
+            StringAssert.Contains("My first template", File.ReadAllText(("TemplateWithReferences.g.cs")));
         }
         #endregion
 
@@ -180,8 +180,8 @@ namespace CodegenCS.Tools.CliTool.Tests
             StringAssert.Contains("Generated 71 files at folder '", _stdOut);
             StringAssert.Contains("Successfully executed template 'SimplePocos.dll'.", _stdOut);
             StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
-            FileAssert.Exists("Person.Address.generated.cs");
-            StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(("Person.Address.generated.cs")));
+            FileAssert.Exists("Person.Address.g.cs");
+            StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(("Person.Address.g.cs")));
         }
 
         [Test]
@@ -198,8 +198,8 @@ namespace CodegenCS.Tools.CliTool.Tests
             StringAssert.Contains("Generated 71 files at folder '", _stdOut);
             StringAssert.Contains("Successfully executed template", _stdOut);
             StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
-            FileAssert.Exists("Person.Address.generated.cs");
-            StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(("Person.Address.generated.cs")));
+            FileAssert.Exists("Person.Address.g.cs");
+            StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(("Person.Address.g.cs")));
         }
 
         [Test]
@@ -216,8 +216,8 @@ namespace CodegenCS.Tools.CliTool.Tests
             StringAssert.Contains("Generated 71 files at folder '", _stdOut);
             StringAssert.Contains("Successfully executed template", _stdOut);
             StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
-            FileAssert.Exists("Person.Address.generated.cs");
-            StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(("Person.Address.generated.cs")));
+            FileAssert.Exists("Person.Address.g.cs");
+            StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(("Person.Address.g.cs")));
         }
 
         [Test]
@@ -232,8 +232,8 @@ namespace CodegenCS.Tools.CliTool.Tests
             StringAssert.Contains("Generated 71 files at folder '", _stdOut);
             StringAssert.Contains("Successfully executed template", _stdOut);
             StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
-            FileAssert.Exists("Person.Address.generated.cs");
-            StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(("Person.Address.generated.cs")));
+            FileAssert.Exists("Person.Address.g.cs");
+            StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(("Person.Address.g.cs")));
         }
 
         [Test]
@@ -262,10 +262,10 @@ namespace CodegenCS.Tools.CliTool.Tests
             StringAssert.Contains("Successfully built template into", _stdOut); // ... 'TemplateWithReferences.dll'
             StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
             FileAssert.Exists("TemplateWithReferences.dll");
-            FileAssert.Exists("TemplateWithReferences.generated.cs");
-            StringAssert.Contains("My first template", File.ReadAllText(("TemplateWithReferences.generated.cs")));
+            FileAssert.Exists("TemplateWithReferences.g.cs");
+            StringAssert.Contains("My first template", File.ReadAllText(("TemplateWithReferences.g.cs")));
             File.Delete("TemplateWithReferences.cs");
-            File.Delete("TemplateWithReferences.generated.cs");
+            File.Delete("TemplateWithReferences.g.cs");
         }
 
         #endregion
@@ -286,8 +286,8 @@ namespace CodegenCS.Tools.CliTool.Tests
         public async Task Options1()
         {
             FileAssert.Exists("SimplePocos.dll");
-            Directory.GetFiles(Directory.GetCurrentDirectory(), "*.generated.cs").ToList().ForEach(path => File.Delete(path));
-            FileAssert.DoesNotExist("SimplePocos.generated.cs");
+            Directory.GetFiles(Directory.GetCurrentDirectory(), "*.g.cs").ToList().ForEach(path => File.Delete(path));
+            FileAssert.DoesNotExist("SimplePocos.g.cs");
             var result = await Run("template run SimplePocos.dll AdventureWorksSchema.json MyNamespace2 -p:SingleFile");
             Assert.AreEqual(0, result.ExitCode);
             StringAssert.Contains("Loading 'SimplePocos.dll'...", _stdOut);
@@ -296,19 +296,19 @@ namespace CodegenCS.Tools.CliTool.Tests
             StringAssert.Contains("Generated 1 file: '", _stdOut);
             StringAssert.Contains("Successfully executed template 'SimplePocos.dll'.", _stdOut);
             StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
-            FileAssert.Exists("SimplePocos.generated.cs");
-            FileAssert.DoesNotExist("Person.Address.generated.cs");
-            StringAssert.Contains("namespace MyNamespace2\r\n", File.ReadAllText(("SimplePocos.generated.cs")));
-            StringAssert.Contains("public partial class Address", File.ReadAllText(("SimplePocos.generated.cs")));
-            StringAssert.Contains("public override bool Equals(object obj)", File.ReadAllText(("SimplePocos.generated.cs")));
+            FileAssert.Exists("SimplePocos.g.cs");
+            FileAssert.DoesNotExist("Person.Address.g.cs");
+            StringAssert.Contains("namespace MyNamespace2\r\n", File.ReadAllText(("SimplePocos.g.cs")));
+            StringAssert.Contains("public partial class Address", File.ReadAllText(("SimplePocos.g.cs")));
+            StringAssert.Contains("public override bool Equals(object obj)", File.ReadAllText(("SimplePocos.g.cs")));
         }
 
         [Test]
         public async Task Options2()
         {
             FileAssert.Exists("SimplePocos.dll");
-            Directory.GetFiles(Directory.GetCurrentDirectory(), "*.generated.cs").ToList().ForEach(path => File.Delete(path));
-            FileAssert.DoesNotExist("SimplePocos.generated.cs");
+            Directory.GetFiles(Directory.GetCurrentDirectory(), "*.g.cs").ToList().ForEach(path => File.Delete(path));
+            FileAssert.DoesNotExist("SimplePocos.g.cs");
             var result = await Run("template run SimplePocos.dll AdventureWorksSchema.json MyNamespace2 -p:SingleFile -o SubFolder -f MyPocos.cs -p:GenerateEqualsHashCode false");
             StringAssert.Contains("Loading 'SimplePocos.dll'...", _stdOut);
             Assert.AreEqual(0, result.ExitCode);
@@ -359,8 +359,8 @@ namespace CodegenCS.Tools.CliTool.Tests
             StringAssert.Contains($"Model successfuly loaded from '{model}'...", _stdOut);
             StringAssert.Contains($"Successfully executed template '{templateAlias}.dll'.", _stdOut);
             StringAssert.AreEqualIgnoringCase(string.Empty, _stdErr);
-            FileAssert.Exists($"{templateAlias}.generated.cs");
-            StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(($"{templateAlias}.generated.cs"))); 
+            FileAssert.Exists($"{templateAlias}.g.cs");
+            StringAssert.Contains("namespace MyNamespace\r\n", File.ReadAllText(($"{templateAlias}.g.cs"))); 
         }
         #endregion
     }
