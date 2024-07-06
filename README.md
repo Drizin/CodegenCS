@@ -36,7 +36,9 @@ To sum our hybrid model provides the best of both worlds: you can write template
 
 Templates are C# programs so they should have an entrypoint method (named `Main()` or `TemplateMain()`).
 
-Methods can be "markup-based" which means that they just return an interpolated string:
+Methods (including entrypoint methods) can be "markup-based" os programmatic.
+
+A markup-based method is one that just return an interpolated string:
 
 ```cs
 class MyTemplate
@@ -44,7 +46,8 @@ class MyTemplate
     FormattableString Main() => $"My first template";
 }
 ```
-Or they can be programmatic:
+
+A programmatic method can contain instructions and usually it writes explicitly to output streams:
 
 ```cs
 class MyTemplate
@@ -58,7 +61,7 @@ class MyTemplate
 
 ## Subtemplates (aka "partials")
 
-In a programmatic method it's pretty obvious that you can just invoke other methods to break down a template into smaller (and more organized blocks), but when you have a markup-based block (i.e. a large string) it's not so obvious how you can include a "subtemplate":
+In a programmatic method we obviously can just invoke other methods to break down a template into smaller (and more organized blocks), but when you have a markup-based block (i.e. a large string) it's not so obvious how you can include a "subtemplate":
 
 In regular C# string interpolation we can only interpolate types that can be directly converted to string (`string`, `FormattableString`, `int`, `DateTime`, etc.), but in our magic TextWriter allows interpolating many other types including delegates (methods) so it's very easy to "embed" a subtemplate (a different method) right within an interpolated string.
 
@@ -168,7 +171,8 @@ When a template is invoked there are many types that can be automatically inject
 Logs are automatically printed to console (if using dotnet-codegencs) or to Visual Studio Output Window Pane (if using VS Extension)
 
 The standard way of doing dependency injection is injecting the types into the class constructor (**constructor injection**), but if you have a very simple template and don't want it to have a class constructor you can also get the types injected into your `Main()` entrypoint method (**method injection**). Additionally if there are multiple constructors (or multiple overloads for `Main()` entrypoint) we pick the most specific overload (the one that matches all most number of models/arguments) - like other IoC containers do.  
-Dependency injection is also available for interpolated delegates.
+
+Dependency injection is also available for interpolated delegates, which means that you can interpolate an `Action<>` (or `Func<>`) and the required types will be magically injected (even if caller method does not use those types).
 
 ## Models
 
@@ -269,8 +273,10 @@ class MyTemplate
     void Main(ICodegenOutputFile writer)
     {
         writer.WriteLine($$"""
-            public class MyFirstClass {
-                public void Hello{{ _name }}() {
+            public class MyFirstClass
+            {
+                public void Hello{{ _name }}()
+                {
                   Console.WriteLine("Hello, {{ _name }}")
                 }
             }
@@ -285,22 +291,63 @@ Default output file has its name automatically inferred from the template name (
 
 It's important to understand the features provided by the raw string literal (from previous examples):
 
-1. Since it starts with 2 dollar-signs (`$$`) it means that interpolated objects are escaped using 2 curly-braces (`{{object}}`), so it means we can write curly braces (`{` / `}`) without having to escape them. If we needed to easily write double curly-braces (`{{` / `}}` also known as double-mustache in JSX) then we should better use `$$$` so our interpolated objects would be surrounded by `{{{`/`}}}`.  
-  A raw string literal that allows string interpolation should start with 2 or more dollar-signs.
-1. Since it starts with three double quotes (`"""`) it means that it should end with same three double quotes, which means that we can write one or two consecutive double quotes without having to escape them (no such thing as `\"` anymore) - .  
-  A raw string literal should start with 3 or more double-quotes. It finishes when it finds again the same number of double quotes.
-1. Since the first line is an empty line and the last empty is also an empty line, they are ignored - tthe compiler won't add those empty lines to the final string - only the lines inbetween are used.
+1. A raw string literal starts with 3 (or more) double-quotes, and it ends when it finds the same number of double quotes.  
+  This means that it's very easy to write any number of double-quotes without worrying about character escaping.  
+  In most examples our raw string literals start with three double quotes (`"""`) and that means that it should end with same three double quotes, which means that inside it it can have one or two consecutive double quotes without having to escape them (no such thing as `\"` anymore).
+1. If it starts with one (or more) dollar-signs (`$`) then it allows interpolated objects within the string.  
+If it starts with 1 dollar-sign (`$`) it means that interpolated objects are escaped using 1 curly-braces (`{object}`).  
+If it starts with 2 dollar-signs (`$$`) it means that interpolated objects are escaped using 2 curly-braces (`{{object}}`). Etc..
+1. If your template generates output that uses curly-braces (`{` / `}`), like C/C#/Java), it's a good idea to use raw string literals with `$$`, which means that single curly-braces won't need escaping, and your interpolated objects should be surrounded by double curly-braces (`{{object}}`).  
+Most examples in our documentation use `$$`.
+1. If your template generates output that uses double curly-braces (`{{` / `}}` (also known as double-mustache), like JSX, it's a good idea to use raw string literals with `$$$` which means that double curly-braces won't need escaping, and your interpolated objects should be surrounded by triple curly-braces (`{{{object}}}`).  
+1. Since the first line is an empty line and the last empty is also an empty line, they are ignored - tthe compiler won't add those empty lines to the final string - only the lines inbetween are used.  
 1.  Since the ending line (where we have the 3 closing double quotes `"""`) is padded by 8 spaces then the whole block (all lines) will be "left-trimmed" by 8 spaces (all lines will have the 8 initial spaces removed).  
   This means that first and last lines (`public class MyFirstClass {` and the closing `}`) will both be at `column 0` (no leading whitespace).
+1. Raw string literals with multiple lines are very flexible and powerful but you can also use one-liners like  
+  `"""this is a single line RSL"""` or `$$"""this is a single line RSL with {{interpolation}}"""`
 
-This is the output you would get from previous examples:
+<br>  
+
+## Raw String Literal Example
+
+
 ```cs
-public class MyFirstClass {
-    public void HelloRick() {
+class MyTemplate
+{
+    string _name = "Rick";
+
+    void Main(ICodegenOutputFile writer)
+    {
+        writer.WriteLine($$"""
+            public class MyFirstClass
+            {
+                public void Hello{{ _name }}()
+                {
+                  Console.WriteLine("Hello, {{ _name }}")
+                }
+            }
+            """);
+    }
+}
+```
+
+The output would be:
+
+```cs
+public class MyFirstClass 
+{
+    public void HelloRick() 
+    {
       Console.WriteLine("Hello, Rick")
     }
 }
 ```
+
+The example above shows native features from raw string literals:
+1. Writing curly-braces without having to escape
+1. Writing double-quotes without having to escape
+1. Indenting our strings to make them aligned with parent block, but having this leading whitespace discarded when we run the template.
+
 
 ## Subtemplates ("partials") as interpolated objects
 
@@ -402,7 +449,8 @@ class MyTemplate
     string methodName = "HelloCodeGenerationWorld";
 
     FormattableString Main() => $$"""
-        namespace {{ myNamespace }} {
+        namespace {{ myNamespace }}
+        {
             {{ myClass }}
         }
         """;
@@ -430,7 +478,8 @@ It's important to note that all strings above are using Raw String Literals, whi
 The final output gets the indentation that you would expect:
 
 ```cs
-namespace CodegenCS.Sample {
+namespace CodegenCS.Sample
+{
     public class MyAutogeneratedClass()
     {
         public void HelloCodeGenerationWorld()
@@ -441,10 +490,11 @@ namespace CodegenCS.Sample {
 }
 ```
 
-**If you were using a regular C# TextWriter** the first line of each inner block would be padded according to the outer block (it would "start after 4 spaces") but all subsequent lines would "go back to column 0", and this is what you would get:
+**If you were using a regular C# TextWriter** then **only the first line of each inner block** would be padded according to the outer block (starting after 4 spaces written by parent block) but all subsequent lines would "go back to column 0", and this is what you would get:
 
 ```cs
-namespace CodegenCS.Sample {
+namespace CodegenCS.Sample
+{
     public class MyAutogeneratedClass()
 {
     public void HelloCodeGenerationWorld()
@@ -455,7 +505,7 @@ namespace CodegenCS.Sample {
 }
 ```
 
-Most other templating engines suffer from the same problem - an indented "partial" does not indent the whole output of the partial. So usually getting whitespace correct requires a lot of trial-and-error, and usually what you get is ugly and counterintuitive (mixed indentation).
+Most other templating engines (including T4) suffer from this problem - an indented "partial" does not indent the whole output of the partial. So usually getting whitespace correct requires a lot of trial-and-error, and your template becomes ugly and hard to maintain (mixed indentation).
 
 Check out [Indent Control](https://github.com/Drizin/CodegenCS/tree/master/docs/Indent-Control.md) to learn more about internals and to see examples for Python (which does not use curly braces but is still based on indentation).
 

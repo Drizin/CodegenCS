@@ -1,8 +1,6 @@
 [cmdletbinding()]
 param(
-    [Parameter(Mandatory=$False)]
-    [ValidateSet('Release','Debug')]
-    [string]$configuration
+    [Parameter(Mandatory=$False)][ValidateSet('Release','Debug')][string]$configuration
 )
 
 # Visual Studio Extensions

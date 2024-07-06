@@ -1,8 +1,7 @@
 [cmdletbinding()]
 param(
-    [Parameter(Mandatory=$False)]
-    [ValidateSet('Release','Debug')]
-    [string]$configuration
+    [Parameter(Mandatory=$False)][ValidateSet('Release','Debug')][string]$configuration,
+    [Parameter(Mandatory=$False)][string]$targetFrameworks="net8"
 )
 
 # How to run:

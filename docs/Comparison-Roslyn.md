@@ -14,9 +14,11 @@
 
 **Usually the new generated code is based on the Compilation Syntax Trees** (because if you don't need to read the Syntax Tree then you don't need a Source Generator - you can just generate your code during a prebuild event).
 
-[Most source generators render code using plain text](https://www.reddit.com/r/dotnet/comments/t3ds4m/why_is_noone_using_roslyn_tokenbased_code/) (e.g. using StringBuilders) because it's just **much much easier** than manually building roslyn tokens.  
+[Most source generators render code using plain text](https://www.reddit.com/r/dotnet/comments/t3ds4m/why_is_noone_using_roslyn_tokenbased_code/) (e.g. using StringBuilders) because it's just **much much easier** than manually building roslyn tokens. 
 Generating code using roslyn tokens and syntax trees is both painful and nonsense. Writing human-readable code and letting compilers transform that into syntax trees is the exact reason why compilers exist.  
 Yet, some developers love hard challenges so instead of getting the job done and writing maintainable code they prefer spending weeks learning how syntax trees work generating code as if they were a compiler.
+
+[Even MSFT says](https://www.reddit.com/r/dotnet/comments/t3ds4m/comment/hyudrtq/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button) that syntax trees are supposed to be used for analyzing code, and not for generating code.  
 
 To sum, Roslyn Source Generators will augment a .NET project during compilation by reading the source code and generating more source code on-the-fly. But again: the fact that you have to **read** existing code using syntax trees does not imply that you have to **write** the new code using syntax trees.
 
