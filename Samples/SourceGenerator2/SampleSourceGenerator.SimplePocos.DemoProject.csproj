@@ -28,7 +28,7 @@
 		-->
 
 		<PackageReference Include="Dapper" Version="2.0.78" />
-		<PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+		<PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
 
 		<!-- This nuget will be found in .\packages-local\ - and Nuget.config is what points to that folder -->
 		<PackageReference Include="SampleSourceGenerator.SimplePocos" Version="1.0.0" />
