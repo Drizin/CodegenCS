@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference="Stop"
 
-$version = "3.5.1"
+$version = "3.5.2"
 $nugetPE = "C:\ProgramData\chocolatey\bin\NuGetPackageExplorer.exe"
 $7z = "C:\Program Files\7-Zip\7z.exe"
 

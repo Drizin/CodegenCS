@@ -17,7 +17,7 @@ It's possible to render physical files on disk or just render in-memory (no need
 1. Install nuget `CodegenCS.SourceGenerator` to your project
    ```xml
    <ItemGroup>
-     <PackageReference Include="CodegenCS.SourceGenerator" Version="3.5.1" />
+     <PackageReference Include="CodegenCS.SourceGenerator" Version="3.5.2" />
    </ItemGroup>
    ```
 
