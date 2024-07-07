@@ -52,6 +52,7 @@ if ($configuration -eq "Release")
 
 if ($configuration -eq "Debug") {
   . .\build-sourcegenerator.ps1
+  . .\build-msbuild.ps1
 }
 # Unit tests # TODO: break this into CORE tests, MODEL tests, CLITESTS 
 dotnet build -c -Configuration $configuration .\Core\CodegenCS.Tests\CodegenCS.Tests.csproj

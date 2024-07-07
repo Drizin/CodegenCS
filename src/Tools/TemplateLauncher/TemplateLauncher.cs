@@ -46,6 +46,7 @@ namespace CodegenCS.TemplateLauncher
         public ParseCliUsingCustomCommandDelegate ParseCliUsingCustomCommand = null;
         protected IModelFactory _modelFactory;
         protected DependencyContainer _dependencyContainer;
+        protected bool _resolveMissingAssembliesLocally = false;
 
         public TemplateLauncher(ILogger logger, ICodegenContext ctx, DependencyContainer parentDependencyContainer, bool verboseMode)
         {
@@ -104,11 +105,14 @@ namespace CodegenCS.TemplateLauncher
             public string[] TemplateSpecificArguments { get; set; } = new string[0];
             public string[] ThirdPartyReferences { get; set; } = new string[0];
             public bool SaveOutput { get; set; } = true;
+
+            public bool ResolveMissingAssembliesLocally { get; set; } = false;
         }
 
 
         public async Task<int> LoadAndExecuteAsync(TemplateLauncherArgs args, ParseResult parseResult)
         {
+            _resolveMissingAssembliesLocally = args.ResolveMissingAssembliesLocally;
             var loadResult = await LoadAsync(args.Template, args.Models.Length);
             if (loadResult.ReturnCode != 0)
                 return loadResult.ReturnCode;
@@ -137,6 +141,20 @@ namespace CodegenCS.TemplateLauncher
             }
 
             await _logger?.WriteLineAsync(ConsoleColor.Green, $"Loading {ConsoleColor.Yellow}'{_templateFile.Name}'{PREVIOUS_COLOR}...");
+
+            if (_resolveMissingAssembliesLocally)
+            {
+                var thisDll = Assembly.GetAssembly(typeof(TemplateLauncher)).Location; // Assembly.GetExecutingAssembly().Location?
+                string msbuildTaskFolder = new FileInfo(thisDll).Directory.FullName;
+                AppDomain.CurrentDomain.AssemblyResolve += (e, args) =>
+                {
+                    var name = new AssemblyName(args.Name);
+                    string dll = Path.Combine(msbuildTaskFolder, name.Name + ".dll");
+                    if (File.Exists(dll))
+                        return Assembly.LoadFrom(dll);
+                    return null;
+                };
+            }
 
             bool success = await FindEntryPoint(providedModels);
 
@@ -425,6 +443,7 @@ namespace CodegenCS.TemplateLauncher
 
         public async Task<int> ExecuteAsync(TemplateLauncherArgs _args, ParseResult parseResult)
         {
+            _resolveMissingAssembliesLocally = _args.ResolveMissingAssembliesLocally;
             if (_entryPointClass == null)
                 throw new InvalidOperationException("Should call LoadAsync() before ExecuteAsync(). Or use LoadAndExecuteAsync()");
 

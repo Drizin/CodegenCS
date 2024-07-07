@@ -1,0 +1,252 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Rick Drizin</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/Drizin/CodegenCS/blob/master/src/MSBuild/CodegenCS.MSBuild/</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageTags>code generation;code generator;templating;codegencs</PackageTags>
+    <PackageId>CodegenCS.MSBuild</PackageId>
+    <Description>CodegenCS MSBuild Task can be used to augment code (generating more code) during compilation.</Description>
+    <Copyright>Rick Drizin</Copyright>
+    <Company>Rick Drizin</Company>
+    <Version>3.5.1</Version>
+    <DocumentationFile>CodegenCS.MSBuild.xml</DocumentationFile>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <!--<SymbolPackageFormat>snupkg</SymbolPackageFormat>-->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+    <!-- we need the assemblies bundled, so set this so we don't expose any dependencies to the outside world -->
+    <GenerateDependencyFile>true</GenerateDependencyFile>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+    <!-- This property tells MSBuild where the root folder of the package's build assets should be. Because we are not a library package, we should not pack to 'lib'. Instead, we choose 'tasks' by convention. -->
+    <BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
+    <!-- NuGet does validation that libraries in a package are exposed as dependencies, but we _explicitly_ do not want that behavior for MSBuild tasks. They are isolated by design. Therefore we ignore this specific warning. -->
+    <NoWarn>NU5100</NoWarn>
+    <DebugType>embedded</DebugType>
+    <IsPackable>true</IsPackable>
+
+    <!--
+    <PackBuildOutput>true</PackBuildOutput>
+    <PackOnBuild>true</PackOnBuild>
+    <PackFolder>lib\netstandard2.0</PackFolder>-->
+    <LangVersion>preview</LangVersion>
+    
+
+    <!--<DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>-->
+    <DeterministicSourcePaths>true</DeterministicSourcePaths>
+    <!-- Copies all assemblies (like Microsoft.CodeAnalysis.dll) to be in output folder, so we can easily pack them together -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <DebugType>portable</DebugType>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
+    <!--Embeds the sources together with the PDB (which might be embedded within the DLL if DebugType=embedded)-->
+    <!--<EmbedAllSources>true</EmbedAllSources>-->
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.10.4" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+    All dependencies of this MSBuild Task are private dependencies (PrivateAssets=all)
+    this means that consumers of the generator will NOT get those transitive dependencies, so no conflicts
+    Packing those dependencies with analyzer is tricky, though (for msbuild it should be easier but I just reused same code)
+    Probably I should set IncludeAssets to only build, removing analyzers?
+    -->
+    <!-- 
+      GeneratePathProperty=true allows us to use PKGNewtonsoft_Json property, but for some reason it only works for Newtonsoft
+      Additionally it doesn't work in TargetPathWithTargetPlatformMoniker, so I'm not using - instead I get Nuget packages path using $(USERPROFILE)
+    -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="InterpolatedColorConsole" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="NSwag.Core" Version="14.0.7" PrivateAssets="all" />
+    <PackageReference Include="NSwag.Core.Yaml" Version="14.0.7" PrivateAssets="all" />
+    <PackageReference Include="NJsonSchema" Version="11.0.0" PrivateAssets="all" />
+    <PackageReference Include="NJsonSchema.Annotations" Version="11.0.0" PrivateAssets="all" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-codegencs" PrivateAssets="all" />
+    <PackageReference Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-codegencs" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- This is getting too ugly, I should probably just pack these as nugets instead of fighting against dependencies -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.Dotnet.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj" PrivateAssets="all" />
+  </ItemGroup>
+  
+    <ItemGroup>
+        <!-- These lines pack the build props/targets files to the `build` folder in the generated package.
+         By convention, the .NET SDK will look for build\<Package Id>.props and build\<Package Id>.targets
+         for automatic inclusion in the build. -->
+      <Content Include="build\CodegenCS.MSBuild.targets" PackagePath="build\" />
+      <Content Include="build\CodegenCS.MSBuild.props" PackagePath="build\" />
+    </ItemGroup>
+    
+  <!-- Package the dependencies alongside the generator assembly -->
+  <!-- 
+      Packing dependencies within an analyzer is unsupported, and requires ugly hacks that are all difficult/troublesome
+      https://github.com/dotnet/roslyn/issues/43903
+      https://stackoverflow.com/questions/66944569/how-to-fix-c-sharp-source-generators-issue-of-not-found-references
+      https://github.com/dotnet/roslyn-sdk/blob/main/samples/CSharp/SourceGenerators/SourceGeneratorSamples/CSharpSourceGeneratorSamples.csproj
+      https://stackoverflow.com/questions/67071355/source-generators-dependencies-not-loaded-in-visual-studio
+    -->
+  <!--DLLs copied from the location where PackageReference was automatically extracted -->
+  <ItemGroup>
+    <None Include="$(PkgNewtonsoft_Json)\lib\netstandard2.0\Newtonsoft.Json.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\InterpolatedColorConsole\1.0.3\lib\netstandard2.0\InterpolatedColorConsole.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\nswag.core\14.0.7\lib\netstandard2.0\NSwag.Core.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\nswag.core.yaml\14.0.7\lib\netstandard2.0\NSwag.Core.Yaml.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\njsonschema\11.0.0\lib\netstandard2.0\NJsonSchema.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\njsonschema.annotations\11.0.0\lib\netstandard2.0\NJsonSchema.Annotations.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\system.commandline\2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(PkgNewtonsoft_Json)\..\..\system.commandline.namingconventionbinder\2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.NamingConventionBinder.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+  </ItemGroup>
+
+  <!--PDBs copied from the location where we explicitly extract SNUPKG symbol packages -->
+  <!--TODO: unify both in same logic by explicitly downloading NUPKG too-->
+  <ItemGroup>
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\newtonsoft.json.13.0.3\lib\netstandard2.0\Newtonsoft.Json.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\interpolatedcolorconsole.1.0.3\lib\netstandard2.0\InterpolatedColorConsole.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\nswag.core.14.0.7\lib\netstandard2.0\NSwag.Core.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\nswag.core.yaml.14.0.7\lib\netstandard2.0\NSwag.Core.Yaml.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\njsonschema.11.0.0\lib\netstandard2.0\NJsonSchema.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\njsonschema.annotations.11.0.0\lib\netstandard2.0\NJsonSchema.Annotations.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\system.commandline.2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(MSBuildProjectDirectory)\..\..\ExternalSymbolsToEmbed\system.commandline.namingconventionbinder.2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.NamingConventionBinder.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+  </ItemGroup>
+  
+  <!-- No nuget for these, always build output from project references -->
+  <ItemGroup>
+    <None Include="$(OutputPath)CodegenCS.Tools.TemplateBuilder.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(OutputPath)CodegenCS.Tools.TemplateBuilder.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(OutputPath)CodegenCS.Tools.TemplateLauncher.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    <None Include="$(OutputPath)CodegenCS.Tools.TemplateLauncher.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+  </ItemGroup>
+
+
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <ItemGroup>
+        <None Include="$(OutputPath)CodegenCS.Core.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Core.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Runtime.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Runtime.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Models.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Models.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.DotNet.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.DotNet.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Models.DbSchema.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Models.DbSchema.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Models.NSwagAdapter.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(OutputPath)CodegenCS.Models.NSwagAdapter.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.runtime\3.5.0\lib\netstandard2.0\CodegenCS.Runtime.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.runtime\3.5.0\lib\netstandard2.0\CodegenCS.Runtime.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models.dbschema\3.5.0\lib\netstandard2.0\CodegenCS.Models.DbSchema.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models.dbschema\3.5.0\lib\netstandard2.0\CodegenCS.Models.DbSchema.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models.nswagadapter\3.5.0\lib\netstandard2.0\CodegenCS.Models.NSwagAdapter.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models.nswagadapter\3.5.0\lib\netstandard2.0\CodegenCS.Models.NSwagAdapter.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+
+  <!-- Looks like this solution is important for .\build-msbuild.ps1 -configuration Release -->
+  <!-- While the previous blocks (Packing directly into "tasks/netstandard2.0") is what makes Debug build (and debugging through VS) work -->
+  <PropertyGroup>
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GetDependencyTargetPaths">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\newtonsoft.json\13.0.3\lib\netstandard2.0\Newtonsoft.Json.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\interpolatedcolorconsole\1.0.3\lib\netstandard2.0\InterpolatedColorConsole.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\nswag.core\14.0.7\lib\netstandard2.0\NSwag.Core.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\nswag.core.yaml\14.0.7\lib\netstandard2.0\NSwag.Core.Yaml.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\njsonschema\11.0.0\lib\netstandard2.0\NJsonSchema.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\njsonschema.annotations\11.0.0\lib\netstandard2.0\NJsonSchema.Annotations.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\system.commandline\2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\system.commandline.namingconventionbinder\2.0.0-codegencs\lib\netstandard2.0\System.CommandLine.NamingConventionBinder.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="..\..\Tools\TemplateBuilder\bin\$(Configuration)\netstandard2.0\CodegenCS.Tools.TemplateBuilder.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="..\..\Tools\TemplateBuilder\bin\$(Configuration)\netstandard2.0\CodegenCS.Tools.TemplateBuilder.pdb" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="..\..\Tools\TemplateLauncher\bin\$(Configuration)\netstandard2.0\CodegenCS.Tools.TemplateLauncher.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="..\..\Tools\TemplateLauncher\bin\$(Configuration)\netstandard2.0\CodegenCS.Tools.TemplateLauncher.pdb" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+      <None Include="$(OutputPath)CodegenCS.Core.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Core.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Runtime.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Runtime.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Models.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Models.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.DotNet.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.DotNet.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Models.DbSchema.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Models.DbSchema.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Models.NSwagAdapter.dll" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+      <None Include="$(OutputPath)CodegenCS.Models.NSwagAdapter.pdb" Pack="true" PackagePath="tasks/netstandard2.0" Visible="false" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(Configuration)' == 'Release'">
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.pdb" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.runtime\3.5.0\lib\netstandard2.0\CodegenCS.Runtime.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.runtime\3.5.0\lib\netstandard2.0\CodegenCS.Runtime.pdb" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.pdb" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.pdb" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.models.dbschema\3.5.0\lib\netstandard2.0\CodegenCS.Models.DbSchema.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.models.dbschema\3.5.0\lib\netstandard2.0\CodegenCS.Models.DbSchema.pdb" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.models.nswagadapter\3.5.0\lib\netstandard2.0\CodegenCS.Models.NSwagAdapter.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.models.nswagadapter\3.5.0\lib\netstandard2.0\CodegenCS.Models.NSwagAdapter.pdb" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+
+  </Target>
+
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <!-- The dependencies of your MSBuild task must be packaged inside the package, they cannot be expressed as normal PackageReferences -->
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)" TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
+    </ItemGroup>
+  </Target>
+
+
+  <!-- This target adds the generated deps.json file to our package output -->
+  <Target Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput" BeforeTargets="BuiltProjectOutputGroup" Condition=" '$(GenerateDependencyFile)' == 'true'">
+
+    <ItemGroup>
+      <BuiltProjectOutputGroupOutput Include="$(ProjectDepsFilePath)" TargetPath="$(ProjectDepsFileName)" FinalOutputPath="$(ProjectDepsFilePath)" />
+    </ItemGroup>
+  </Target>
+
+
+</Project>
+ 

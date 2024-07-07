@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="CodegenCS.MSBuild" Version="3.5.1" PrivateAssets="All" />
+	</ItemGroup>
+
+</Project>

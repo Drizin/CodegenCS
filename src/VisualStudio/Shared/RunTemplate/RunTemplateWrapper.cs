@@ -292,11 +292,8 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
             
             if (statusCode != 0)
             {
-                if (statusCode != -2) // invalid template args has already shown the help page
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    _customPane.OutputStringThreadSafe("TemplateLauncher (dotnet-codegencs template run) Failed.\r\n");
-                }
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                _customPane.OutputStringThreadSafe("TemplateLauncher (dotnet-codegencs template run) Failed.\r\n");
             }
             return statusCode;
         }

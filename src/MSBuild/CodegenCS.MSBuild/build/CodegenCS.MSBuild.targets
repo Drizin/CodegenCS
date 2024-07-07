@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<!-- All *.csx will be automatically executed -->
+	<ItemGroup>
+		<CodegenTemplate Include="$(MSBuildProjectDirectory)\*.csx" />
+		<CodegenTemplate Include="$(MSBuildProjectDirectory)\**\*.csx" />
+	</ItemGroup>
+
+	<!--It is generated a target which is executed before the compilation-->
+	<Target Name="BeforeCompile">
+		<!-- DesignTimeBuilds happen periodically (while IDE is open), and we only want our task to be called during builds -->
+		<!--https://github.com/dotnet/project-system/blob/main/docs/design-time-builds.md#determining-whether-a-target-is-run-in-a-design-time-build-->
+		<!--ProjectFilePath="$(MSBuildProjectFullPath)" SolutionFilePath="$(SolutionPath)" CodegenTemplates="@(CodegenTemplate)"-->
+		<CodegenBuildTask ProjectFilePath="$(MSBuildProjectFullPath)" SolutionFilePath="$(SolutionPath)" CodegenTemplates="@(CodegenTemplate)" Condition="'$(DesignTimeBuild)' != 'true' AND '$(BuildingProject)' == 'true'">
+			<Output TaskParameter="CompileFiles" ItemName="CompileFiles" />
+			<Output TaskParameter="EmbeddedResourceFiles" ItemName="EmbeddedResourceFiles" />
+			<Output TaskParameter="ContentFiles" ItemName="ContentFiles" />
+			<Output TaskParameter="NoneFiles" ItemName="NoneFiles" />
+		</CodegenBuildTask>
+		<!--Include our generated files-->
+		<!--In SDK-projects files like CS/RESX are automatically added as Compile/EmbeddedResource (other types should have build action explicit)
+			For non-SDK-projects we have to explicitly add those and any other build actions.-->
+		<ItemGroup>
+			<Compile Include="@(CompileFiles)" />
+			<Content Include="@(ContentFiles)" />
+			<EmbeddedResource Include="@(EmbeddedResourceFiles)" />
+			<None Include="@(NoneFiles)" />
+		</ItemGroup>
+	</Target>
+</Project>

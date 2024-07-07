@@ -122,6 +122,14 @@ It's available for [Visual Studio 2022](https://marketplace.visualstudio.com/ite
 
 Output files are automatically added to the project (nested under the template item), so it's easy to use (but it doesn't have all features available in `dotnet-codegencs`).  
 
+## MSBuild Task
+
+Our [MSBuild Task](https://github.com/Drizin/CodegenCS/tree/master/src/MSBuild/) (nuget [here](https://nuget.org/packages/CodegenCS.MSBuild)) allows running templates on-the-fly during compilation. 
+
+MSBuild Task `CodegenBuildTask` is automatically invoked during `BeforeCompile` target, will search for `*.csx` files in the project folder and will run each one. 
+
+Files are physically saved to disk and will be automatically added to your compilation (and obviously you can add that to `.gitignore` if you want).
+
 ## Roslyn Source Generator
 
 Our [Source Generator](https://github.com/Drizin/CodegenCS/tree/master/src/SourceGenerator/) (nuget [here](https://nuget.org/packages/CodegenCS.SourceGenerator)) allows running templates on-the-fly during compilation.  
@@ -289,7 +297,7 @@ Default output file has its name automatically inferred from the template name (
 
 ## The powerful Raw String Literal
 
-It's important to understand the features provided by the raw string literal (from previous examples):
+In previous example (and many other examples and templates) we use raw string literals so it's important to understand how it works:
 
 1. A raw string literal starts with 3 (or more) double-quotes, and it ends when it finds the same number of double quotes.  
   This means that it's very easy to write any number of double-quotes without worrying about character escaping.  
@@ -305,6 +313,8 @@ Most examples in our documentation use `$$`.
   This means that first and last lines (`public class MyFirstClass {` and the closing `}`) will both be at `column 0` (no leading whitespace).
 1. Raw string literals with multiple lines are very flexible and powerful but you can also use one-liners like  
   `"""this is a single line RSL"""` or `$$"""this is a single line RSL with {{interpolation}}"""`
+
+For more details on raw string literals check [this reference](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/strings/#raw-string-literals) and [this one](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-11.0/raw-string-literal).
 
 <br>  
 

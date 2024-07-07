@@ -223,10 +223,7 @@ namespace CodegenCS.CodeGenerator
 
             if (statusCode != 0)
             {
-                if (statusCode != -2) // invalid template args has already shown the help page
-                {
-                    _executionContext.ReportDiagnostic(Diagnostic.Create(ExecutionFailure, Location.None, templateItemPath, $"CodegenCS - error running template"));
-                }
+                _executionContext.ReportDiagnostic(Diagnostic.Create(ExecutionFailure, Location.None, templateItemPath, $"CodegenCS - error running template"));
             }
             return statusCode;
         }

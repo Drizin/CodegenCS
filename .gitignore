@@ -347,3 +347,5 @@ ASALocalRun/
 /src/Models/CodegenCS.Models.NSwagAdapter/CodegenCS.Models.NSwagAdapter.xml
 dotnet-tools.json
 /Samples/PrebuildEvent/DapperExtensionPocos.dll
+/src/MSBuild/CodegenCS.MSBuild/CodegenCS.MSBuild.xml
+/nuget.exe
