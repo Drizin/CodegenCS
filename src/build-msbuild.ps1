@@ -77,8 +77,9 @@ if (Test-Path $7z) {
     if (-not ($zipContents|Select-String "Path = "|Select-String "CodegenCS.Core.pdb")) { throw "msbuild failed" } 
 }
 
+# Visual Studio Design-Time-Builds were keeping msbuild running and eventually building (and locking) our templates. I think this is gone, now that Design-Time-Builds were blocked in CodegenCS.MSBuild.targets
 # handle codegencs.core.dll
-taskkill /f /im msbuild.exe
+#taskkill /f /im msbuild.exe
 
 
 # If task fails due to missing dependencies then fusion++ might help to identify what's missing: C:\ProgramData\chocolatey\lib\fusionplusplus\tools\Fusion++.exe
@@ -96,11 +97,10 @@ if (! $?) { throw "msbuild failed" }
 
 Write-Host "------------" -ForegroundColor Yellow
 
-if (-not (gci ..\Samples\MSBuild1\*.g.cs)){ throw "Template failed (classed were not added to the compilation)" }
-if (-not (gci ..\Samples\MSBuild1\*.generated.cs)){ throw "Template failed (classed were not added to the compilation)" }
+if (-not (gci ..\Samples\MSBuild1\*.g.cs)){ throw "Template failed (classes were not added to the compilation)" }
 
 C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe ..\Samples\MSBuild1\bin\$configuration\net8.0\MSBuild1.dll -t MyFirstClass
-if (! $?) { throw "Template failed (classed were not added to the compilation)" }
+if (! $?) { throw "Template failed (classes were not added to the compilation)" }
 #C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.exe ..\Samples\MSBuild1\bin\$configuration\net8.0\MSBuild1.dll
 
 # Test with non-SDK-Project (Microsoft Framework Web Application)
@@ -117,11 +117,10 @@ if (! $?) { throw "msbuild failed" }
 
 Write-Host "------------" -ForegroundColor Yellow
 
-if (-not (gci ..\Samples\MSBuild2\*.g.cs)){ throw "Template failed (classed were not added to the compilation)" }
-if (-not (gci ..\Samples\MSBuild2\*.generated.cs)){ throw "Template failed (classed were not added to the compilation)" }
+if (-not (gci ..\Samples\MSBuild2\*.g.cs)){ throw "Template failed (classes were not added to the compilation)" }
 
 C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe ..\Samples\MSBuild2\bin\WebApplication.dll -t MyFirstClass
-if (! $?) { throw "Template failed (classed were not added to the compilation)" }
+if (! $?) { throw "Template failed (classes were not added to the compilation)" }
 #C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.exe ..\Samples\MSBuild2\bin\WebApplication.dll
 
 

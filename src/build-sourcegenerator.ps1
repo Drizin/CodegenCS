@@ -96,7 +96,7 @@ if (! $?) { throw "msbuild failed" }
 Write-Host "------------" -ForegroundColor Yellow
 C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe ..\Samples\SourceGenerator1\bin\$configuration\netstandard2.0\SourceGenerator1.dll -t MyFirstClass
 C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe ..\Samples\SourceGenerator1\bin\$configuration\netstandard2.0\SourceGenerator1.dll -t AnotherSampleClass # should show some methods that were generated on the fly
-if (! $?) { throw "Template failed (classed were not added to the compilation)" }
+if (! $?) { throw "Template failed (classes were not added to the compilation)" }
 
 Pop-Location
 
