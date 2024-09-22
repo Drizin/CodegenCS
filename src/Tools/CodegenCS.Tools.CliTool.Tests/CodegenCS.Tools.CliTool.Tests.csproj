@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFramework>net$(NETCoreAppMaximumVersion)</TargetFramework>
     <IsPackable>false</IsPackable>
     <Company>Rick Drizin</Company>
     <Copyright>Rick Drizin</Copyright>

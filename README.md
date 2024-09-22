@@ -978,41 +978,46 @@ PS: In the example above the `(FormattableString)` cast doesn't make a differenc
 
 The result is a list POCOs for all tables:
 ```cs
-// ... etc
-  /// <summary>
-  /// POCO for Department
-  /// </summary>
-  public class Department
-  {
-      public System.Int16 DepartmentID { get; set; }
-      public System.String Name { get; set; }
-      public System.String GroupName { get; set; }
-      public System.DateTime ModifiedDate { get; set; }
-  }
+namespace MyNamespace
+{
+    // ... etc
 
-  /// <summary>
-  /// POCO for Employee
-  /// </summary>
-  public class Employee
-  {
-      public System.Int32 BusinessEntityID { get; set; }
-      public System.String NationalIDNumber { get; set; }
-      public System.String LoginID { get; set; }
-      public Microsoft.SqlServer.Types.SqlHierarchyId OrganizationNode { get; set; }
-      public System.Int16 OrganizationLevel { get; set; }
-      public System.String JobTitle { get; set; }
-      public System.DateTime BirthDate { get; set; }
-      public System.String MaritalStatus { get; set; }
-      public System.String Gender { get; set; }
-      public System.DateTime HireDate { get; set; }
-      public System.Boolean SalariedFlag { get; set; }
-      public System.Int16 VacationHours { get; set; }
-      public System.Int16 SickLeaveHours { get; set; }
-      public System.Boolean CurrentFlag { get; set; }
-      public System.Guid rowguid { get; set; }
-      public System.DateTime ModifiedDate { get; set; }
-  }
-// ... etc
+    /// <summary>
+    /// POCO for Department
+    /// </summary>
+    public class Department
+    {
+        public System.Int16 DepartmentID { get; set; }
+        public System.String Name { get; set; }
+        public System.String GroupName { get; set; }
+        public System.DateTime ModifiedDate { get; set; }
+    }
+
+    /// <summary>
+    /// POCO for Employee
+    /// </summary>
+    public class Employee
+    {
+        public System.Int32 BusinessEntityID { get; set; }
+        public System.String NationalIDNumber { get; set; }
+        public System.String LoginID { get; set; }
+        public Microsoft.SqlServer.Types.SqlHierarchyId OrganizationNode { get; set; }
+        public System.Int16 OrganizationLevel { get; set; }
+        public System.String JobTitle { get; set; }
+        public System.DateTime BirthDate { get; set; }
+        public System.String MaritalStatus { get; set; }
+        public System.String Gender { get; set; }
+        public System.DateTime HireDate { get; set; }
+        public System.Boolean SalariedFlag { get; set; }
+        public System.Int16 VacationHours { get; set; }
+        public System.Int16 SickLeaveHours { get; set; }
+        public System.Boolean CurrentFlag { get; set; }
+        public System.Guid rowguid { get; set; }
+        public System.DateTime ModifiedDate { get; set; }
+    }
+    
+    // ... etc
+}
 ```
 
 ## IEnumerables with Delegates
@@ -1210,7 +1215,7 @@ See example in
 
 Most users won't ever need to download or interact directly with CodegenCS library - most likely all you need (to build and run templates) is the **Command-line Tool or Visual Studio Extension**.
 
-But if you need to use our libraries in your own projects most libraries are available as nuget packages - cross-platform and available for `netstandard2.0`/`net472`/`net5.0`/`net6.0`/`net7.0`/`net8.0`.
+But if you need to use our libraries in your own projects most libraries are available as nuget packages - cross-platform and available for `netstandard2.0` (so they work for both .NET and .NET Framework).
 
 - [CodegenCS.Core](https://github.com/Drizin/CodegenCS/tree/master/src/Core/CodegenCS) is the backbone of the toolkit.  
   It contains `CodegenTextWriter`, `CodegenContext`, `CodegenOutputFile`, all indent control, string interpolation parsing, delegates evaluation/reflection, etc.  

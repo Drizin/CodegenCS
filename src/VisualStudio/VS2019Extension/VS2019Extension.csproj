@@ -147,32 +147,46 @@
       <ManifestResourceName>VSPackage</ManifestResourceName>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj">
-      <Project>{51de0970-e84d-4f96-ae80-bc17e28b2736}</Project>
-      <Name>CodegenCS.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj">
-      <Project>{3a765f42-3c03-4c1c-9a03-b490ea94911b}</Project>
-      <Name>CodegenCS.Runtime</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj">
-      <Project>{7e79d7a5-b919-48b0-b5e9-620be086b399}</Project>
-      <Name>CodegenCS.DotNet</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj">
-      <Project>{21f897ca-25a6-49f8-95a0-a191aacc2b2c}</Project>
-      <Name>CodegenCS.Models</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj">
-      <Project>{8b3282f8-0080-4526-8ece-45346beb1d20}</Project>
-      <Name>CodegenCS.Models.DbSchema</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj">
-      <Project>{684ab71f-4d08-4d72-8161-67ecdaf440ec}</Project>
-      <Name>CodegenCS.Models.NSwagAdapter</Name>
-    </ProjectReference>
-  </ItemGroup>
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <ItemGroup>
+		<ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj">
+		  <Project>{51de0970-e84d-4f96-ae80-bc17e28b2736}</Project>
+		  <Name>CodegenCS.Core</Name>
+		</ProjectReference>
+		<ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj">
+		  <Project>{3a765f42-3c03-4c1c-9a03-b490ea94911b}</Project>
+		  <Name>CodegenCS.Runtime</Name>
+		</ProjectReference>
+		<ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.DotNet.csproj">
+		  <Project>{7e79d7a5-b919-48b0-b5e9-620be086b399}</Project>
+		  <Name>CodegenCS.DotNet</Name>
+		</ProjectReference>
+		<ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj">
+		  <Project>{21f897ca-25a6-49f8-95a0-a191aacc2b2c}</Project>
+		  <Name>CodegenCS.Models</Name>
+		</ProjectReference>
+		<ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj">
+		  <Project>{8b3282f8-0080-4526-8ece-45346beb1d20}</Project>
+		  <Name>CodegenCS.Models.DbSchema</Name>
+		</ProjectReference>
+		<ProjectReference Include="..\..\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj">
+		  <Project>{684ab71f-4d08-4d72-8161-67ecdaf440ec}</Project>
+		  <Name>CodegenCS.Models.NSwagAdapter</Name>
+		</ProjectReference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="CodegenCS.Core" Version="3.5.0" />
+        <PackageReference Include="CodegenCS.Runtime" Version="3.5.2" />
+        <PackageReference Include="CodegenCS.Models" Version="3.5.0" />
+        <PackageReference Include="CodegenCS.DotNet" Version="3.5.0" />
+        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.5.0" />
+        <PackageReference Include="CodegenCS.Models.NSwagAdapter" Version="3.5.0" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
     <ProjectReference Include="..\..\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj">
       <Project>{20234722-dc8f-4b0d-b12a-3df606d181da}</Project>
@@ -193,6 +207,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
+  <PropertyGroup>
+    <PreBuildEvent>copy $(ProjectDir)\source.extension.$(Configuration).vsixmanifest $(ProjectDir)\source.extension.vsixmanifest</PreBuildEvent>
+	<PostBuildEvent>del $(ProjectDir)\source.extension.vsixmanifest</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

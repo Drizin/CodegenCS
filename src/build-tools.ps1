@@ -1,7 +1,7 @@
 [cmdletbinding()]
 param(
     [Parameter(Mandatory=$False)][ValidateSet('Release','Debug')][string]$configuration,
-    [Parameter(Mandatory=$False)][string]$targetFrameworks="net8"
+    [Parameter(Mandatory=$False)][string]$dotnetcodegencsTargetFrameworks="net8"
 )
 
 # CLI tool (dotnet-codegencs)
@@ -24,7 +24,6 @@ Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 dotnet restore .\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj
 & $msbuild ".\Tools\TemplateBuilder\CodegenCS.Tools.TemplateBuilder.csproj" `
            /t:Restore /t:Build                                                  `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
            /verbosity:minimal                                                   `
@@ -34,7 +33,6 @@ if (! $?) { throw "msbuild failed" }
 dotnet restore .\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj
 & $msbuild ".\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" `
            /t:Restore /t:Build                                                  `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
            /verbosity:minimal                                                   `
@@ -44,7 +42,6 @@ if (! $?) { throw "msbuild failed" }
 dotnet restore .\Tools\TemplateDownloader\CodegenCS.Tools.TemplateDownloader.csproj
 & $msbuild ".\Tools\TemplateDownloader\CodegenCS.Tools.TemplateDownloader.csproj" `
            /t:Restore /t:Build                                                  `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
            /verbosity:minimal                                                   `
@@ -52,17 +49,35 @@ dotnet restore .\Tools\TemplateDownloader\CodegenCS.Tools.TemplateDownloader.csp
 if (! $?) { throw "msbuild failed" }
 
 
-
 # dotnet-codegencs (DotnetTool nupkg/snupkg)
-& $msbuild ".\Tools\dotnet-codegencs\dotnet-codegencs.csproj"   `
-           /t:Restore /t:Build /t:Pack                             `
-           /p:PackageOutputPath="..\..\packages-local\"      `
-           '/p:targetFrameworks="net5.0;net6.0;net7.0;net8.0"'                 `
-           /p:Configuration=$configuration                `
-           /p:IncludeSymbols=true                         `
-           /verbosity:minimal                             `
-           /p:ContinuousIntegrationBuild=true
-if (! $?) { throw "msbuild failed" }
+dotnet restore ".\Tools\dotnet-codegencs\dotnet-codegencs.csproj"
+if ($dotnetcodegencsTargetFrameworks.IndexOf(";") -eq -1) {
+    # single target
+    $maxVer = $dotnetcodegencsTargetFrameworks.Substring($dotnetcodegencsTargetFrameworks.Length-1)
+    & $msbuild ".\Tools\dotnet-codegencs\dotnet-codegencs.csproj"     `
+               /t:Restore /t:Build /t:Pack                            `
+               /p:PackageOutputPath="..\..\packages-local\"           `
+               /p:targetFrameworks=$dotnetcodegencsTargetFrameworks   `
+               /p:Configuration=$configuration                        `
+               /p:NETCoreAppMaximumVersion=$maxVer `
+               /p:IncludeSymbols=true                                 `
+               /verbosity:minimal                                     `
+               /p:ContinuousIntegrationBuild=true
+    if (! $?) { throw "msbuild failed" }
+} else {
+    # release is multitarget
+    # escaping msbuild in powershell is tricky
+    # but we should build for all "net6.0;net7.0;net8.0"
+    & $msbuild ".\Tools\dotnet-codegencs\dotnet-codegencs.csproj"     `
+               /t:Restore /t:Build /t:Pack                            `
+               /p:PackageOutputPath="..\..\packages-local\"           `
+               '/p:targetFrameworks="net6.0;net7.0;net8.0"'           `
+               /p:Configuration=$configuration                        `
+               /p:IncludeSymbols=true                                 `
+               /verbosity:minimal                                     `
+               /p:ContinuousIntegrationBuild=true
+    if (! $?) { throw "msbuild failed" }
+}
 
 # Global tool (like all other nuget packages) will be in .\packages-local\
 

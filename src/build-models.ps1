@@ -1,7 +1,6 @@
 [cmdletbinding()]
 param(
-    [Parameter(Mandatory=$False)][ValidateSet('Release','Debug')][string]$configuration,
-    [Parameter(Mandatory=$False)][string]$targetFrameworks="net8"
+    [Parameter(Mandatory=$False)][ValidateSet('Release','Debug')][string]$configuration
 )
 
 # How to run: .\build.ps1   or   .\build.ps1 -configuration Debug
@@ -21,19 +20,19 @@ Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 
 
 # CodegenCS.Models.DbSchema + nupkg/snupkg
-& $msbuild ".\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj"        `
+dotnet restore ".\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj"
+& $msbuild ".\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj" `
            /t:Restore /t:Build /t:Pack                             `
            /p:PackageOutputPath="..\..\packages-local\"               `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'    `
            /p:Configuration=$configuration                         `
            /p:IncludeSymbols=true                                  `
            /verbosity:minimal                                      `
            /p:ContinuousIntegrationBuild=true
 if (! $?) { throw "msbuild failed" }
 
+dotnet restore ".\Models\CodegenCS.Models.DbSchema.Extractor\CodegenCS.Models.DbSchema.Extractor.csproj"
 & $msbuild ".\Models\CodegenCS.Models.DbSchema.Extractor\CodegenCS.Models.DbSchema.Extractor.csproj" `
            /t:Restore /t:Build                                                  `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'                 `
            /p:Configuration=$configuration                                      `
            /p:IncludeSymbols=true                                               `
            /verbosity:minimal                                                   `
@@ -42,10 +41,10 @@ if (! $?) { throw "msbuild failed" }
 
 
 # CodegenCS.Models.NSwagAdapter + nupkg/snupkg
+dotnet restore ".\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj"
 & $msbuild ".\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj"        `
            /t:Restore /t:Build /t:Pack                             `
            /p:PackageOutputPath="..\..\packages-local\"               `
-           '/p:targetFrameworks="netstandard2.0;net472;net5.0;net6.0;net7.0;net8.0"'    `
            /p:Configuration=$configuration                         `
            /p:IncludeSymbols=true                                  `
            /verbosity:minimal                                      `

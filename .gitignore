@@ -351,3 +351,5 @@ dotnet-tools.json
 /nuget.exe
 /src/SourceGenerator/CodegenCS.SourceGenerator/CodegenCS.SourceGenerator.xml
 /src/nuget.exe
+/src/VisualStudio/VS2019Extension/source.extension.vsixmanifest
+/src/VisualStudio/VS2022Extension/source.extension.vsixmanifest

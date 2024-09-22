@@ -93,14 +93,28 @@
     <ProjectReference Include="..\..\Tools\TemplateLauncher\CodegenCS.Tools.TemplateLauncher.csproj" PrivateAssets="all" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.Dotnet.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj" PrivateAssets="all" />
-  </ItemGroup>
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug'">
+      <ItemGroup>
+        <ProjectReference Include="..\..\Core\CodegenCS\CodegenCS.Core.csproj" PrivateAssets="all" />
+        <ProjectReference Include="..\..\Core\CodegenCS.Runtime\CodegenCS.Runtime.csproj" PrivateAssets="all" />
+        <ProjectReference Include="..\..\Core\CodegenCS.Models\CodegenCS.Models.csproj" PrivateAssets="all" />
+        <ProjectReference Include="..\..\Core\CodegenCS.DotNet\CodegenCS.Dotnet.csproj" PrivateAssets="all" />
+        <ProjectReference Include="..\..\Models\CodegenCS.Models.DbSchema\CodegenCS.Models.DbSchema.csproj" PrivateAssets="all" />
+        <ProjectReference Include="..\..\Models\CodegenCS.Models.NSwagAdapter\CodegenCS.Models.NSwagAdapter.csproj" PrivateAssets="all" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="CodegenCS.Core" Version="3.5.0" />
+        <PackageReference Include="CodegenCS.Runtime" Version="3.5.2" />
+        <PackageReference Include="CodegenCS.Models" Version="3.5.0" />
+        <PackageReference Include="CodegenCS.DotNet" Version="3.5.0" />
+        <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.5.0" />
+        <PackageReference Include="CodegenCS.Models.NSwagAdapter" Version="3.5.0" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   
   <!-- Package the generator in the analyzer directory of the nuget package -->
   <ItemGroup>
@@ -170,17 +184,11 @@
     <Otherwise>
       <ItemGroup>
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.runtime\3.5.2\lib\netstandard2.0\CodegenCS.Runtime.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.runtime\3.5.2\lib\netstandard2.0\CodegenCS.Runtime.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models.dbschema\3.5.0\lib\netstandard2.0\CodegenCS.Models.DbSchema.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models.dbschema\3.5.0\lib\netstandard2.0\CodegenCS.Models.DbSchema.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models.nswagadapter\3.5.0\lib\netstandard2.0\CodegenCS.Models.NSwagAdapter.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models.nswagadapter\3.5.0\lib\netstandard2.0\CodegenCS.Models.NSwagAdapter.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
       </ItemGroup>
     </Otherwise>
   </Choose>

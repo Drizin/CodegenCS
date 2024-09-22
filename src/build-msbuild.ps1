@@ -1,3 +1,10 @@
+[cmdletbinding()]
+param(
+    [Parameter(Mandatory=$False)][ValidateSet('Release','Debug')][string]$configuration
+)
+
+$ErrorActionPreference="Stop"
+
 $version = "3.5.2"
 $nugetPE = "C:\ProgramData\chocolatey\bin\NuGetPackageExplorer.exe"
 $7z = "C:\Program Files\7-Zip\7z.exe"
@@ -16,7 +23,10 @@ gci $env:TEMP -r -filter CodegenCS.MSBuild.dll -ErrorAction Ignore | Remove-Item
 #gci "$($env:TEMP)\VBCSCompiler\AnalyzerAssemblyLoader" -r -ErrorAction Ignore | Remove-Item -Force -Recurse -ErrorAction Ignore
 gci .\packages\ -filter CodegenCS.MSBuild.* | Remove-Item -Force -Recurse -ErrorAction Ignore # non-sdk projects will cache packages here
 
-$configuration = "Debug"
+if (-not $PSBoundParameters.ContainsKey('configuration'))
+{
+	if (Test-Path Release.snk) { $configuration = "Release"; } else { $configuration = "Debug"; }
+}
 Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 
 
@@ -57,7 +67,6 @@ dotnet restore .\MSBuild\CodegenCS.MSBuild\CodegenCS.MSBuild.csproj
 & $msbuild ".\MSBuild\CodegenCS.MSBuild\CodegenCS.MSBuild.csproj" `
            /t:Restore /t:Build /t:Pack                                          `
            /p:PackageOutputPath="..\..\packages-local\"      `
-           '/p:targetFrameworks="netstandard2.0;"'                 `
            /p:Configuration=$configuration                                      `
            /verbosity:minimal                                                   `
            /p:IncludeSymbols=true                                  `
@@ -74,7 +83,7 @@ if (Test-Path $7z) {
 
     # sanity check: nupkg should have debug-build dlls, pdb files, source files, etc.
     if (-not ($zipContents|Select-String "Path = "|Select-String "CodegenCS.Core.dll")) { throw "msbuild failed" } 
-    if (-not ($zipContents|Select-String "Path = "|Select-String "CodegenCS.Core.pdb")) { throw "msbuild failed" } 
+    if (-not ($zipContents|Select-String "Path = "|Select-String "CodegenCS.Core.pdb") -and $configuration -eq "Debug") { throw "msbuild failed" } 
 }
 
 # Visual Studio Design-Time-Builds were keeping msbuild running and eventually building (and locking) our templates. I think this is gone, now that Design-Time-Builds were blocked in CodegenCS.MSBuild.targets

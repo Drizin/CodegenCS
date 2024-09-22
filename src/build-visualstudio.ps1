@@ -18,11 +18,6 @@ if (-not $PSBoundParameters.ContainsKey('configuration'))
 	#if (Test-Path Release.snk) { $configuration = "Release"; } else { $configuration = "Debug"; }
 	$configuration = "Debug"
 }
-elseif ($configuration -eq "Release") {
-	# error NU1106: Unable to satisfy conflicting requests
-	Write-Host "ERROR: Cannot build this project in Release mode" -ForegroundColor Red
-	exit
-}
 Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 
 try {
@@ -34,25 +29,25 @@ try {
 
 
 	# CodegenCS.Runtime.VisualStudio
+	dotnet restore ".\VisualStudio\CodegenCS.Runtime.VisualStudio\CodegenCS.Runtime.VisualStudio.csproj"
 	& $msbuild ".\VisualStudio\CodegenCS.Runtime.VisualStudio\CodegenCS.Runtime.VisualStudio.csproj"                          `
 			   /t:Restore /t:Build                                     `
-			   '/p:targetFrameworks="net472"'    `
 			   /p:Configuration=$configuration                         `
 			   /p:IncludeSymbols=true                                  `
 			   /verbosity:minimal                                      `
 			   /p:ContinuousIntegrationBuild=true
 	if (! $?) { throw "msbuild failed" }
 
+	dotnet restore ".\VisualStudio\VS2022Extension\VS2022Extension.csproj"
 	& $msbuild ".\VisualStudio\VS2022Extension\VS2022Extension.csproj"   `
 			   /t:Restore /t:Build                                     `
-			   '/p:targetFrameworks="net472"'                 `
 			   /p:Configuration=$configuration
 	if (! $?) { throw "msbuild failed" }
 	copy .\VisualStudio\VS2022Extension\bin\$configuration\CodegenCS.VisualStudio.VS2022Extension.vsix .\packages-local\
 	
+	dotnet restore ".\VisualStudio\VS2022Extension\VS2019Extension.csproj"
 	& $msbuild ".\VisualStudio\VS2019Extension\VS2019Extension.csproj"   `
 			   /t:Restore /t:Build                                     `
-			   '/p:targetFrameworks="net472"'                 `
 			   /p:Configuration=$configuration                        		   
 	if (! $?) { throw "msbuild failed" }
 	copy .\VisualStudio\VS2019Extension\bin\$configuration\CodegenCS.VisualStudio.VS2019Extension.vsix .\packages-local\

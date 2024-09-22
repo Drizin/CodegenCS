@@ -1,5 +1,6 @@
 [cmdletbinding()]
 param(
+    [Parameter(Mandatory=$False)][ValidateSet('Release','Debug')][string]$configuration
 )
 
 $ErrorActionPreference="Stop"
@@ -23,7 +24,10 @@ Remove-Item -Recurse -Force -ErrorAction Ignore "$env:HOMEDRIVE$env:HOMEPATH\.nu
 gci $env:TEMP -r -filter CodegenCS.SourceGenerator.dll -ErrorAction Ignore | Remove-Item -Force -Recurse -ErrorAction Ignore
 gci "$($env:TEMP)\VBCSCompiler\AnalyzerAssemblyLoader" -r -ErrorAction Ignore | Remove-Item -Force -Recurse -ErrorAction Ignore
 
-$configuration = "Debug"
+if (-not $PSBoundParameters.ContainsKey('configuration'))
+{
+	if (Test-Path Release.snk) { $configuration = "Release"; } else { $configuration = "Debug"; }
+}
 Write-Host "Using configuration $configuration..." -ForegroundColor Yellow
 
 
@@ -64,7 +68,6 @@ dotnet restore .\SourceGenerator\CodegenCS.SourceGenerator\CodegenCS.SourceGener
 & $msbuild ".\SourceGenerator\CodegenCS.SourceGenerator\CodegenCS.SourceGenerator.csproj" `
            /t:Restore /t:Build /t:Pack                                          `
            /p:PackageOutputPath="..\..\packages-local\"      `
-           '/p:targetFrameworks="netstandard2.0;"'                 `
            /p:Configuration=$configuration                                      `
            /verbosity:minimal                                                   `
            /p:IncludeSymbols=true                                  `
@@ -81,7 +84,7 @@ if (Test-Path $7z) {
 
     # sanity check: nupkg should have debug-build dlls, pdb files, source files, etc.
     if (-not ($zipContents|Select-String "Path = "|Select-String "CodegenCS.Core.dll")) { throw "msbuild failed" } 
-    if (-not ($zipContents|Select-String "Path = "|Select-String "CodegenCS.Core.pdb")) { throw "msbuild failed" } 
+    if (-not ($zipContents|Select-String "Path = "|Select-String "CodegenCS.Core.pdb") -and $configuration -eq "Debug") { throw "msbuild failed" } 
 }
 
 

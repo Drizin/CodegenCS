@@ -18,7 +18,7 @@ Files are physically saved to disk and will be automatically added to your compi
 1. Install nuget `CodegenCS.MSBuild` to your project
    ```xml
    <ItemGroup>
-     <PackageReference Include="CodegenCS.MSBuild" Version="3.5.1" PrivateAssets="All" />
+     <PackageReference Include="CodegenCS.MSBuild" Version="3.5.2" PrivateAssets="All" />
    </ItemGroup>
    ```
 
