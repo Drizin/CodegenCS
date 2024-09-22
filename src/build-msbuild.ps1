@@ -1,4 +1,4 @@
-$version = "3.5.1"
+$version = "3.5.2"
 $nugetPE = "C:\ProgramData\chocolatey\bin\NuGetPackageExplorer.exe"
 $7z = "C:\Program Files\7-Zip\7z.exe"
 
@@ -84,7 +84,7 @@ if (Test-Path $7z) {
 
 # If task fails due to missing dependencies then fusion++ might help to identify what's missing: C:\ProgramData\chocolatey\lib\fusionplusplus\tools\Fusion++.exe
 
-# Test with SDK-Project
+# Test with SDK-Project using msbuild (.NET Framework)
 del ..\Samples\MSBuild1\*.g.cs
 del ..\Samples\MSBuild1\*.generated.cs
 #dotnet clean ..\Samples\MSBuild1\MSBuild1.csproj
@@ -103,7 +103,31 @@ C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe ..\Samples\MSBuild
 if (! $?) { throw "Template failed (classes were not added to the compilation)" }
 #C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.exe ..\Samples\MSBuild1\bin\$configuration\net8.0\MSBuild1.dll
 
-# Test with non-SDK-Project (Microsoft Framework Web Application)
+
+# Test with SDK-Project using dotnet build (.NET Core)
+del ..\Samples\MSBuild1\*.g.cs
+del ..\Samples\MSBuild1\*.generated.cs
+#dotnet clean ..\Samples\MSBuild1\MSBuild1.csproj
+dotnet restore ..\Samples\MSBuild1\MSBuild1.csproj
+& dotnet build "..\Samples\MSBuild1\MSBuild1.csproj" `
+           /t:Restore /t:Rebuild                                           `
+           /p:Configuration=$configuration                                      `
+           /verbosity:normal
+if (! $?) { throw "msbuild failed" }
+
+Write-Host "------------" -ForegroundColor Yellow
+
+if (-not (gci ..\Samples\MSBuild1\*.g.cs)){ throw "Template failed (classes were not added to the compilation)" }
+
+C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe ..\Samples\MSBuild1\bin\$configuration\net8.0\MSBuild1.dll -t MyFirstClass
+if (! $?) { throw "Template failed (classes were not added to the compilation)" }
+#C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.exe ..\Samples\MSBuild1\bin\$configuration\net8.0\MSBuild1.dll
+
+
+
+
+
+# Test with non-SDK-Project (Microsoft Framework Web Application) using msbuild (.NET Framework)
 del ..\Samples\MSBuild2\*.g.cs
 del ..\Samples\MSBuild2\*.generated.cs
 #dotnet clean ..\Samples\MSBuild2\WebApplication.csproj
@@ -122,6 +146,9 @@ if (-not (gci ..\Samples\MSBuild2\*.g.cs)){ throw "Template failed (classes were
 C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.Console.exe ..\Samples\MSBuild2\bin\WebApplication.dll -t MyFirstClass
 if (! $?) { throw "Template failed (classes were not added to the compilation)" }
 #C:\ProgramData\chocolatey\lib\dnspyex\tools\dnSpy.exe ..\Samples\MSBuild2\bin\WebApplication.dll
+
+
+# Test with non-SDK-Project (Microsoft Framework Web Application) using dotnet build (.NET Core) - doesnt work
 
 
 Pop-Location

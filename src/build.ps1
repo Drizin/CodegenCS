@@ -50,12 +50,12 @@ if ($configuration -eq "Release")
 
 . .\build-tools.ps1 -Configuration $configuration -targetFrameworks $targetFrameworks
 
-if ($configuration -eq "Debug") {
+if ($configuration -eq "Release") {
   . .\build-sourcegenerator.ps1
   . .\build-msbuild.ps1
 }
 # Unit tests # TODO: break this into CORE tests, MODEL tests, CLITESTS 
-dotnet build -c -Configuration $configuration .\Core\CodegenCS.Tests\CodegenCS.Tests.csproj
+dotnet build --configuration $configuration .\Core\CodegenCS.Tests\CodegenCS.Tests.csproj
 #dotnet test  Core\CodegenCS.Tests\CodegenCS.Tests.csproj
 
 # VSExtension (not working with Release yet - error NU1106: Unable to satisfy conflicting requests)

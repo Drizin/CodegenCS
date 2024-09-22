@@ -24,6 +24,16 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F23C0124-9B89-4AD5-98BB-64E4732D665E}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		build-clean.ps1 = build-clean.ps1
+		build-core.ps1 = build-core.ps1
+		build-external.ps1 = build-external.ps1
+		build-include.ps1 = build-include.ps1
+		build-models.ps1 = build-models.ps1
+		build-msbuild.ps1 = build-msbuild.ps1
+		build-sourcegenerator.ps1 = build-sourcegenerator.ps1
+		build-tools.ps1 = build-tools.ps1
+		build-visualstudio.ps1 = build-visualstudio.ps1
+		build.ps1 = build.ps1
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenCS.Tools.TemplateDownloader", "Tools\TemplateDownloader\CodegenCS.Tools.TemplateDownloader.csproj", "{C02EEB5C-BC31-4313-8FBE-37748A6A4E37}"

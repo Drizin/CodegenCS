@@ -171,8 +171,8 @@
       <ItemGroup>
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.runtime\3.5.0\lib\netstandard2.0\CodegenCS.Runtime.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.runtime\3.5.0\lib\netstandard2.0\CodegenCS.Runtime.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.runtime\3.5.2\lib\netstandard2.0\CodegenCS.Runtime.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.runtime\3.5.2\lib\netstandard2.0\CodegenCS.Runtime.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(PkgNewtonsoft_Json)\..\..\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
@@ -224,8 +224,8 @@
     <ItemGroup Condition="'$(Configuration)' == 'Release'">
       <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.core\3.5.0\lib\netstandard2.0\CodegenCS.Core.pdb" IncludeRuntimeDependency="false" />
-      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.runtime\3.5.0\lib\netstandard2.0\CodegenCS.Runtime.dll" IncludeRuntimeDependency="false" />
-      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.runtime\3.5.0\lib\netstandard2.0\CodegenCS.Runtime.pdb" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.runtime\3.5.2\lib\netstandard2.0\CodegenCS.Runtime.dll" IncludeRuntimeDependency="false" />
+      <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.runtime\3.5.2\lib\netstandard2.0\CodegenCS.Runtime.pdb" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.dll" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.dotnet\3.5.0\lib\netstandard2.0\CodegenCS.DotNet.pdb" IncludeRuntimeDependency="false" />
       <TargetPathWithTargetPlatformMoniker Include="$(USERPROFILE)\.nuget\packages\codegencs.models\3.5.0\lib\netstandard2.0\CodegenCS.Models.dll" IncludeRuntimeDependency="false" />

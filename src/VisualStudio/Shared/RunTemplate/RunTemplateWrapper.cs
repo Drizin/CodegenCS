@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis;
 using System.Collections.Generic;
 #if VS2019
 using VisualStudioPackage = CodegenCS.VisualStudio.VS2019Extension.VisualStudioPackage;
+using CodegenCS.Runtime.Reflection;
 #else
 using VisualStudioPackage = CodegenCS.VisualStudio.VS2022Extension.VisualStudioPackage;
 #endif
@@ -214,9 +215,15 @@ namespace CodegenCS.VisualStudio.Shared.RunTemplate
             {
                 // All assemblies loaded by Visual Studio should be available to child AppDomain
                 var hostAssemblies = AssemblyLoaderInitialization.GetCurrentAssemblies();
+                List<string> searchPaths = new List<string>()
+                            {
+                                Path.GetDirectoryName(Assembly.GetAssembly(typeof(TemplateLauncher.TemplateLauncher)).Location),
+                                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                                //TODO: Add to searchPaths locations of all available dlls in hostAssemblies folders? Or maybe only VS folders?
+                            }.Distinct().ToList();
 
                 // Since AssembliesLoader is [Serializable] we just create it here and pass it to child AppDomain:
-                var loader = new AssembliesLoader(hostAssemblies);
+                var loader = new AssembliesLoader(null, hostAssemblies, searchPaths);
                 isolatedScope.Loader ??= loader;
                 // if AssembliesLoader was MarshalByRefObject then we would create it directly in the child AppDomain: var loader = isolatedScope.Create<AssembliesLoader>(hostAssemblies); 
                 // else (not [Serializable] nor MarshalByRefObject) then we could use callback AppDomainSetup.AppDomainInitializer to deserialize hostAssemblies and create a new AssembliesLoader

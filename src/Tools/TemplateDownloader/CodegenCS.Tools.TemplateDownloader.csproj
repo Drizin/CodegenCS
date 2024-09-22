@@ -70,7 +70,7 @@
     <Otherwise>
       <ItemGroup>
         <PackageReference Include="CodegenCS.Core" Version="3.5.0" />
-        <PackageReference Include="CodegenCS.Runtime" Version="3.5.0" />
+        <PackageReference Include="CodegenCS.Runtime" Version="3.5.2" />
       </ItemGroup>
     </Otherwise>
   </Choose>

@@ -1,5 +1,6 @@
 ﻿using CodegenCS.DotNet;
 using CodegenCS.Runtime;
+using CodegenCS.Runtime.Reflection;
 using CodegenCS.Utils;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -41,12 +42,17 @@ namespace CodegenCS.MSBuild
         public string SolutionFilePath { get; set; }
         public ITaskItem[] CodegenTemplates { get; set; }
 
-        ILogger _logger = new DebugOutputLogger(); // TODO: create logger that according to severity call Log.LogMessage/LogWarning/LogError
+        protected ILogger _logger;
 
         DotNetCodegenContext _codegenContext;
         string _executionFolder;
         string _outputFolder;
         ExecutionContext _codegenExecutionContext;
+        
+        public CodegenBuildTask()
+        {
+            _logger = new MSBuildLogger(this);
+        }
 
         public override bool Execute()
         {
@@ -107,6 +113,27 @@ namespace CodegenCS.MSBuild
                         //TODO: CodegenCS.Runtime.VisualStudio should multitarget to netstandard, or even better: hierarchy ProjectExecutionContext, SolutionExecutionContext, etc.
                         //_codegenExecutionContext = new VSExecutionContext(templatePath, projectPath, solutionPath);
                         _codegenExecutionContext = new ExecutionContext(templatePath, _executionFolder);
+
+                        // When this MSBuild task is executed through dotnet build (.NET Core) it should use existing loaded assemblies (if any) to avoid type mismatches among same assembly loaded from different paths (different CodeBase)
+                        // When using msbuild (.NET Framework) there's no conflict (even if using Assembly.LoadFrom(path))
+                        var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies()
+                            .Where(asm => !asm.IsDynamic)
+                            .Select(asm => new LoadedAssemblyInfo()
+                            {
+                                Assembly = asm,
+                                Name = asm.GetName().Name,
+                                Version = asm.GetName().Version
+                            }).ToList();
+                        List<string> searchPaths = new List<string>() 
+                        {
+                            Path.GetDirectoryName(Assembly.GetAssembly(typeof(TemplateLauncher.TemplateLauncher)).Location),
+                            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                            //TODO: Add to searchPaths locations of all available dlls in loadableAssemblies folders? Or maybe only VS folders?
+                        }.Distinct().ToList();
+                        
+                        var loader = new AssembliesLoader(loadedAssemblies, null, searchPaths);
+                        AppDomain.CurrentDomain.AssemblyResolve += loader.AssemblyResolve;
+
 
                         Log.LogMessage(MessageImportance.High, $"Running Template \"{templatePath}\"");
                         var runResult = RunTemplateAsync(templatePath, templateDll, defaultOutputFile).ConfigureAwait(false).GetAwaiter().GetResult(); // TODO: incremental generators have async support
@@ -197,7 +224,6 @@ namespace CodegenCS.MSBuild
                 OutputFolder = _outputFolder,
                 ExecutionFolder = _executionFolder,
                 DefaultOutputFile = defaultOutputFile,
-                ResolveMissingAssembliesLocally = true,
             };
             var searchPaths = new string[] { new FileInfo(templateItemPath).Directory.FullName, _executionFolder };
             var dependencyContainer = new DependencyContainer().AddModelFactory(searchPaths);
@@ -215,6 +241,7 @@ namespace CodegenCS.MSBuild
             catch (Exception ex)
             {
                 Log.LogError(ExecutionFailure, templateItemPath, $"CodegenCS - error running template: {ex.GetBaseException().Message}");
+                Log.LogError(ExecutionFailure, templateItemPath, $"CodegenCS - error running template: {ex.ToString()}");
                 return -3;
             }
 

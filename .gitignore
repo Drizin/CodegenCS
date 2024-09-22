@@ -349,3 +349,5 @@ dotnet-tools.json
 /Samples/PrebuildEvent/DapperExtensionPocos.dll
 /src/MSBuild/CodegenCS.MSBuild/CodegenCS.MSBuild.xml
 /nuget.exe
+/src/SourceGenerator/CodegenCS.SourceGenerator/CodegenCS.SourceGenerator.xml
+/src/nuget.exe

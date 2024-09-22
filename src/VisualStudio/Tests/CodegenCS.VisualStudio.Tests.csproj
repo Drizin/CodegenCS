@@ -57,7 +57,7 @@
     <Otherwise>
       <ItemGroup>
         <PackageReference Include="CodegenCS.Core" Version="3.5.0" />
-        <PackageReference Include="CodegenCS.Runtime" Version="3.5.0" />
+        <PackageReference Include="CodegenCS.Runtime" Version="3.5.2" />
         <PackageReference Include="CodegenCS.Models" Version="3.5.0" />
         <PackageReference Include="CodegenCS.DotNet" Version="3.5.0" />
         <PackageReference Include="CodegenCS.Models.DbSchema" Version="3.5.0" />
